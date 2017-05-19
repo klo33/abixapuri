@@ -1,10 +1,17 @@
 // ==UserScript==
 // @name        AbittiApuri-skripti
-// @namespace   https://sites.google.com/view/abittiapuri/abittiapuri-skriptilaajennus
-// @description AbittiApuri
+// @name:se     AbiHjälpare-skripten
+// @namespace   http://kauniaistenlukio.fi
+// @description AbittiApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
+// @description:se  AbiHjälpare ger extra till oma.abitti.fi
 // @include     https://oma.abitti.fi/school/exam/*
-// @version     0.0.2
+// @version     0.0.3
 // @grant       none
+// @downloadUrl https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.user.js
+// @updateUrl   https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.meta.js
+// @resource    APURIstyle  abiapuri.css
+// @grant           GM_addStyle
+// @grant           GM_getResourceText
 // ==/UserScript==
 
 /* AUTHOR Joni Lehtola, 2017
@@ -16,7 +23,12 @@
 if (typeof APURI === "undefined") 
         var APURI ={
 					modal_background_style:  "position: fixed; top: 60px; left: 0; width: 100%; height: 90%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
-					modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;"
+					modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
+                                        questionsort: { 
+                                            'bufferOld': {}, 
+                                            bufferOrder: [],
+                                            changed: false
+                                        }
 		};
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
@@ -72,16 +84,19 @@ if (typeof APURI.examImportCurrent !== 'function') {
 }
 // https://oma.abitti.fi
 if (typeof APURI.examSaveCurrent !== 'function') {
-	APURI.examSaveCurrent = function(exam) {
+	APURI.examSaveCurrent = function(exam, reload = true) {
 		$.ajax({
 			type: "POST",
 			url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
-			// The key needs to match your method's input parameter (case-sensitive).
 			data: JSON.stringify(exam.content),
 			accept: "application/json; text/javascript",
 			contentType: "application/json; charset=UTF-8",
 			dataType: "json",
-			success: function(data){console.log("Saved successfully"); window.location.reload(true);},
+			success: function(data){
+                            console.log("Saved successfully"); 
+                            if (reload)
+                                window.location.reload(true);
+                        },
 			failure: function(errMsg) {
 				console.log("ERROR: "+errMsg);
 				
@@ -234,6 +249,7 @@ if (typeof APURI.examImportQuestion !== 'function') {
 						var largestId = APURI.findLargestId(current);
 						console.log("Largest id "+ largestId+" Next: set ids");
 						APURI.traverseSetId(question, largestId+1);
+                                                //TODO luottaa, että sections[0] olemassa
 						current.content.sections[0].questions.push(question);
 						// reorganize displaynumbers
 						console.log('DisplayNumber setting');
@@ -305,6 +321,8 @@ if (typeof APURI.closeModal !== 'function') {
 	APURI.closeModal = function() {
 		$('#APURI_modal_back').remove();
 		$('#APURI_modal_content').remove();
+                if (APURI.questionsort.changed)
+                    location.reload();
 	}
 }
 
@@ -313,6 +331,8 @@ if (typeof APURI.closeModal !== 'function') {
 if (typeof APURI.showSortDialog !== 'function') {
     APURI.showSortDialog = function() {
         APURI.examImportCurrent(function(current){
+                APURI.questionsort.bufferOld = current;
+                APURI.questionsort.changed = false;
                 if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
                         var outdiv = $('<div />');
                         outdiv.attr("class", "APURImodal_back");
@@ -347,25 +367,54 @@ if (typeof APURI.showSortDialog !== 'function') {
                                 }
                                 //sisul.html(buffer);
                 var closeButton = $('<button />');
-                closeButton.html("Sulje muuttamatta järjestystä");
+                closeButton.html("Sulje");
                 closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
                 closeButton[0].onclick = APURI.closeModal;
                 var closeButton2 = $('<button />');
                 closeButton2.html("X");
                 closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
                 closeButton2[0].onclick = APURI.closeModal;
-                var applyButton	= $('<button />');
-                applyButton.html("Toteuta järjestysmuutokset");
-                applyButton.attr("style", "position: fixed; bottom: 10px; left: 30%;");
-                // TODO tee muutos tähän
-                applyButton[0].onclick = APURI.closeModal;
 
                 outdiv.appendTo('body');
                 div.html("<h3>Järjestele koetehtävät</h3>")
                 .append($('<p />').html("Raahaa koetehtävät haluaamaasi järjestykseen"))
                 .append(sectul).append(closeButton).append(closeButton2).appendTo('body');
-				var sorted = document.getElementById("APURI_sort_question");
-				Sortable.create(sorted);
+                
+                var sorted = document.getElementById("APURI_sort_question");
+                Sortable.create(sorted, {
+                    group: "questions",
+                    store: {
+                        get: function(sortable) {
+                            var arrkey = sortable.toArray();
+                            for (var i=0; i<arrkey.length; i++) {
+                                // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
+                                APURI.questionsort.bufferOrder[arrkey[i]] = current.content.sections[0].questions[i];
+                            }
+                            console.log("Sortable.store.Get:"+sortable.options.group.name);
+                        },
+                        set: function(sortable) {
+                            console.log("Sortable.store.SET:"+sortable.options.group.name);
+                            console.log(sortable.toArray());
+                            APURI.questionsort.bufferSaved = APURI.questionsort.bufferOld;
+                            var arrkey = sortable.toArray();
+                            for (var i=0; i<arrkey.length; i++) {
+                                // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
+                                APURI.questionsort.bufferSaved.content.sections[0].questions[i] = APURI.questionsort.bufferOrder[arrkey[i]];
+                            }
+                            APURI.questionsort.changed = true;
+                            //TODO luottaa, että sections[0] olemassa
+                            // reorganize displaynumbers
+                            console.log('DisplayNumber setting');
+                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0)
+                            APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                            console.log('Trying saving');
+                            APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
+                            console.log('...');
+
+                        }
+                    }
+                });
+                
                 }
         });
 
@@ -421,6 +470,8 @@ if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
 		console.log("CKEDITOR-rep-spawned");
 		var x = document.getElementsByClassName("questionText");
+                x = x.concat(document.getElementsByClassName("instructionInput"), 
+                        document.getElementsByClassName("choiceInstruction"));
 	    for (var i=0; i<x.length; i++) {
 			if (!x[i].getAttribute("name")) {
 				console.log("CKEDITOR"+i+"!" );
@@ -530,14 +581,17 @@ require(['CKEditor'], function (CKEditor){
 	
 	
 	if (typeof APURI.initUITimer === 'undefined')
-		APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
+                APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
 	if (typeof APURI.initBoxesTimer === 'undefined')
-		APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
+                APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
    	script.onload = function() {
-		CKEDITOR.editorConfig = function( config ) {
-			config.language = 'fi';
-			//config.fileBrowserUploadUrl = 'base64';
-		};
-	console.log("CKEDITOR-conf-spawned");
+            CKEDITOR.editorConfig = function( config ) {
+                    config.language = 'fi';
+                    //config.fileBrowserUploadUrl = 'base64';
+            };
+            console.log("CKEDITOR-conf-spawned");
 	};
 })();
+
+var cssTxt  = GM_getResourceText("APURIstyle");
+GM_addStyle (cssTxt);
