@@ -497,23 +497,33 @@ if (typeof APURI.showUI !== 'function') {
 	script.type = "text/javascript";
 	script.src = 'https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js';
 	
-	var scriptSort = document.createElement("script");
+	//var scriptSort = document.createElement("script");
 	
-	scriptSort.type = "text/javascript";
+	//scriptSort.type = "text/javascript";
 	//scriptSort.setAttribute("data-main", 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js');
-	scriptSort.src = 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js';
+	//scriptSort.src = 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js';
 //	scriptSort.src = 'https://raw.githubusercontent.com/requirejs/requirejs/master/require.js';
 	
 requirejs.config({
     paths: {
         'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
+        // NOT WORKING with RequireJS 'CKEditor': 'https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor'
     }
 });
 
 require(['Sortable'], function (Sortable){
 		window.Sortable = Sortable; // exports
 	});
-	
+        /* // NOT WORKING with 
+require(['CKEditor'], function (CKEditor){
+                console.log("CKEDITOR loaded and armed");
+		window.CKEDITOR = CKEditor; // exports
+                CKEDITOR.editorConfig = function( config ) {
+			config.language = 'fi';
+			//config.fileBrowserUploadUrl = 'base64';
+		};
+	});
+	*/
 	document.body.appendChild(script);
 	
 	
@@ -522,13 +532,12 @@ require(['Sortable'], function (Sortable){
 	if (typeof APURI.initUITimer === 'undefined')
 		APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
 	if (typeof APURI.initBoxesTimer === 'undefined')
-		APURI.initBoxesTimer = windows.setIntervar(APURI.replaceBoxes, 2000);
+		APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
    	script.onload = function() {
 		CKEDITOR.editorConfig = function( config ) {
 			config.language = 'fi';
 			//config.fileBrowserUploadUrl = 'base64';
 		};
 	console.log("CKEDITOR-conf-spawned");
-	setTimeout(APURI.showUI,6000);
 	};
 })();
