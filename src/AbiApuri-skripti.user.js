@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        AbittiApuri-skripti
-// @name:se     AbiHjälpare-skripten
+// @name        AbixApuri-skripti
+// @name:se     AbixHjälpare-skripten
 // @namespace   http://kauniaistenlukio.fi
-// @description AbittiApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:se  AbiHjälpare ger extra till oma.abitti.fi
+// @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
+// @description:se  AbixHjälpare ger extra till oma.abitti.fi
 // @include     https://oma.abitti.fi/school/exam/*
 // @version     0.0.3
 // @grant       none
@@ -22,31 +22,74 @@
  */
 if (typeof APURI === "undefined") 
         var APURI ={
-					modal_background_style:  "position: fixed; top: 60px; left: 0; width: 100%; height: 90%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
-					modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
-                                        questionsort: { 
-                                            'bufferOld': {}, 
-                                            bufferOrder: [],
-                                            changed: false
-                                        }
-		};
+            modal_background_style:  "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
+            modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
+            questionsort: { 
+                'bufferOld': {}, 
+                bufferOrder: [],
+                changed: false
+            },
+            replacedFields: {
+                list: [],
+                contentLength: 0,
+                calculateLength: function() {
+                    var count;
+                    for (var i=0; i< APURI.replacedFields.list.length; i++) {
+                        count += list.innerHTML.length();
+                    }
+                    APURI.replacedFields.contentLength = count;
+                    return count;
+                },
+                contentLimit: 500000,
+                triggeringField: undefined,
+                postponedSaving: false
+            },
+            postponedSaving: {
+                isPostponed: false,
+                triggeringField: undefined,
+                postponeDelay: 60000,
+                postponeTimer: {}
+            }
+        };
+
+if (typeof APURI.paivkentTrigger !== 'function') {
+	APURI.paivkentTrigger = function(va) {
+		va.trigger("change");
+		va.trigger("input");
+		va.trigger("contentChanged");
+                /*var e = jQuery.Event("keydown");
+		e.which = 70;
+		va.trigger(e);
+		var eu = jQuery.Event("keyup");
+		eu.which = 70;
+		va.trigger(eu);*/
+        }
+    }
+
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
-	
+                
 		console.log("c:" + elem);
 		var va = $('textarea[name='+elem+']');
 		console.log("v:"+va.val());
+                // TODO if input length is more than certain limit check total length
+                // if still true activate postponation
 		va.val(input);
 		va[0].innerHTML=input;
 		va.trigger("change");
 		va.trigger("input");
 		va.trigger("contentChanged");
-		var e = jQuery.Event("keydown");
-		e.which = 70;
-		va.trigger(e);
-		var eu = jQuery.Event("keyup");
-		eu.which = 70;
-		va.trigger(eu);
+                // TODO check is postponationcondition true
+                if (true) {
+                    APURI.paivkentTrigger(va);
+                } else {
+                    // TODO
+                    // spawn postponed saving which
+                    // sets timer
+                    // saves the field
+                    // initiates the postponed timer visual flag timer too
+                    // which check in intervals whether postponation is still valid
+                }
 	}
 }
 
@@ -106,6 +149,7 @@ if (typeof APURI.examSaveCurrent !== 'function') {
 	}
 }
 
+// source: copied from ...
 if (typeof APURI.shortenText !== 'function') {
 	APURI.shortenText = function(text,maxLength,options) {
 		if ( text.length <= maxLength ) {
@@ -138,6 +182,8 @@ if (typeof APURI.shortenText !== 'function') {
 	}
 }
 
+
+// MIKSI TÄMÄ ALLA OLEVA?? TODO tarkista ja poista!
 if (typeof APURI.findLargestId !== 'function') {
 	APURI.findLargestId = function(obj, largest) {
 		var largestId = 0;
@@ -358,8 +404,25 @@ if (typeof APURI.showSortDialog !== 'function') {
                                                         var question = section.questions[j];
                                                         console.log(".");
                                                         var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
-                                                        var sis = $('<li />').attr('name',"q_"+question.id).html(question.displayNumber+": "+text);
-                                                       
+                                                        var sis = $('<li />').attr('name',"q_"+question.id)
+                                                                .attr('class',"APURI_sortable_question")
+                                                                .html(question.displayNumber+": "+text);
+                                                        // jos monivalinta niin mahdollista kysymysten sorttaus
+                                                        if (typeof question.type !== 'undefined' && 
+                                                                question.type === 'choicegroup' &&
+                                                                typeof question.choices !== 'undefined') {
+                                                            var coul = $('<ul />');
+                                                            coul.attr("id", "APURI_sort_choice"+i+"."+j);
+                                                            sis.append(coul);
+                                                            for (var k=0; k<question.choices.length; k++) {
+                                                                var choice = question.choices[k];
+                                                                var text = APURI.shortenText($("<div />").html(choice.text).text(), 100);
+                                                                var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id)
+                                                                        .attr('class',"APURI_sortable_choice")
+                                                                        .html(choice.displayNumber+": "+text);
+                                                                coul.append(cli);
+                                                            }
+                                                        }
                                                         qul.append(sis);
 
                                                 }
@@ -435,12 +498,13 @@ if (typeof APURI.showImportDialog !== 'function') {
 			div.attr("style", APURI.modal_foreground_style);
 			
 			var ul = $('<ul />');//.html(buffer);
+                        ul.attr('class', 'APURI_examlist');
 			$.each(data.exams, function(index, value) {
-						var sis = $('<li />').attr('name','exam_'+value.examUuid);
+						var sis = $('<li />').attr('name','exam_'+value.examUuid).attr('class','APURI_import_exam');
 						var sisa = $('<a />').attr('href','#').attr('uuid',value.examUuid).attr('class','unloaded').html(value.title);
-						//(function(innerExamUuid){
+
 						sisa[0].onclick = APURI.examImportExpand;
-						//})(value.examUuid);
+
 						ul.append(sis.append(sisa));
 						
 						//html = "<li name='exam_"+value.examUuid+"'><a href=\"#\" class='unloaded' onclick='APURI.examImportExpand(\""+value.examUuid+"\");'>"+value.title+"</a></li>";
@@ -469,9 +533,22 @@ if (typeof APURI.showImportDialog !== 'function') {
 if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
 		console.log("CKEDITOR-rep-spawned");
-		var x = document.getElementsByClassName("questionText");
-                x = x.concat(document.getElementsByClassName("instructionInput"), 
-                        document.getElementsByClassName("choiceInstruction"));
+                var heightVal ={'questionText': 320,
+				'instructionInput': 120,
+				'choiceInstruction': 120};
+                var fieldNames = Object.keys(heightVal);
+                var x = []; // all textarea elements
+                for (var j=0; j<fieldNames.length; j++) {
+                    x = x.concat(Array.prototype.slice.call(document.getElementsByClassName(fieldNames[j])));
+                }
+                var y = document.getElementById('instructionInput');
+                y.setAttribute('class', 'instuctionInput');
+                x.push(y);
+            
+   /*		var x = (Array.prototype.slice.call(document.getElementsByClassName("questionText"))).concat(
+                            Array.prototype.slice.call(document.getElementsByClassName("instructionInput")),
+                            Array.prototype.slice.call(document.getElementsByClassName("choiceInstruction")));*/
+       	console.log("CKEDITOR-rep-spawned for "+x.length + " elements");
 	    for (var i=0; i<x.length; i++) {
 			if (!x[i].getAttribute("name")) {
 				console.log("CKEDITOR"+i+"!" );
@@ -480,7 +557,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 				
 					extraPlugins: 'mathjax',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
-					height: 320,
+					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64'
 				});
 				(function(inner_elem){
@@ -495,16 +572,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 										})(elem);
 			}
 	    }
-		   /*
-				   for (var i in CKEDITOR.instances) {
-				   //console.log("Creating: "+ CKEDITOR.instances[i].element  +"-"+JSON.stringify(CKEDITOR.instances[i].element, null, 4););
-					printObject(CKEDITOR.instances[i].element);
-					CKEDITOR.instances[i].on('change', function() {
-
-								CKEDITOR.instances[i].updateElement();
-								APURI.paivkent(CKEDITOR.instances[i].element); });
-					
-			}*/
+		   
 	}
 }
 
@@ -532,29 +600,52 @@ if (typeof APURI.showUI !== 'function') {
 	}
 }
 
+if (typeof APURI.loadScriptDirect !== 'function') {
+	APURI.loadScriptDirect = function(url, onload) {
+            	var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = url;
+                console.log("Loading url "+url);
+                if (typeof onload !== 'undefined') {
+                    console.log("For "+url+" found handler");
+                    script.onload=onload;
+                }
+                document.body.appendChild(script);
+        }
+    }
 
 
 (function() {
     //APURI.examImportCurrent();
 	console.log("*");
-	
+	/*
 	var safeWrapBegin = document.createElement("script");
 	safeWrapBegin.innerHTML = "window.__define = window.define; window.__require = window.require; window.define = undefined; window.require = undefined;";
 	var safeWrapEnd = document.createElement("script");
 	safeWrapEnd.innerHTML = "window.define = window.__define; window.require = window.__require; window.__define = undefined; window.__require = undefined;";
 	
+        
 	
 	var script = document.createElement("script");
 	script.type = "text/javascript";
 	script.src = 'https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js';
-	
+	*/
 	//var scriptSort = document.createElement("script");
 	
 	//scriptSort.type = "text/javascript";
 	//scriptSort.setAttribute("data-main", 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js');
 	//scriptSort.src = 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js';
 //	scriptSort.src = 'https://raw.githubusercontent.com/requirejs/requirejs/master/require.js';
-	
+	APURI.loadScriptDirect('https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js',
+            function() {
+                CKEDITOR.editorConfig = function( config ) {
+                    config.language = 'fi';
+                    //config.fileBrowserUploadUrl = 'base64';
+                };
+            }
+        );
+        APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+        
 requirejs.config({
     paths: {
         'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
@@ -575,7 +666,7 @@ require(['CKEditor'], function (CKEditor){
 		};
 	});
 	*/
-	document.body.appendChild(script);
+	//document.body.appendChild(script);
 	
 	
 	
@@ -584,13 +675,13 @@ require(['CKEditor'], function (CKEditor){
                 APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
 	if (typeof APURI.initBoxesTimer === 'undefined')
                 APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
-   	script.onload = function() {
+   	/*script.onload = function() {
             CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
                     //config.fileBrowserUploadUrl = 'base64';
             };
             console.log("CKEDITOR-conf-spawned");
-	};
+	};*/
 })();
 
 var cssTxt  = GM_getResourceText("APURIstyle");
