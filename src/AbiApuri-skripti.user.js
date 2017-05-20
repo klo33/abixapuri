@@ -27,7 +27,13 @@ if (typeof APURI === "undefined")
             questionsort: { 
                 'bufferOld': {}, 
                 bufferOrder: [],
-                changed: false
+                changed: false,
+                sortGetHandler: function(sortable) {
+                    
+                },
+                sortSetHandler: function(sortable) {
+                    
+                }
             },
             replacedFields: {
                 list: [],
@@ -372,12 +378,14 @@ if (typeof APURI.closeModal !== 'function') {
 	}
 }
 
-
+APURI.sort = {
+    
+}
 
 if (typeof APURI.showSortDialog !== 'function') {
     APURI.showSortDialog = function() {
         APURI.examImportCurrent(function(current){
-                APURI.questionsort.bufferOld = current;
+                APURI.questionsort.bufferOld = $.extend(true, {}, current);
                 APURI.questionsort.changed = false;
                 if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
                         var outdiv = $('<div />');
@@ -449,20 +457,21 @@ if (typeof APURI.showSortDialog !== 'function') {
                     store: {
                         get: function(sortable) {
                             var arrkey = sortable.toArray();
+                            APURI.questionsort.bufferOrder[sortable.options.group.name] = [];
                             for (var i=0; i<arrkey.length; i++) {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
-                                APURI.questionsort.bufferOrder[arrkey[i]] = current.content.sections[0].questions[i];
+                                APURI.questionsort.bufferOrder[sortable.options.group.name][arrkey[i]] = current.content.sections[0].questions[i];
                             }
                             console.log("Sortable.store.Get:"+sortable.options.group.name);
                         },
                         set: function(sortable) {
                             console.log("Sortable.store.SET:"+sortable.options.group.name);
                             console.log(sortable.toArray());
-                            APURI.questionsort.bufferSaved = APURI.questionsort.bufferOld;
+                            APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
                             var arrkey = sortable.toArray();
                             for (var i=0; i<arrkey.length; i++) {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
-                                APURI.questionsort.bufferSaved.content.sections[0].questions[i] = APURI.questionsort.bufferOrder[arrkey[i]];
+                                APURI.questionsort.bufferSaved.content.sections[0].questions[i] = APURI.questionsort.bufferOrder[sortable.options.group.name][arrkey[i]];
                             }
                             APURI.questionsort.changed = true;
                             //TODO luottaa, että sections[0] olemassa
