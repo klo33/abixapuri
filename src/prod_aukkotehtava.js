@@ -4,9 +4,9 @@
  * and open the template in the editor.
  */
 
-
+/*
 <!-- Kopioi tämä teksti tehtävänantoon. Itse aukkoteksti laitetaan tehtävänantoon normaalisti, aukon kohdalle kirjoitetaan [] -->
-<script type="text/javascript">
+<script type="text/javascript">*/
     /*%%%PROD_AUKKO%%% Koodi pois tekstistä */
     if (typeof APURI === "undefined") 
         var APURI ={};
@@ -27,7 +27,7 @@
                                     va.trigger(eu);
 				}
 			}
-        }
+        };
     }
     if (typeof APURI.purku !== 'function') {
        APURI.purku = function(element) {
@@ -69,14 +69,14 @@
                             result.appendChild(subnode.cloneNode(true));
                        }
                    }
-                   
+                   /*
                                if (typeof value === 'Text') {
                         
-                    } else if (typeof value === ''
+                    } else if (typeof value === ''*/
                         
                    });
            }
-       }
+       };
     }
     
     if (typeof APURI.count === "undefined")
@@ -98,11 +98,11 @@
                 vastRootNode.id = "apuri_vastk_"+APURI.count;
                 vastRootNode.style.height = "10px";
                 vastRootNode.style.display="none";
-                var uusiNode = APURI.purku(omaNode);
-                tehtAntoRootNode.insertBefore(uusiNode, omaNode.nextSibling);
+                var uusiNode = APURI.purku(currentNode);
+                tehtAntoRootNode.insertBefore(uusiNode, currentNode.nextSibling);
                 APURI.count++;
            }
-       }
+       };
     }
 
                                    
@@ -114,32 +114,9 @@
         omaNode = omaNode.parentNode;
     }
     APURI.pjono.push(omaNode);
-    //var teksti = omaNode.textContent;
-    //var teksti = omaNode.innerHtml;
-    //teksti = teksti.replace(/\s*\<script[^\>]*\>\s*\/\*\%\%\%[\s\S]*\%\%\%\*\/\s*\<\/script\>\s*/g, ""); 
-  /*  
-    var res = teksti.trim().split("[]");
-    var juuri = document.createElement("span");
-    juuri.className = omaNode.className;    
-    
-    for (var i = 0; i<res.length; i++) { 
-        if (i>0) {		
-            var formNode = document.createElement("form");
-            formNode.style.display="inline";
-            var inputNode = document.createElement("input");
-            inputNode.setAttribute("type", "text");
-            inputNode.setAttribute("length", "10");
-			inputNode.setAttribute("onChange", "APURI.paivvast(event, this, \'apuri_vastk_"+APURI.count+"\', "+(i)+", false);");
-			inputNode.setAttribute("onKeyup", "APURI.paivvast(event, this, \'apuri_vastk_"+APURI.count+"\', "+(i)+", true);");
-            formNode.appendChild(inputNode);
-            juuri.appendChild(formNode);
-            			
-        }
-        juuri.appendChild(document.createTextNode(res[i]));
-    }
-    tehtAntoRootNode.insertBefore(juuri, omaNode.nextSibling);
-    */
+    APURI.purkuprocessTrigger();
+   
     })();
     /* Koodi loppuu tähän %%%*/
-</script>
+/* </script>*/
 
