@@ -37,22 +37,93 @@ if (typeof APURI === "undefined")
                 list: [], // täydennä {field: , indicator: }
                 contentLength: 0,
                 calculateLength: function() {
-                    var count;
+                    var count =0;
                     for (var i=0; i< APURI.replacedFields.list.length; i++) {
-                        count += list[i].field.innerHTML.length();
+                        
+                        count += APURI.replacedFields.list[i].field.value.length;
                     }
                     APURI.replacedFields.contentLength = count;
+                    if (count > APURI.postponedSaving.contentLimit) {
+                        APURI.replacedFields.postponedSaving = true;
+                    } else {
+                        APURI.replacedFields.postponedSaving = false;
+                    }
+                    console.log("PITKÄÄ "+count);
                     return count;
                 },
-                contentLimit: 500000,
                 triggeringField: undefined,
                 postponedSaving: false
             },
             postponedSaving: {
-                isPostponed: false,
+                isPostponed: function() {
+                    if (!APURI.replacedFields.postponedSaving)
+                        return false;
+                    return (++APURI.postponedSaving.isPostponedCount > 1);
+                }, // OLI boolean nyt function poistettu käytöstä
+                isPostponedCount: 0, // 0 false, 2 true
+                contentLimit: 50000,
+                singleFieldLimit: 5000,
                 triggeringField: undefined,
-                postponeDelay: 60000,
-                postponeTimer: {}
+                postponeDelay: 30000,
+                //postponeTimer: {},
+                start: function(initelem) {
+                    console.log("Postcount:"+APURI.postponedSaving.isPostponedCount)
+                    if (APURI.postponedSaving.isPostponedCount < 3) {
+                        console.log("START delayd");
+                     // true;
+                    if (typeof initelem !== 'undefined')
+                        APURI.postponedSaving.triggeringField = initelem;
+                    if (typeof APURI.postponedSaving.postponeTimer === 'undefined') {
+                        APURI.postponedSaving.postponeTimer = unsafeWindow.setTimeout(APURI.postponedSaving.timetrigger, APURI.postponedSaving.postponeDelay);
+                    }
+                    APURI.ui.showDelaydsavingNotice();
+                    }
+                },
+                timetrigger: function() {
+                    console.log("TIMETRIGGER delaydsaving");
+                    APURI.postponedSaving.isPostponedCount = 0; // false;
+                    APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);                    
+                    delete APURI.postponedSaving.postponeTimer;
+                    APURI.ui.clearDelaydsavingNotice();
+                },
+                manualTrigger: function() {
+                    console.log("MANTRIGGER delaydsaving");
+                    APURI.postponedSaving.isPostponedCount = 0; //false;
+                    if (typeof APURI.postponedSaving.triggeringField !== 'undefined')
+                        APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);
+                    else
+                        APURI.paivkentTrigger($('textarea')[0]); // jollei tietoa, niin valitaan vain joku kenttä.
+                    if (typeof APURI.postponedSaving.postponeTimer !== 'undefined') {
+                        unsafeWindow.clearTimeout(APURI.postponedSaving.postponeTimer);
+                        delete APURI.postponedSaving.postponeTimer;
+                    }
+                    APURI.ui.clearDelaydsavingNotice();
+                }
+            },
+            ui: {
+                showDelaydsavingNotice: function() {
+                    // TODO KIRJOITA LOPPUUN
+                                        console.log("Notice up");
+                    var outer = $('<div />').attr('id', 'APURI_delayd').attr('class','comedown');
+                    var message = $('<div />').attr('class','APURI_message').html('Suurten kuvien tai liitteiden vuoksi <strong>tallennusta ei vielä tehty!</strong>');
+                    var button = document.createElement('button');
+                    button.class = 'APURI tallennanappi'
+                    button.onclick = APURI.postponedSaving.manualTrigger;
+                    button.innerHTML = 'Tallenna';
+                    outer.append(message).append(button);
+                    document.body.appendChild(outer[0]);
+                },
+                clearDelaydsavingNotice: function() {
+                    // TODO - varmista, että on olemassa. Tällä hetkellä kutsutaan pakkovarmistuksista, ja
+                    // on mahdollista että ei olekaan ikkunaa
+                                        console.log("Notice down");
+                    $('#APURI_delayd').attr('class', 'clearup');
+                    setTimeout(APURI.ui.deleteDelaydsavingNotice, 2000);
+                },
+                deleteDelaydsavingNotice: function() {
+                                                            console.log("Notice del");
+                    $('#APURI_delayd').remove();
+                }
             }
         };
 
@@ -69,29 +140,35 @@ if (typeof APURI.paivkentTrigger !== 'function') {
 		va.trigger(eu);*/
         }
     }
+    
 
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
                 
-		console.log("c:" + elem);
 		var va = $('textarea[name='+elem+']');
-		console.log("v:"+va.val());
-                // TODO if input length is more than certain limit check total length
+                if (!APURI.replacedFields.postponedSaving && input.length > APURI.postponedSaving.singleFieldLimit) {
+                    APURI.replacedFields.calculateLength();
+                }
+                // DONE if input length is more than certain limit check total length
                 // if still true activate postponation
 		va.val(input);
 		va[0].innerHTML=input;
-		va.trigger("change");
-		va.trigger("input");
-		va.trigger("contentChanged");
-                // TODO check is postponationcondition true
-                if (true) {
+		//va.trigger("change");
+		//va.trigger("input");
+		//va.trigger("contentChanged");
+                // TODO check is postponationcondition true - temp turned off
+                // if (!APURI.replacedFields.postponedSaving) {
+                // DONE TEE OIKEASTI counter, joka pitää olla suurempi kuin 1, jotta postponed, nyt boolean
+                if (!APURI.postponedSaving.isPostponed()) {
                     APURI.paivkentTrigger(va);
                 } else {
-                    // TODO
+                    APURI.postponedSaving.start(va);
+                    // DONE
                     // spawn postponed saving which
                     // sets timer
                     // saves the field
                     // initiates the postponed timer visual flag timer too
+                    // TODO -- EI VIELÄ TEHTY
                     // which check in intervals whether postponation is still valid
                 }
 	}
@@ -382,12 +459,17 @@ APURI.sort = {
 
 if (typeof APURI.showSortDialog !== 'function') {
     APURI.showSortDialog = function() {
+        // TODO/melkein DONE jos postponed -- tallennus + viive 2s
+        if (APURI.postponedSaving.isPostponed()) {
+            APURI.postponedSaving.manualTrigger();
+        }
+        // TODO viive puuttuu !!!!!
         APURI.examImportCurrent(function(current){
                 APURI.questionsort.bufferOld = $.extend(true, {}, current);
                 APURI.questionsort.changed = false;
                 if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
                         var outdiv = $('<div />');
-                        outdiv.attr("class", "APURImodal_back");
+                        outdiv.attr("class", "APURI_modal_back");
                         outdiv.attr("id", "APURI_modal_back");
                         outdiv.attr("style", APURI.modal_background_style);
                         var div = $('<div />');
@@ -494,6 +576,11 @@ if (typeof APURI.showSortDialog !== 'function') {
 
 
 if (typeof APURI.showImportDialog !== 'function') {
+        // TODO/melkein DONE jos postponed -- tallennus + viive 2s
+        if (APURI.postponedSaving.isPostponed()) {
+            APURI.postponedSaving.manualTrigger();
+        }
+        // TODO viive puuttuu !! - tässä ei niin kriittinen
 	APURI.showImportDialog = function() {
 	$.getJSON("https://oma.abitti.fi/kurko-api/exam/abitti-exam-events", function(data) {
 			var outdiv = $('<div />');
@@ -521,10 +608,12 @@ if (typeof APURI.showImportDialog !== 'function') {
 			header.html("Lisää tehtävä toisesta kokeestasi");
 			var closeButton = $('<button />');
 			closeButton.html("Sulje lisäämättä tehtävää");
+                        closeButton.attr("class", "APURI APURI_modal_alaNappi");
 			closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
 			closeButton[0].onclick = APURI.closeModal;
 			var closeButton2 = $('<button />');
 			closeButton2.html("X");
+                        closeButton2.attr("class", "APURI APURI_modal_ylaX");
 			closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
 			closeButton2[0].onclick = APURI.closeModal;
 			outdiv.appendTo('body');
@@ -539,7 +628,7 @@ if (typeof APURI.showImportDialog !== 'function') {
 
 if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
-            // TODO BUG: järjestysongelma!!
+            // FIXED BUG: järjestysongelma!!
 		console.log("CKEDITOR-rep-spawned");
                 var heightVal ={'questionText': 320,
 				'instructionInput': 120,
@@ -612,6 +701,7 @@ if (typeof APURI.showUI !== 'function') {
 
 if (typeof APURI.loadScriptDirect !== 'function') {
 	APURI.loadScriptDirect = function(url, onload) {
+
             	var script = document.createElement("script");
                 script.type = "text/javascript";
                 script.src = url;
@@ -627,32 +717,22 @@ if (typeof APURI.loadScriptDirect !== 'function') {
 
 (function() {
     //APURI.examImportCurrent();
+                if (document.body.getAttribute("class")!=='lapa') // varmista, että ollaan YTL:n kokeessa
+                    return;
 	console.log("*");
         
         // TODO tyylit pitäisi ladata css-tiedostosta
 //$("head").append('<link href="https://raw.githubusercontent.com/klo33/abi-apuri/sorting/src/abiapuri.css" rel="stylesheet" type="text/css" />');
-var style = document.createElement("STYLE");
-	style.innerHTML = "button.APURI {   background-color: #6dd200 !important;} div.banner-left::after {    font-weight: bold;   content: \" + Apuri\" !important;}#pagebanner {    background-color: #6dd200 !important;} .APURI_examlist li {    border: 1px appworkspace outset;    padding: 0.2 em;    margin: 0.2 em;    background-color: gainsboro;} #APURI_sort_section {    list-style:none;}#APURI_sort_question li.APURI_sortable_question {	 list-style:none;	  display: box;    border: 1px black outset;    padding: 0.1em;	  padding-left: 0.4em;    margin: 0.2em;    background-color: #fef;}";
-	document.head.appendChild(style);
-		
-    /*
-	var safeWrapBegin = document.createElement("script");
-	safeWrapBegin.innerHTML = "window.__define = window.define; window.__require = window.require; window.define = undefined; window.require = undefined;";
-	var safeWrapEnd = document.createElement("script");
-	safeWrapEnd.innerHTML = "window.define = window.__define; window.require = window.__require; window.__define = undefined; window.__require = undefined;";
-	
+var linkcss = document.createElement("LINK");
+linkcss.setAttribute("href", "https://raw.githubusercontent.com/klo33/abi-apuri/master/src/abiapuri.css");
+linkcss.setAttribute("rel", "stylesheet");
+linkcss.setAttribute("type", "text/css");
+document.head.appendChild(linkcss);
+        //var style = document.createElement("STYLE");
+	//style.innerHTML = "button.APURI {   background-color: #6dd200 !important;} div.banner-left::after {    font-weight: bold;   content: \" + Apuri\" !important;}#pagebanner {    background-color: #6dd200 !important;} .APURI_examlist li {    border: 1px appworkspace outset;    padding: 0.2 em;    margin: 0.2 em;    background-color: gainsboro;} #APURI_sort_section {    list-style:none;}#APURI_sort_question li.APURI_sortable_question {	 list-style:none;	  display: box;    border: 1px black outset;    padding: 0.1em;	  padding-left: 0.4em;    margin: 0.2em;    background-color: #fef;} #APURI_delayd {     z-index: 10;    position: fixed;    height: 30px;    background-color: #ffff99;    color: #cc0033;    border: 3px solid #cc0033;     width: 400px;    max-width: 90%;    min-width: 50%;} #APURI_delayd button {    right: 10%;    top: 5px;} @keyframes movedown {    0% {      top:-100px;    }    100% {        top:0px;    }}@keyframes moveup {    0% {        top:0px;    }    100% {        top:-100px;    }}#APURI_delayd.comedown {  animation: movedown 1s ease-out forwards;}#APURI_delayd.clearup {  animation: moveup 1s ease-in forwards;}";
+	//document.head.appendChild(style);
+			
         
-	
-	var script = document.createElement("script");
-	script.type = "text/javascript";
-	script.src = 'https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js';
-	*/
-	//var scriptSort = document.createElement("script");
-	
-	//scriptSort.type = "text/javascript";
-	//scriptSort.setAttribute("data-main", 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js');
-	//scriptSort.src = 'https://cdn.jsdelivr.net/sortable/latest/Sortable.js';
-//	scriptSort.src = 'https://raw.githubusercontent.com/requirejs/requirejs/master/require.js';
 	APURI.loadScriptDirect('https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js',
             function() {
                 unsafeWindow.CKEDITOR.editorConfig = function( config ) {
