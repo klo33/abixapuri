@@ -726,7 +726,7 @@ if (typeof APURI.loadScriptDirect !== 'function') {
         // TODO tyylit pitäisi ladata css-tiedostosta
 //$("head").append('<link href="https://raw.githubusercontent.com/klo33/abi-apuri/sorting/src/abiapuri.css" rel="stylesheet" type="text/css" />');
 var linkcss = document.createElement("LINK");
-linkcss.setAttribute("href", "https://raw.githubusercontent.com/klo33/abi-apuri/master/src/abiapuri.css");
+linkcss.setAttribute("href", "https://klo33.github.io/css/abiapuri.css");
 linkcss.setAttribute("rel", "stylesheet");
 linkcss.setAttribute("type", "text/css");
 document.head.appendChild(linkcss);
