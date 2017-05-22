@@ -9,9 +9,6 @@
 // @grant       none
 // @downloadUrl https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.meta.js
-// @resource    APURIstyle  abiapuri.css
-// @grant           GM_addStyle
-// @grant           GM_getResourceText
 // ==/UserScript==
 
 /* AUTHOR Joni Lehtola, 2017
@@ -36,12 +33,13 @@ if (typeof APURI === "undefined")
                 }
             },
             replacedFields: {
-                list: [],
+                count: 0,
+                list: [], // täydennä {field: , indicator: }
                 contentLength: 0,
                 calculateLength: function() {
                     var count;
                     for (var i=0; i< APURI.replacedFields.list.length; i++) {
-                        count += list.innerHTML.length();
+                        count += list[i].field.innerHTML.length();
                     }
                     APURI.replacedFields.contentLength = count;
                     return count;
@@ -413,7 +411,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                                                         console.log(".");
                                                         var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
                                                         var sis = $('<li />').attr('name',"q_"+question.id)
-                                                                .attr('class',"APURI_sortable_question")
+                                                                .attr('class',"APURI_sortable_question").append($('<i class="fa fa-arrows hide_nothover" aria-hidden="true"></i>'))
                                                                 .html(question.displayNumber+": "+text);
                                                         // jos monivalinta niin mahdollista kysymysten sorttaus
                                                         if (typeof question.type !== 'undefined' && 
@@ -541,6 +539,7 @@ if (typeof APURI.showImportDialog !== 'function') {
 
 if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
+            // TODO BUG: järjestysongelma!!
 		console.log("CKEDITOR-rep-spawned");
                 var heightVal ={'questionText': 320,
 				'instructionInput': 120,
@@ -560,9 +559,11 @@ if (typeof APURI.replaceBoxes !== 'function') {
        	console.log("CKEDITOR-rep-spawned for "+x.length + " elements");
 	    for (var i=0; i<x.length; i++) {
 			if (!x[i].getAttribute("name")) {
-				console.log("CKEDITOR"+i+"!" );
-				x[i].setAttribute("name","apuriK_"+i);
-				var elem = CKEDITOR.replace("apuriK_"+i, {
+				console.log("CKEDITOR"+APURI.replacedFields.count+"!" );
+				x[i].setAttribute("name","apuriK_"+APURI.replacedFields.count);
+                                var paivitystoken = $(x[i]).next('div.savedIndicator')[0];
+                                APURI.replacedFields.list.push({field:x[i], savedToken:paivitystoken});
+				var elem = unsafeWindow.CKEDITOR.replace("apuriK_"+APURI.replacedFields.count, {
 				
 					extraPlugins: 'mathjax',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
@@ -579,6 +580,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
 										})(elem);
+                                APURI.replacedFields.count++;
 			}
 	    }
 		   
@@ -599,9 +601,8 @@ if (typeof APURI.showUI !== 'function') {
 			button2.innerHTML="Uudelleenjärjestä koetehtävät";
 			button2.onclick = APURI.showSortDialog;
 			button2.setAttribute("class", "addQuestion APURI importExam");
-			document.body.appendChild(button2);
 			$('div.questionButtons').append(button);
-			//document.body.appendChild(button);
+			$('<div />').attr('class', 'questionButtons').append(button2).insertAfter('div.questionButtons');
 			//document.getElementsByClassName('questionButtons')[0].appendChild(button);
 			console.log("buttons created");
 			window.clearInterval(APURI.initUITimer);
@@ -627,7 +628,14 @@ if (typeof APURI.loadScriptDirect !== 'function') {
 (function() {
     //APURI.examImportCurrent();
 	console.log("*");
-	/*
+        
+        // TODO tyylit pitäisi ladata css-tiedostosta
+//$("head").append('<link href="https://raw.githubusercontent.com/klo33/abi-apuri/sorting/src/abiapuri.css" rel="stylesheet" type="text/css" />');
+var style = document.createElement("STYLE");
+	style.innerHTML = "button.APURI {   background-color: #6dd200 !important;} div.banner-left::after {    font-weight: bold;   content: \" + Apuri\" !important;}#pagebanner {    background-color: #6dd200 !important;} .APURI_examlist li {    border: 1px appworkspace outset;    padding: 0.2 em;    margin: 0.2 em;    background-color: gainsboro;} #APURI_sort_section {    list-style:none;}#APURI_sort_question li.APURI_sortable_question {	 list-style:none;	  display: box;    border: 1px black outset;    padding: 0.1em;	  padding-left: 0.4em;    margin: 0.2em;    background-color: #fef;}";
+	document.head.appendChild(style);
+		
+    /*
 	var safeWrapBegin = document.createElement("script");
 	safeWrapBegin.innerHTML = "window.__define = window.define; window.__require = window.require; window.define = undefined; window.require = undefined;";
 	var safeWrapEnd = document.createElement("script");
@@ -647,24 +655,25 @@ if (typeof APURI.loadScriptDirect !== 'function') {
 //	scriptSort.src = 'https://raw.githubusercontent.com/requirejs/requirejs/master/require.js';
 	APURI.loadScriptDirect('https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js',
             function() {
-                CKEDITOR.editorConfig = function( config ) {
+                unsafeWindow.CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
                     //config.fileBrowserUploadUrl = 'base64';
                 };
             }
         );
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
-        
-requirejs.config({
+      
+unsafeWindow.requirejs.config({
     paths: {
         'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
         // NOT WORKING with RequireJS 'CKEditor': 'https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor'
     }
 });
 
-require(['Sortable'], function (Sortable){
+unsafeWindow.require(['Sortable'], function (Sortable){
 		window.Sortable = Sortable; // exports
 	});
+    
         /* // NOT WORKING with 
 require(['CKEditor'], function (CKEditor){
                 console.log("CKEDITOR loaded and armed");
@@ -692,6 +701,3 @@ require(['CKEditor'], function (CKEditor){
             console.log("CKEDITOR-conf-spawned");
 	};*/
 })();
-
-var cssTxt  = GM_getResourceText("APURIstyle");
-GM_addStyle (cssTxt);
