@@ -48,7 +48,7 @@ if (typeof APURI === "undefined")
                     } else {
                         APURI.replacedFields.postponedSaving = false;
                     }
-                    console.log("PITKÄÄ "+count);
+                    //console.log("PITKÄÄ "+count);
                     return count;
                 },
                 triggeringField: undefined,
@@ -61,13 +61,13 @@ if (typeof APURI === "undefined")
                     return (++APURI.postponedSaving.isPostponedCount > 1);
                 }, // OLI boolean nyt function poistettu käytöstä
                 isPostponedCount: 0, // 0 false, 2 true
-                contentLimit: 50000,
-                singleFieldLimit: 5000,
+                contentLimit: 150000,
+                singleFieldLimit: 20000,
                 triggeringField: undefined,
                 postponeDelay: 30000,
                 //postponeTimer: {},
                 start: function(initelem) {
-                    console.log("Postcount:"+APURI.postponedSaving.isPostponedCount)
+                    //console.log("Postcount:"+APURI.postponedSaving.isPostponedCount)
                     if (APURI.postponedSaving.isPostponedCount < 3) {
                         console.log("START delayd");
                      // true;
@@ -80,14 +80,14 @@ if (typeof APURI === "undefined")
                     }
                 },
                 timetrigger: function() {
-                    console.log("TIMETRIGGER delaydsaving");
+                    //console.log("TIMETRIGGER delaydsaving");
                     APURI.postponedSaving.isPostponedCount = 0; // false;
                     APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);                    
                     delete APURI.postponedSaving.postponeTimer;
                     APURI.ui.clearDelaydsavingNotice();
                 },
                 manualTrigger: function() {
-                    console.log("MANTRIGGER delaydsaving");
+                    //console.log("MANTRIGGER delaydsaving");
                     APURI.postponedSaving.isPostponedCount = 0; //false;
                     if (typeof APURI.postponedSaving.triggeringField !== 'undefined')
                         APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);
@@ -198,7 +198,7 @@ if (typeof APURI.examImportCurrent !== 'function') {
 
 		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+currUuid+"/exam", function(data) {
 
-			console.log("Success on JSON");
+			//console.log("Success on JSON");
 			
 			callback(data);
 			//returnval = data;
@@ -217,7 +217,7 @@ if (typeof APURI.examSaveCurrent !== 'function') {
 			contentType: "application/json; charset=UTF-8",
 			dataType: "json",
 			success: function(data){
-                            console.log("Saved successfully"); 
+                            //console.log("Saved successfully"); 
                             if (reload)
                                 window.location.reload(true);
                         },
@@ -225,7 +225,9 @@ if (typeof APURI.examSaveCurrent !== 'function') {
 				console.log("ERROR: "+errMsg);
 				
 			},
-			complete: function(data){console.log("Save complited successfully");}
+			complete: function(data){
+                            console.log("Save complited successfully");
+                        }
 		});
 	}
 }
@@ -295,7 +297,7 @@ if (typeof APURI.traverseSetId !== 'function') {
 			for (var key in obj) {
 				if (key == 'id') {
 					obj[key] = counter++;
-					console.log("id set to "+(counter-1));
+					//console.log("id set to "+(counter-1));
 				}
 				if (typeof obj[key] == 'object') {
 					counter = APURI.traverseSetId(obj[key], counter);
@@ -330,7 +332,7 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
 				} else if (obj.level == 3) {
 					debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(count.level3++);
 				}
-				console.log("Set Display:"+debug);
+				//console.log("Set Display:"+debug);
 			}
 			for (var key in obj) {
 				if (typeof obj[key] == 'object') {
@@ -359,7 +361,7 @@ if (typeof APURI.examImportQuestion !== 'function') {
 				if (typeof section.questions !== 'undefined') {
 					for(var j=0; j<section.questions.length; j++) {				
 						if (section.questions[j].id == questionId) {
-							console.log("Found question");
+							//console.log("Found question");
 							question = section.questions[j];							
 							//break;
 						}
@@ -368,22 +370,22 @@ if (typeof APURI.examImportQuestion !== 'function') {
 			}
 			if (typeof question.id !== 'undefined') {
 				// Load current examObject
-				console.log("Trying loading current");
+				//console.log("Trying loading current");
 				APURI.examImportCurrent(function(current){
 					if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
-						console.log('Loaded successfully current');
+						//console.log('Loaded successfully current');
 						// Prepare question
 						var largestId = APURI.findLargestId(current);
-						console.log("Largest id "+ largestId+" Next: set ids");
+						//console.log("Largest id "+ largestId+" Next: set ids");
 						APURI.traverseSetId(question, largestId+1);
                                                 //TODO luottaa, että sections[0] olemassa
 						current.content.sections[0].questions.push(question);
 						// reorganize displaynumbers
-						console.log('DisplayNumber setting');
+						//console.log('DisplayNumber setting');
 						APURI.traverseDisplayNumber(current, 1);
-						console.log('Trying saving');
+						//console.log('Trying saving');
 						APURI.examSaveCurrent(current);
-						console.log('...');
+						//console.log('...');
 					}
 				});
 				
@@ -400,16 +402,16 @@ if (typeof APURI.examImportExpand !== 'function') {
 	APURI.examImportExpand = function(event) {
 	//APURI.examImportExpand = function(event) {
 		var examUuid = $(event.target).attr('uuid');
-		console.log("Event fired ("+examUuid+")"	);
+		//console.log("Event fired ("+examUuid+")"	);
 		var upper_a = $(event.target);
 		var li = $('li[name=exam_'+examUuid+']');
 		if (upper_a.attr('class') == 'unloaded') {
-			console.log("JSON "+li);
+			//console.log("JSON "+li);
 			//printObject(li);
 			
 			$.getJSON("https://oma.abitti.fi/exam-api/exams/"+examUuid+"/exam", function(data) {
 					APURI.examBuffer[examUuid] = data;
-					console.log("Got loaded " +data.examUuid);
+					//console.log("Got loaded " +data.examUuid);
 					var sisul = $('<ul />');
 					//var buffer = "";
 					for (var i=0; i<data.content.sections.length; i++) {
@@ -418,7 +420,7 @@ if (typeof APURI.examImportExpand !== 'function') {
 						if (typeof section.questions !== 'undefined') {
 							for(var j=0; j<section.questions.length; j++) {				
 								var question = section.questions[j];
-								console.log(".");
+								//console.log(".");
 								var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
 								var sis = $('<li />').attr('name','exam_'+examUuid+"_q_"+question.id);
 								var sisa = $('<a />').attr('href','#').attr('uuid',examUuid).attr('quid',question.id).html(question.displayNumber+": "+text);
@@ -542,11 +544,11 @@ if (typeof APURI.showSortDialog !== 'function') {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
                                 APURI.questionsort.bufferOrder[sortable.options.group.name][arrkey[i]] = current.content.sections[0].questions[i];
                             }
-                            console.log("Sortable.store.Get:"+sortable.options.group.name);
+                            //console.log("Sortable.store.Get:"+sortable.options.group.name);
                         },
                         set: function(sortable) {
-                            console.log("Sortable.store.SET:"+sortable.options.group.name);
-                            console.log(sortable.toArray());
+                            //console.log("Sortable.store.SET:"+sortable.options.group.name);
+                            //console.log(sortable.toArray());
                             APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
                             var arrkey = sortable.toArray();
                             for (var i=0; i<arrkey.length; i++) {
@@ -556,12 +558,12 @@ if (typeof APURI.showSortDialog !== 'function') {
                             APURI.questionsort.changed = true;
                             //TODO luottaa, että sections[0] olemassa
                             // reorganize displaynumbers
-                            console.log('DisplayNumber setting');
+                            //console.log('DisplayNumber setting');
                             APURI.traverseSetId(APURI.questionsort.bufferSaved, 0)
                             APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
-                            console.log('Trying saving');
+                            //console.log('Trying saving');
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
-                            console.log('...');
+                            //console.log('...');
 
                         }
                     }
@@ -629,7 +631,7 @@ if (typeof APURI.showImportDialog !== 'function') {
 if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
             // FIXED BUG: järjestysongelma!!
-		console.log("CKEDITOR-rep-spawned");
+		//console.log("CKEDITOR-rep-spawned");
                 var heightVal ={'questionText': 320,
 				'instructionInput': 120,
 				'choiceInstruction': 120};
@@ -645,10 +647,10 @@ if (typeof APURI.replaceBoxes !== 'function') {
    /*		var x = (Array.prototype.slice.call(document.getElementsByClassName("questionText"))).concat(
                             Array.prototype.slice.call(document.getElementsByClassName("instructionInput")),
                             Array.prototype.slice.call(document.getElementsByClassName("choiceInstruction")));*/
-       	console.log("CKEDITOR-rep-spawned for "+x.length + " elements");
+       //	console.log("CKEDITOR-rep-spawned for "+x.length + " elements");
 	    for (var i=0; i<x.length; i++) {
 			if (!x[i].getAttribute("name")) {
-				console.log("CKEDITOR"+APURI.replacedFields.count+"!" );
+				//console.log("CKEDITOR"+APURI.replacedFields.count+"!" );
 				x[i].setAttribute("name","apuriK_"+APURI.replacedFields.count);
                                 var paivitystoken = $(x[i]).next('div.savedIndicator')[0];
                                 APURI.replacedFields.list.push({field:x[i], savedToken:paivitystoken});
@@ -661,11 +663,11 @@ if (typeof APURI.replaceBoxes !== 'function') {
 				});
 				(function(inner_elem){
 					inner_elem.on('change',  function(src, event) {
-										console.log(typeof src + " " + typeof event);
+										//console.log(typeof src + " " + typeof event);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
 					inner_elem.on('keyup',  function(src, event) {
-										console.log(typeof src + " " + typeof event);
+										//console.log(typeof src + " " + typeof event);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
 										})(elem);
@@ -681,7 +683,7 @@ if (typeof APURI.showUI !== 'function') {
 	APURI.showUI = function() {
 		//APURI.replaceBoxes();
 		if (document.getElementsByClassName("questionButtons").length > 0) {
-			console.log("begin button");
+			//console.log("begin button");
 			var button = document.createElement("button");
 			button.innerHTML="Tuo koetehtävä toisesta kokeesta";
 			button.onclick = APURI.showImportDialog;
@@ -693,7 +695,7 @@ if (typeof APURI.showUI !== 'function') {
 			$('div.questionButtons').append(button);
 			$('<div />').attr('class', 'questionButtons').append(button2).insertAfter('div.questionButtons');
 			//document.getElementsByClassName('questionButtons')[0].appendChild(button);
-			console.log("buttons created");
+			//console.log("buttons created");
 			window.clearInterval(APURI.initUITimer);
 		}
 	}
@@ -707,7 +709,7 @@ if (typeof APURI.loadScriptDirect !== 'function') {
                 script.src = url;
                 console.log("Loading url "+url);
                 if (typeof onload !== 'undefined') {
-                    console.log("For "+url+" found handler");
+                    //console.log("For "+url+" found handler");
                     script.onload=onload;
                 }
                 document.body.appendChild(script);
