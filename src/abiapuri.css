@@ -1,0 +1,125 @@
+/*
+    For AbixApuri to alter oma.abitti.fi page functionality 
+    Created on : May 19, 2017, 11:31:07 AM
+    Author     : Joni Lehtola
+*/
+
+#APURI_modal_back {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-level: 25; 
+    background: #AAA; 
+    opacity: .40; 
+    filter: Alpha(Opacity=40);
+}   
+
+#APURI_modal_content { 
+    position: fixed; 
+    overflow-y:auto; 
+    top: 60px; 
+    left: 20%; 
+    width: 60%; 
+    opacity: 1; 
+    height: 80%; 
+    z-level: 10; 
+    background: #FFF;
+}
+
+button.APURI {
+    background-color: #6dd200 !important;
+}
+
+button.APURI_modal_alaNappi {
+  position: fixed; 
+  bottom: 10px; 
+  right: 10%;  
+}
+
+button.APURI_modal_ylaX {
+    position: fixed; 
+    top: 60px; 
+    right: 16%; 
+    width: 30px !important;
+}
+
+div.banner-left::after {
+    font-weight: bold;
+    content: " + Apuri" !important;
+}
+
+#pagebanner {
+    background-color: #6dd200 !important;
+}
+
+.APURI_examlist li {
+    border: 1px appworkspace outset;
+    list-style: none;
+    padding: 0.2em;
+    margin: 0.2em;
+    background-color: gainsboro;
+}
+
+#APURI_sort_section {
+    list-style:none;
+}
+
+#APURI_sort_question li.APURI_sortable_question {
+	  list-style:none;
+	  display: box;
+    border: 1px black outset;
+    padding: 0.1em;
+	  padding-left: 0.4em;
+    margin: 0.2em;
+    background-color: #fef;
+}
+#APURI_sort_question li.APURI_sortable_question:before {
+  
+}
+
+#APURI_delayd {
+    z-index: 20;
+    position: fixed;
+    height: 3em;
+    background-color: #ffff99;
+    color: #cc0033;
+    border: 3px solid #cc0033; 
+    width: 400px;
+    max-width: 90%;
+    min-width: 70%;
+    left: 15%;
+    margin: auto;
+    
+}
+
+#APURI_delayd button {
+    right: 10%;
+    top: 5px;
+    position: absolute;
+}
+
+@keyframes movedown {
+    0% {
+        top:-100px;
+    }
+    100% {
+        top:0px;
+    }
+}
+
+@keyframes moveup {
+    0% {
+        top:0px;
+    }
+    100% {
+        top:-100px;
+    }
+}
+#APURI_delayd.comedown {
+  animation: movedown 1s ease-out forwards;
+}
+#APURI_delayd.clearup {
+  animation: moveup 1s ease-in forwards;
+}
