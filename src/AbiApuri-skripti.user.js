@@ -522,9 +522,11 @@ if (typeof APURI.showSortDialog !== 'function') {
                 var closeButton = $('<button />');
                 closeButton.html("Sulje");
                 closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
+                closeButton.attr("class", "APURI APURI_modal_alaNappi");
                 closeButton[0].onclick = APURI.closeModal;
                 var closeButton2 = $('<button />');
                 closeButton2.html("X");
+                closeButton2.attr("class", "APURI APURI_modal_ylaX");
                 closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
                 closeButton2[0].onclick = APURI.closeModal;
 
@@ -696,6 +698,7 @@ if (typeof APURI.showUI !== 'function') {
 			$('<div />').attr('class', 'questionButtons').append(button2).insertAfter('div.questionButtons');
 			//document.getElementsByClassName('questionButtons')[0].appendChild(button);
 			//console.log("buttons created");
+                        $('<div />').attr('class', 'APURI_footer').html("Vihreät elementit ovat <a href='https://klo33.github.io/abi-apuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.").appendTo('body');
 			window.clearInterval(APURI.initUITimer);
 		}
 	}
@@ -726,7 +729,7 @@ if (typeof APURI.loadScriptDirect !== 'function') {
         // TODO tyylit pitäisi ladata css-tiedostosta
 //$("head").append('<link href="https://raw.githubusercontent.com/klo33/abi-apuri/sorting/src/abiapuri.css" rel="stylesheet" type="text/css" />');
 var linkcss = document.createElement("LINK");
-linkcss.setAttribute("href", "https://klo33.github.io/css/abiapuri.css");
+linkcss.setAttribute("href", "https://klo33.github.io/abi-apuri/src/abiapuri.css");
 linkcss.setAttribute("rel", "stylesheet");
 linkcss.setAttribute("type", "text/css");
 document.head.appendChild(linkcss);
