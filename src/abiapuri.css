@@ -10,7 +10,7 @@
     left: 0; 
     width: 100%; 
     height: 100%; 
-    z-level: 25; 
+    z-index: 25; 
     background: #AAA; 
     opacity: .40; 
     filter: Alpha(Opacity=40);
@@ -24,7 +24,7 @@
     width: 60%; 
     opacity: 1; 
     height: 80%; 
-    z-level: 10; 
+    z-index: 10; 
     background: #FFF;
 }
 
@@ -80,12 +80,13 @@ div.banner-left::after {
 }
 
 #APURI_delayd {
+    height: 4em;
+    background-color: #C2FF81;
+    /*background-color: #C2FF81E6;*/
+    color: #3E7800;
+border: 3px solid #3E7800;
     z-index: 20;
     position: fixed;
-    height: 3em;
-    background-color: #ffff99;
-    color: #cc0033;
-    border: 3px solid #cc0033; 
     width: 400px;
     max-width: 90%;
     min-width: 70%;
@@ -93,11 +94,15 @@ div.banner-left::after {
     margin: auto;
     
 }
+#APURI_delayd div.APURI_message {
+    padding: 1em;
+}
 
 #APURI_delayd button {
-    right: 10%;
-    top: 5px;
+    right: 5%;
+    top: 0.7em;
     position: absolute;
+    background-color: #3E7800 !important;
 }
 
 @keyframes movedown {
@@ -122,4 +127,15 @@ div.banner-left::after {
 }
 #APURI_delayd.clearup {
   animation: moveup 1s ease-in forwards;
+}
+
+#footer div.content {
+    margin-bottom: 0 !important;
+}
+
+#APURI_footer {
+    color: #3E7800;
+}
+#APURI_footer a {
+    text-decoration: underline;
 }
