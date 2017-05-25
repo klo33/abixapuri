@@ -4,6 +4,7 @@
 // @namespace   http://kauniaistenlukio.fi
 // @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
 // @description:se  AbixHjälpare ger extra till oma.abitti.fi
+// @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
 // @version     0.0.3
 // @grant       none
@@ -17,6 +18,10 @@
  * Tällä lisäosalla tai sen kehittäjällä ei ole mitään tekemistä Ylioppilastutkintolautakunnan kanssa ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista, kuten ei toistaiseksi myöskään tekijä. Suosittelen testaamista ERILLISELLÄ tunnuksella, ei varsinaisella opetunnuksella.
  */
+// to make things easier with TamperMonkey in Chrome
+if (typeof unsafeWindow === 'undefined')
+	unsafeWindow = window;
+
 if (typeof APURI === "undefined") 
         var APURI ={
             modal_background_style:  "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
@@ -658,7 +663,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 APURI.replacedFields.list.push({field:x[i], savedToken:paivitystoken});
 				var elem = unsafeWindow.CKEDITOR.replace("apuriK_"+APURI.replacedFields.count, {
 				
-					extraPlugins: 'mathjax',
+					extraPlugins: 'base64image,mathjax',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64'
@@ -736,12 +741,15 @@ document.head.appendChild(linkcss);
         //var style = document.createElement("STYLE");
 	//style.innerHTML = "button.APURI {   background-color: #6dd200 !important;} div.banner-left::after {    font-weight: bold;   content: \" + Apuri\" !important;}#pagebanner {    background-color: #6dd200 !important;} .APURI_examlist li {    border: 1px appworkspace outset;    padding: 0.2 em;    margin: 0.2 em;    background-color: gainsboro;} #APURI_sort_section {    list-style:none;}#APURI_sort_question li.APURI_sortable_question {	 list-style:none;	  display: box;    border: 1px black outset;    padding: 0.1em;	  padding-left: 0.4em;    margin: 0.2em;    background-color: #fef;} #APURI_delayd {     z-index: 10;    position: fixed;    height: 30px;    background-color: #ffff99;    color: #cc0033;    border: 3px solid #cc0033;     width: 400px;    max-width: 90%;    min-width: 50%;} #APURI_delayd button {    right: 10%;    top: 5px;} @keyframes movedown {    0% {      top:-100px;    }    100% {        top:0px;    }}@keyframes moveup {    0% {        top:0px;    }    100% {        top:-100px;    }}#APURI_delayd.comedown {  animation: movedown 1s ease-out forwards;}#APURI_delayd.clearup {  animation: moveup 1s ease-in forwards;}";
 	//document.head.appendChild(style);
-			
-        
-	APURI.loadScriptDirect('https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js',
+	
+        //APURI.loadScriptDirect('https://github.com/klo33/abi-apuri/tree/nightly-editor/src/ckeditor/ckeditor.js',
+//	APURI.loadScriptDirect('https://cdn.ckeditor.com/4.6.2/standard-all/ckeditor.js',
+       	APURI.loadScriptDirect('https://klo33.github.io/javascript/ckeditor/ckeditor.js',
             function() {
                 unsafeWindow.CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
+                    config.extraPlugins = 'base64image,mathjax';
+                    config.uiColor = '#e4f3d3';
                     //config.fileBrowserUploadUrl = 'base64';
                 };
             }
