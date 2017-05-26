@@ -6,10 +6,10 @@
 // @description:se  AbixHjälpare ger extra till oma.abitti.fi
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
-// @version     0.0.3
+// @version     0.0.4
 // @grant       none
-// @downloadUrl https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.user.js
-// @updateUrl   https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.meta.js
+// @downloadUrl https://klo33.github.io/abi-apuri/src/AbiApuri-skripti.user.js
+// @updateUrl   https://klo33.github.io/abi-apuri/src/AbiApuri-skripti.meta.js
 // ==/UserScript==
 
 /* AUTHOR Joni Lehtola, 2017
@@ -24,8 +24,13 @@ if (typeof unsafeWindow === 'undefined')
 
 if (typeof APURI === "undefined") 
         var APURI ={
+            aukkotehtscript: "<script sec=\"apuri\" type=\"application/javascript\" id=\"apuri_script\">if(\"undefined\"===typeof APURI)var APURI={};\"function\"!==typeof APURI.paivvast&&(APURI.paivvast=function(a,b,c,k,l){c=$(\"#\"+c);var d=c.val().split(\"\n\");d[k-1]=\"#\"+k+\":\"+b.value;c.val(d.join(\"\n\"));1==l&&9!=a.keyCode&&(b=jQuery.Event(\"keydown\"),b.which=a.which,c.trigger(b),b=jQuery.Event(\"keyup\"),b.which=a.which,c.trigger(b))});\"undefined\"===typeof APURI.kentta&&(APURI.kentta=[]);\"function\"!==typeof APURI.purku&&(APURI.purku=function(a){\"undefined\"===typeof APURI.kentta[APURI.count]&&(APURI.kentta[APURI.count]=0);var b;b=document.createElement(a.tagName);for(var c in a.attributes)b.setAttribute(c.name,a.attributes[c].value);a.hasChildNodes()&&a.childNodes.forEach(function(a,c){if(a.nodeType==Node.TEXT_NODE){for(var d=a.textContent.trim().split(\"[]\"),g=document.createElement(\"span\"),f=0;f<d.length;f++){if(0<f){APURI.kentta[APURI.count]++;var h=document.createElement(\"form\");h.style.display=\"inline\";var e=document.createElement(\"input\");e.setAttribute(\"type\",\"text\");e.setAttribute(\"length\",\"10\");e.setAttribute(\"onChange\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", false);\");e.setAttribute(\"onKeyup\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", true);\");h.appendChild(e);g.appendChild(h)}g.appendChild(document.createTextNode(d[f]))}b.appendChild(g)}else a.nodeType==Node.ELEMENT_NODE&&\"SCRIPT\"!=a.tagName&&(a.textContent.includes(\"[]\")?b.appendChild(APURI.purku(a)):b.appendChild(a.cloneNode(!0)))});return b});\"undefined\"===typeof APURI.count?APURI.count=1:APURI.count++;\"undefined\"===typeof APURI.pjono&&(APURI.pjono=[]);(function(){var a;(a=document.currentScript)||(a=document.getElementsByTagName(\"script\"),a=a[a.length-1]);\"BODY\"==a.parentNode.tagName&&(a=document.getElementById(\"apuri_script\"));for(a=a.parentNode;\"SPAN\"!==a.tagName.toUpperCase()&&\"text\"!==a.className.toLowerCase;)a=a.parentNode;APURI.pjono[APURI.count]=a;a.style.display=\"none\";var b=a.parentNode,c=a.parentNode.parentNode.querySelector(\"textarea.answerText\");c.id=\"apuri_vastk_\"+APURI.count;c.style.height=\"10px\";c.style.display=\"none\";c=APURI.purku(a);b.insertBefore(c,a.nextSibling)})();</script>",
             modal_background_style:  "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
             modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
+            ytle: {  // YTL:n kokeen vakioita
+                savedIndicator: "div.savedIndicator",
+                emptyQuestionWarning: 'div.empty-question-warning'
+            },
             questionsort: { 
                 'bufferOld': {}, 
                 bufferOrder: [],
@@ -39,13 +44,16 @@ if (typeof APURI === "undefined")
             },
             replacedFields: {
                 count: 0,
-                list: [], // täydennä {field: , indicator: }
+                list: [], // täydennä {field: , indicatorSaved: }
                 contentLength: 0,
                 calculateLength: function() {
                     var count =0;
-                    for (var i=0; i< APURI.replacedFields.list.length; i++) {
-                        
-                        count += APURI.replacedFields.list[i].field.value.length;
+                    //for (var i=0; i< APURI.replacedFields.list.length; i++) {
+                    //    
+                    //    count += APURI.replacedFields.list[i].field.value.length;
+                    //}  BEFORE assoc array
+                    for (var key in APURI.replacedFields.list) {
+                        count += APURI.replacedFields.list[key].field.value.length;
                     }
                     APURI.replacedFields.contentLength = count;
                     if (count > APURI.postponedSaving.contentLimit) {
@@ -69,10 +77,23 @@ if (typeof APURI === "undefined")
                 contentLimit: 150000,
                 singleFieldLimit: 20000,
                 triggeringField: undefined,
+                allPostponedFields: [],
                 postponeDelay: 30000,
                 //postponeTimer: {},
                 start: function(initelem) {
                     //console.log("Postcount:"+APURI.postponedSaving.isPostponedCount)
+                    var name = initelem.attr("id") || initelem.attr("name") || "none"; 
+                    if (typeof APURI.replacedFields.list[name] !== 'undefined') {
+                        APURI.postponedSaving.allPostponedFields[name] = APURI.replacedFields.list[name];
+                        if (typeof APURI.replacedFields.list[name].savedIndicator === 'undefined')
+                            APURI.replacedFields.list[name].savedIndicator = APURI.replacedFields.list[name].field.parent.queryElement(APURI.ytle.savedIndicator);
+                        if (typeof APURI.replacedFields.list[name].savedIndicator !== 'undefined')
+                            APURI.replacedFields.list[name].savedIndicator.style.visibility = 'hidden';
+                    }
+                    //APURI.postponedSaving.allPostponedFields[name] = initelem;
+                    //if (typeof APURI.replacedFields.list[name] !== 'undefined') {
+                    //    APURI.replacedFields.list[name].savedIndicator.style.visibility = 'hidden';
+                    //}
                     if (APURI.postponedSaving.isPostponedCount < 3) {
                         console.log("START delayd");
                      // true;
@@ -87,6 +108,7 @@ if (typeof APURI === "undefined")
                 timetrigger: function() {
                     //console.log("TIMETRIGGER delaydsaving");
                     APURI.postponedSaving.isPostponedCount = 0; // false;
+                    APURI.postponedSaving.allPostponedFields = [];
                     APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);                    
                     delete APURI.postponedSaving.postponeTimer;
                     APURI.ui.clearDelaydsavingNotice();
@@ -94,6 +116,7 @@ if (typeof APURI === "undefined")
                 manualTrigger: function() {
                     //console.log("MANTRIGGER delaydsaving");
                     APURI.postponedSaving.isPostponedCount = 0; //false;
+                    APURI.postponedSaving.allPostponedFields = [];
                     if (typeof APURI.postponedSaving.triggeringField !== 'undefined')
                         APURI.paivkentTrigger(APURI.postponedSaving.triggeringField);
                     else
@@ -124,10 +147,30 @@ if (typeof APURI === "undefined")
                                         console.log("Notice down");
                     $('#APURI_delayd').attr('class', 'clearup');
                     setTimeout(APURI.ui.deleteDelaydsavingNotice, 2000);
+                    for (var key in APURI.postponedSaving.allPostponedFields) {
+                        APURI.postponedSaving.allPostponedFields[key].savedIndicator.style.visibility = "visible";
+                    }
                 },
                 deleteDelaydsavingNotice: function() {
                                                             console.log("Notice del");
                     $('#APURI_delayd').remove();
+                },
+                showEmptyQuestionWarning: function(elem) {
+                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning === 'undefined') {
+                        var emptyel = APURI.replacedFields.list[elem].field.parentNode.queryElement(APURI.ytle.emptyQuestionWarning);
+                        APURI.replacedFields.list[elem].emptyQuestionWarning = emptyel;
+                    }
+                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined') {
+                        APURI.replacedFields.list[elem].emptyQuestionWarning.style.visibility = "visible";
+                    }                
+                },
+                hideEmptyQuestionWarning: function(elem) {
+                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined') {
+                        APURI.replacedFields.list[elem].emptyQuestionWarning.style.visibility = "hidden";
+                    }                
+                },
+                showHttpLinkWarning: function(elem) {
+                    // TODO
                 }
             }
         };
@@ -151,11 +194,28 @@ if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
                 
 		var va = $('textarea[name='+elem+']');
+                if (!(va.length >0)) { // jos ei elem ole nimi, niin sitten ilm. id
+                    va = $('textarea[id='+elem+']');
+                } 
                 if (!APURI.replacedFields.postponedSaving && input.length > APURI.postponedSaving.singleFieldLimit) {
                     APURI.replacedFields.calculateLength();
-                }
+                } 
                 // DONE if input length is more than certain limit check total length
                 // if still true activate postponation
+                if (input.length === 0) {
+                    APURI.ui.showEmptyQuestionWarning(elem);
+                 
+                } else {
+                    APURI.ui.hideEmptyQuestionWarning(elem);
+                }
+                       // TODO jos matchaa regexpiin
+                    // TULEVISSA VERSIOISSA
+                    // joko rajoitus koon suhteen ja MYÖS, että ei tarkisteta joka kerta, vaan vain silloin tällöin
+                    // koska regexp tarkistus aikaavievä, varsinkin jos on oikeasti base64-kuvia
+            if (false) { // tämä käännetty toistaiseksi pois päältä
+                    APURI.ui.showHttpLinkWarning(elem);
+                }
+
 		va.val(input);
 		va[0].innerHTML=input;
 		//va.trigger("change");
@@ -648,7 +708,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                     x = x.concat(Array.prototype.slice.call(document.getElementsByClassName(fieldNames[j])));
                 }
                 var y = document.getElementById('instructionInput');
-                y.setAttribute('class', 'instuctionInput');
+                y.setAttribute('class', 'instructionInput');
                 x.push(y);
             
    /*		var x = (Array.prototype.slice.call(document.getElementsByClassName("questionText"))).concat(
@@ -658,15 +718,23 @@ if (typeof APURI.replaceBoxes !== 'function') {
 	    for (var i=0; i<x.length; i++) {
 			if (!x[i].getAttribute("name")) {
 				//console.log("CKEDITOR"+APURI.replacedFields.count+"!" );
-				x[i].setAttribute("name","apuriK_"+APURI.replacedFields.count);
-                                var paivitystoken = $(x[i]).next('div.savedIndicator')[0];
-                                APURI.replacedFields.list.push({field:x[i], savedToken:paivitystoken});
-				var elem = unsafeWindow.CKEDITOR.replace("apuriK_"+APURI.replacedFields.count, {
+                                var repname = "apuriK_"+APURI.replacedFields.count;
+				x[i].setAttribute("name",repname);
+                                var paivitystoken = x[i].parentNode.querySelector(APURI.ytle.savedIndicator);
+                                var tyhjakysvar = x[i].parentNode.querySelector(APURI.ytle.emptyQuestionWarning);
+                                var linkkivar = x[i].parentNode.appendChild(($('<div />').attr('class','http-link-warning').html("Varmista, ettei tehtävänannossa ole linkkiä verkkoon, joka ei toimisi kokeessa"))[0]);
+                                linkkivar.style.visibility = 'hidden';
+                                APURI.replacedFields.list[repname]={field:x[i], savedIndicator:paivitystoken, emptyQuestionWarning: tyhjakysvar, httpLinkWarning: linkkivar};
+                                console.log(".");
+                                // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
+				var elem = unsafeWindow.CKEDITOR.replace(x[i], {
 				
 					extraPlugins: 'base64image,mathjax',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
-					fileBrowserUploadUrl: 'base64'
+					fileBrowserUploadUrl: 'base64',
+					extraAllowedContent: 'script[!sec]'
+                                        
 				});
 				(function(inner_elem){
 					inner_elem.on('change',  function(src, event) {
@@ -703,7 +771,9 @@ if (typeof APURI.showUI !== 'function') {
 			$('<div />').attr('class', 'questionButtons').append(button2).insertAfter('div.questionButtons');
 			//document.getElementsByClassName('questionButtons')[0].appendChild(button);
 			//console.log("buttons created");
-                        $('<div />').attr('class', 'APURI_footer').html("Vihreät elementit ovat <a href='https://klo33.github.io/abi-apuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.").appendTo('body');
+                        $('<div />').attr('class', 'APURI_footer')
+                                .html("Vihreät elementit ovat <a href='https://klo33.github.io/abi-apuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.")
+                                .appendTo('#footer');
 			window.clearInterval(APURI.initUITimer);
 		}
 	}
