@@ -1,3 +1,5 @@
 theme: jekyll-theme-slate
 title: AbixApuri - käyttöliittymälaajennus Abittiin&trade;
 description: Avoimen lähdekoodin Abitti&trade;-lisäosa
+gems:
+  - jekyll-redirect-from
