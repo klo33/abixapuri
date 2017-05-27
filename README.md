@@ -17,6 +17,11 @@
 3. Osoitteessa [oma.abitti.fi] varmista, että skripti on päällä. Huom! Skripti on aktiivinen **vain** muokkaustilassa, ei listanäkymässä.
 
 ### Muutokset
+#### v0.1.0 (28.5.2017)
+- Chrome-tuki
+- CKEditor päivitetty versioon v4.7 ja lisätty lisäosia
+- Tuki tehtävän kopioinnille
+- Päivitetty ulkoasua ja korjattu bugeja mm. järjestelytoiminnossa
 #### v0.0.3 (22.5.2017)
 - Lisätty järjestystoiminnallisuus
   * Ei toimi vielä alatehtävissä
@@ -40,6 +45,6 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
-[3]:https://github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.user.js
+[3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
 [GPLv3]:https://www.gnu.org/licenses/gpl-3.0.en.html
 [oma.abitti.fi]:https://oma.abitti.fi
