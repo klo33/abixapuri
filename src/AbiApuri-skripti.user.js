@@ -988,25 +988,34 @@ APURI.listCopyExamTrigger = function(event) {
 };
 
 APURI.appendTableColumn = function() {
-	var taulukko = document.getElementById("available-exams");
+    var taulukko = document.getElementById("available-exams");
     if (taulukko !== null) {
-        //console.log("Tehdään kopiolinkit");
-        var rivit = taulukko.getElementsByTagName("tr")
-        for (var i = 0; i < rivit.length; i++) {
-            var uusisolu = $('<td />').attr('class', 'APURI');;
-            var examUuid = rivit[i].getAttribute("data-exam-uuid");
-            if (examUuid !== null) {
-                // ollaan varsinaisella rivillä
-                var span = $('<span />').attr('class', 'edit-exam');
-                var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html("<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio");
-                link[0].onclick = APURI.listCopyExamTrigger;
-                span.append(link).appendTo(uusisolu);
+        if (taulukko.getAttribute("apuri_mod") == null) {
+            //console.log("Tehdään kopiolinkit");
+            var rivit = taulukko.getElementsByTagName("tr");
+            for (var i = 0; i < rivit.length; i++) {
+                var uusisolu = $('<td />').attr('class', 'APURI');;
+                var examUuid = rivit[i].getAttribute("data-exam-uuid");
+                if (examUuid !== null) {
+                    // ollaan varsinaisella rivillä
+                    var span = $('<span />').attr('class', 'edit-exam');
+                    var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html("<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio");
+                    link[0].onclick = APURI.listCopyExamTrigger;
+                    span.append(link).appendTo(uusisolu);
+                }
+                uusisolu.appendTo(rivit[i]);
             }
-            uusisolu.appendTo(rivit[i]);
+            $('span.disabled-modify-exam-button-tooltip').html("Uudelleenkäyttääksesi koetta luo kopio \"Luo kopio\"-painikkeella");
+            //window.clearInterval(APURI.initUITimer);
+            taulukko.setAttribute("apuri_mod", "done");
         }
+    }
+};
+
+APURI.appendFooter = function() {
+    if (document.getElementsByClassName("footer-column").length > 0) {
         APURI.ui.appendSupportNotice();
-        $('span.disabled-modify-exam-button-tooltip').html("Uudelleenkäyttääksesi koetta luo kopio \"Luo kopio\"-painikkeella");
-        window.clearInterval(APURI.initUITimer);
+        window.clearInterval(APURI.initUIFooter);        
     }
 };
 
@@ -1021,4 +1030,7 @@ APURI.appendTableColumn = function() {
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
   if (typeof APURI.initUITimer === 'undefined') 
         APURI.initUITimer = window.setInterval(APURI.appendTableColumn, 1000);
+  if (typeof APURI.initUIFooter === 'undefined') 
+        APURI.initUIFooter = window.setInterval(APURI.appendFooter, 2000);
+
 })();
