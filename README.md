@@ -1,5 +1,5 @@
 ---
-redirect_from: "/abixapuri"
+redirect_from: "/abi-apuri"
 ---
 # AbixApuri
 
