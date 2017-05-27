@@ -7,6 +7,7 @@
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
 // @include     https://oma.abitti.fi/school/exams
+// @include     https://oma.abitti.fi/school/grading
 // @include     https://oma.abitti.fi/
 // @version     0.1.0
 // @grant       none
@@ -203,10 +204,10 @@ if (typeof APURI === "undefined")
                 },
                 appendSupportNotice: function() {
                     $('<div />').attr('class', 'APURI_footer')
-                                .html("Vihreät elementit ovat <a href='https://klo33.github.io/abi-apuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.")
+                                .html("Vihreät elementit ovat <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.")
                                 .prependTo('#footer .content');
                     $('<div />').attr('class', 'APURI_footer_contact')
-                                .html("<h5><a href='https://github.com/klo33/abi-apuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abi-apuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abi-apuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>")
+                                .html("<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>")
                                 .appendTo('#footer .footer-column:first');
                 }
             }
