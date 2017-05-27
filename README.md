@@ -1,4 +1,7 @@
-redirect_from: /abi-apuri
+---
+redirect_from: "/abi-apuri"
+redirect_from: "/abixapuri"
+---
 # AbixApuri
 
 **AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
