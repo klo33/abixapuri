@@ -6,6 +6,8 @@
 // @description:se  AbixHjälpare ger extra till oma.abitti.fi
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
+// @include     https://oma.abitti.fi/school/exams
+// @include     https://oma.abitti.fi/
 // @version     0.0.4
 // @grant       none
 // @downloadUrl https://klo33.github.io/abi-apuri/src/AbiApuri-skripti.user.js
@@ -729,11 +731,23 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = unsafeWindow.CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax',
+					extraPlugins: 'base64image,mathjax,base64audio',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
-					extraAllowedContent: 'script[!sec]'
+					extraAllowedContent: 'script[!sec]',
+                                        toolbar: [
+		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+		{ name: 'links', items: [ 'Link', 'Unlink' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio' ] },
+		{ name: 'tools', items: [ 'Maximize' ] },
+		{ name: 'document', items: [ 'Source' ] },
+		'/',
+		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Strike','-','Subscript','Superscript', '-', 'RemoveFormat' ] },
+		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote' ] },
+		{ name: 'styles', items: [ 'Styles', 'Format' ] },
+		{ name: 'about', items: [ 'About' ] }
+	]
                                         
 				});
 				(function(inner_elem){
@@ -794,20 +808,28 @@ if (typeof APURI.loadScriptDirect !== 'function') {
         }
     }
 
+APURI.ui.appendCSS = function(cssaddr) {
+	var linkcss = document.createElement("LINK");
+	linkcss.setAttribute("href", cssaddr);
+	linkcss.setAttribute("rel", "stylesheet");
+	linkcss.setAttribute("type", "text/css");
+	document.head.appendChild(linkcss);
+
+};
 
 (function() {
     //APURI.examImportCurrent();
                 if (document.body.getAttribute("class")!=='lapa') // varmista, että ollaan YTL:n kokeessa
                     return;
-	console.log("*");
-        
+    console.log("KOE-EDITORISSA OLLAAN");        
         // TODO tyylit pitäisi ladata css-tiedostosta
 //$("head").append('<link href="https://raw.githubusercontent.com/klo33/abi-apuri/sorting/src/abiapuri.css" rel="stylesheet" type="text/css" />');
-var linkcss = document.createElement("LINK");
-linkcss.setAttribute("href", "https://klo33.github.io/abi-apuri/src/abiapuri.css");
-linkcss.setAttribute("rel", "stylesheet");
-linkcss.setAttribute("type", "text/css");
-document.head.appendChild(linkcss);
+APURI.ui.appendCSS("https://klo33.github.io/abi-apuri/src/abiapuri.css");
+//var linkcss = document.createElement("LINK");
+//linkcss.setAttribute("href", "https://klo33.github.io/abi-apuri/src/abiapuri.css");
+//linkcss.setAttribute("rel", "stylesheet");
+//linkcss.setAttribute("type", "text/css");
+//document.head.appendChild(linkcss);
         //var style = document.createElement("STYLE");
 	//style.innerHTML = "button.APURI {   background-color: #6dd200 !important;} div.banner-left::after {    font-weight: bold;   content: \" + Apuri\" !important;}#pagebanner {    background-color: #6dd200 !important;} .APURI_examlist li {    border: 1px appworkspace outset;    padding: 0.2 em;    margin: 0.2 em;    background-color: gainsboro;} #APURI_sort_section {    list-style:none;}#APURI_sort_question li.APURI_sortable_question {	 list-style:none;	  display: box;    border: 1px black outset;    padding: 0.1em;	  padding-left: 0.4em;    margin: 0.2em;    background-color: #fef;} #APURI_delayd {     z-index: 10;    position: fixed;    height: 30px;    background-color: #ffff99;    color: #cc0033;    border: 3px solid #cc0033;     width: 400px;    max-width: 90%;    min-width: 50%;} #APURI_delayd button {    right: 10%;    top: 5px;} @keyframes movedown {    0% {      top:-100px;    }    100% {        top:0px;    }}@keyframes moveup {    0% {        top:0px;    }    100% {        top:-100px;    }}#APURI_delayd.comedown {  animation: movedown 1s ease-out forwards;}#APURI_delayd.clearup {  animation: moveup 1s ease-in forwards;}";
 	//document.head.appendChild(style);
@@ -821,6 +843,18 @@ document.head.appendChild(linkcss);
                     config.extraPlugins = 'base64image,mathjax';
                     config.uiColor = '#e4f3d3';
                     //config.fileBrowserUploadUrl = 'base64';
+                    config.toolbar = [
+		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+		{ name: 'links', items: [ 'Link', 'Unlink' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar' ] },
+		{ name: 'tools', items: [ 'Maximize' ] },
+		{ name: 'document', items: [ 'Source' ] },
+		'/',
+		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Strike','-','Subscript','Superscript', '-', 'RemoveFormat' ] },
+		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote' ] },
+		{ name: 'styles', items: [ 'Styles', 'Format' ] },
+		{ name: 'about', items: [ 'About' ] }
+	];
                 };
             }
         );
@@ -863,4 +897,109 @@ require(['CKEditor'], function (CKEditor){
             };
             console.log("CKEDITOR-conf-spawned");
 	};*/
+})();
+
+	APURI.makeCopyOfExam = function(origUuid) {
+		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
+			var uusikoe = {title: "Uusi koe"};
+                        console.log("Vanhan haku onnistui!")
+			$.ajax({
+					type: "POST",
+					url: "/kurko-api/exam/exam-event",
+					data: JSON.stringify(uusikoe),
+					accept: "application/json; text/javascript",
+					contentType: "application/json; charset=UTF-8",
+					dataType: "json",
+					success: function(uusidata){
+						console.log("Uusi koe luotu onnistuneesti"); 
+						var uudenUuid = uusidata.examUuid;
+                                                alert("Uuden uuid: "+ uudenUuid + " ja vanhan "+origUuid);
+						origData.content.title = origData.content.title + " (kopio)";
+						$.ajax({
+								type: "POST",
+								url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
+								data: JSON.stringify(origData.content),
+								accept: "application/json; text/javascript",
+								contentType: "application/json; charset=UTF-8",
+								dataType: "json",
+								success: function(data){
+									console.log("Kopio tehty onnistuneesti"); 
+
+										window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+								},
+								failure: function(errMsg) {
+										console.log("ERROR kopion tallennuksessa: "+errMsg);
+
+								}
+						});
+						
+					},
+					failure: function(errMsg) {
+							console.log("ERROR uuden luomisessa: "+errMsg);
+
+					}
+			});
+
+		});
+		// load old
+		// send POST https://oma.abitti.fi/kurko-api/exam/exam-event with content {"title": "Uusi koe"} (Accept: )
+	//Host: oma.abitti.fi
+	//User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0
+	//Accept: application/json, text/javascript, ; q=0.01
+	//Accept-Language: fi-FI,fi;q=0.8,en-US;q=0.5,en;q=0.3
+	//Accept-Encoding: gzip, deflate, br
+	//Content-Type: application/json; charset=UTF-8
+	//x-school-id: fc90d678-f17b-4dd9-8649-45bdbe4af78c
+	//X-Requested-With: XMLHttpRequest
+	//Referer: https://oma.abitti.fi/school/exams
+	//Content-Length: 20
+	//Cookie: kurkoSession=s%3A6xJUxrVsvRs5yMhIq47g1z36FGQIbQ_j.CfDEqlQVEqwGjvEfrv1s2XYyIl0XCSiVuTnm6o2yVA4; saLang=fin; GEAR=58e24009fbc736a65900001a-abittiprod
+	//Connection: keep-alive
+		 
+	   // get response of JSON exam uuid {examUuid: "xxxxxxxxx"}
+		// tallenna uusi koe (pelkkä content tallennetaan)
+		// redirect to uusi koe
+	};
+
+APURI.listCopyExamTrigger = function(event) {
+    var tag = event.target;
+    if (tag !== null) {
+        examUuid = tag.getAttribute("uuid");
+        console.log("Trying to copy " + examUuid);
+        APURI.makeCopyOfExam(examUuid);
+    }
+};
+
+APURI.appendTableColumn = function() {
+	var taulukko = document.getElementById("available-exams");
+    if (taulukko !== null) {
+        console.log("Tehdään kopiolinkit");
+        var rivit = taulukko.getElementsByTagName("tr")
+        for (var i = 0; i < rivit.length; i++) {
+            var uusisolu = $('<td />');
+            var examUuid = rivit[i].getAttribute("data-exam-uuid");
+            if (examUuid !== null) {
+                // ollaan varsinaisella rivillä
+                var span = $('<span />').attr('class', 'edit-exam');
+                var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html("<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio");
+                link[0].onclick = APURI.listCopyExamTrigger;
+                span.append(link).appendTo(uusisolu);
+            }
+            uusisolu.appendTo(rivit[i]);
+        }
+       window.clearInterval(APURI.initUITimer);
+    }
+};
+
+(function() {
+    console.log("..");
+    var accept_addresses = /^https:\/\/oma.abitti.fi(?:\/?|\/school\/exams\/?|\/school\/grading\/?)$/;
+    console.log("...");
+    if (window.location.href.match(accept_addresses) === null)
+        return;
+    console.log("KOELISTAUKSESSA OLLAAN");
+  APURI.ui.appendCSS("https://klo33.github.io/abi-apuri/src/abiapuri.css");
+        APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+  if (typeof APURI.initUITimer === 'undefined') 
+        APURI.initUITimer = window.setInterval(APURI.appendTableColumn, 1000);
 })();
