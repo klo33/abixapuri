@@ -29,6 +29,7 @@
     z-index: 30; 
     padding: 1em;
     background: #FFF;
+    color: #3E7800;
 }
 
 td.APURI .edit-exam {
@@ -80,7 +81,7 @@ button.APURI {
 
 button.APURI_modal_alaNappi {
   position: fixed; 
-  bottom: 1em; 
+  bottom: -10px; 
   right: 10%;  
 }
 
@@ -105,7 +106,40 @@ div.banner-left::after {
     list-style: none;
     padding: 0.2em;
     margin: 0.2em;
-    background-color: gainsboro;
+    padding-left: 1em;
+   
+}
+
+.APURI_examlist li.even {
+    background-color: #F1FBE8;
+}
+
+.APURI_examlist li.odd {
+    background-color: #DAEFC8;
+}
+
+
+li.APURI_import_exam a.unloaded::before {
+    content: "\f101";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .loaded::before {
+    content: "\f103";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .date::before {
+    content:"(";
+}
+li.APURI_import_exam .date::after {
+    content:") ";
 }
 
 #APURI_sort_section {
@@ -117,12 +151,17 @@ div.banner-left::after {
 	  display: box;
     border: 1px black outset;
     padding: 0.1em;
-	  padding-left: 0.4em;
+	  padding-left: 1.5em;
     margin: 0.2em;
-    background-color: #fef;
+    background-color: #F1FBE8;
 }
 #APURI_sort_question li.APURI_sortable_question:before {
-  
+    content: "\f047";
+    font-family: FontAwesome;
+    left:-20px;
+    position:relative;
+    top:0;
+    
 }
 
 #APURI_delayd {
