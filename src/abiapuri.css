@@ -2,6 +2,8 @@
     For AbixApuri to alter oma.abitti.fi page functionality 
     Created on : May 19, 2017, 11:31:07 AM
     Author     : Joni Lehtola
+
+    Colors: text #6DD200 really dark #3E7800 really dim background #F1FBE8; 
 */
 
 #APURI_modal_back {
@@ -29,13 +31,56 @@
     background: #FFF;
 }
 
+td.APURI .edit-exam {
+    margin-top: 4px;
+    border-color: #3E7800;
+    background-color: #C2FF81;
+
+}
+
+#available-exams td.APURI .edit-exam .edit-link {
+    background-color: #F1FBE8; 
+    color: #3E7800;
+}
+
+#footer .APURI_footer {
+    color: #6DD200;
+    margin-bottom: 1em;
+    
+}
+
+#footer .APURI_footer a {
+    color: #3E7800;
+}
+
+#footer .APURI_footer_contact {
+    margin-top:  0.5em;
+}
+
+#footer .APURI_footer_contact h5 a {
+    color: #3E7800;
+}
+#footer .APURI_footer_contact p a {
+    color: #6DD200;
+}
+
+
 button.APURI {
     background-color: #6dd200 !important;
 }
 
+.lapa .content .questionButtons {
+    margin-bottom: 5px !important;
+}
+.lapa .content .questionButtons.APURI {
+    margin-top: 0 !important;
+    line-height: 10px !important;
+    padding-left: 140px;
+}
+
 button.APURI_modal_alaNappi {
   position: fixed; 
-  bottom: 10px; 
+  bottom: 1em; 
   right: 10%;  
 }
 
