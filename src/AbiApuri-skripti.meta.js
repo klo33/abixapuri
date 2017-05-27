@@ -7,6 +7,7 @@
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
 // @include     https://oma.abitti.fi/school/exams
+// @include     https://oma.abitti.fi/school/grading
 // @include     https://oma.abitti.fi/
 // @version     0.1.0
 // @grant       none
