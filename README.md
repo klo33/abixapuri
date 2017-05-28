@@ -7,14 +7,16 @@
 
 1. Tehtävätekstien muokkaus laajennetulla editorilla (WYSIWYG)
   * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
+  * Chromessa liittäminen ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
 2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta
 3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
+4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
 
 ## Asentaminen
 
 1. Firefox-selaimessa lataa [GreaseMonkey][1]-lisäosa. Chrome-selaimessa lataa [TamperMonkey][2]-lisäosa.
-2. Lataa [AbixApuri-skriptilaajennos][3]-javascript osoitteesta [github.com/klo33/abi-apuri/raw/master/src/AbiApuri-skripti.user.js][3]. Jos laajennos on asennettu selaimeen sen pitäisi ehdottaa asennusta.
-3. Osoitteessa [oma.abitti.fi] varmista, että skripti on päällä. Huom! Skripti on aktiivinen **vain** muokkaustilassa, ei listanäkymässä.
+2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
+3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
 
 ### Muutokset
 #### v0.1.0 (28.5.2017)
