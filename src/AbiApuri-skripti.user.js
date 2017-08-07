@@ -159,6 +159,31 @@ if (typeof APURI === "undefined")
                 }
             },
             ui: {
+                showWarning: function(msg_text, button_text = 'OK', id_text = 'APURI_msg', actionHandler = null) {
+                    var outer = $('<div />').attr('id', id_text).attr('class','comedown');
+                    var message = $('<div />').attr('class','APURI_message').html(msg_text);
+                    var button = document.createElement('button');
+                    var action = actionHandler;
+                    if (action === null) {
+                        action = function () {
+                          APURI.ui.clearWarning(id_text);  
+                        };
+                    }
+                    button.class = 'APURI tallennanappi'
+                    button.onclick = action;
+                    button.innerHTML = button_text;
+                    outer.append(message).append(button);
+                    document.body.appendChild(outer[0]);                    
+                },
+                clearWarning: function(id_text = 'APURI_msg') {
+                    $('#'+id_text).attr('class', 'clearup');
+                    setTimeout(function () {
+                        APURI.ui.deleteWarning(id_text);
+                    }, 2000);
+                },
+                deleteWarning: function(id_text = 'APURI_msg') {
+                    $('#'+id_text).remove();
+                },
                 showDelaydsavingNotice: function() {
                     // TODO KIRJOITA LOPPUUN
                                      //   console.log("Notice up");
@@ -202,6 +227,10 @@ if (typeof APURI === "undefined")
                 showHttpLinkWarning: function(elem) {
                     // TODO
                 },
+                showBittiniiloWarning: function() {
+                    APURI.ui.showWarning("Käytät AbixApuria ja Bittiniiloa yhtäaikaa, mikä <strong>ei toimi</strong>. <br/> <a href='https://klo33.github.io/abixapuri/bittiniilo'>Ohjeet miten Bittiniilo kytkekään pois päältä</a>", 
+                            "OK", 'APURI_bittiniilo');
+                },
                 appendSupportNotice: function() {
                     $('<div />').attr('class', 'APURI_footer')
                                 .html("Vihreät elementit ovat <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.")
@@ -210,6 +239,36 @@ if (typeof APURI === "undefined")
                                 .html("<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>")
                                 .appendTo('#footer .footer-column:first');
                 }
+            },
+            util: {
+                bittiniiloDetector: {
+                    init: function() {
+                        APURI.util.bittiniiloDetector.timer = window.setInterval(APURI.util.bittiniiloDetector.trigger, 2000);
+                    },
+                    counter: 10,
+                    trigger: function() {
+                        if (APURI.util.bittiniiloDetector.detectBittiniilo()) {
+                            window.clearInterval(APURI.util.bittiniiloDetector.timer);
+                            APURI.ui.showBittiniiloWarning();
+                            return;
+                        }
+                        if (APURI.util.bittiniiloDetector.counter < 1) {
+                            window.clearInterval(APURI.util.bittiniiloDetector.timer);
+                            return;                            
+                        }
+                        APURI.util.bittiniiloDetector.counter--;
+                    },
+                    timer: {},
+                    detectBittiniilo: function() {
+                        
+                    if ($('div.banner-left img[title="Bittiniilo"]').length)
+                        return true;
+                    else
+                        return false;
+                    }
+                }
+
+                
             }
         };
 
@@ -912,11 +971,13 @@ APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
             }
         );
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
-      
+   
 unsafeWindow.requirejs.config({
     paths: {
         'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
     }
+     
+
 });
 
 unsafeWindow.require(['Sortable'], function (Sortable){
@@ -929,6 +990,8 @@ unsafeWindow.require(['Sortable'], function (Sortable){
                 APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
 	if (typeof APURI.initBoxesTimer === 'undefined')
                 APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
+            
+        APURI.util.bittiniiloDetector.init();
    	/*script.onload = function() {
             CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
@@ -1037,5 +1100,6 @@ APURI.appendFooter = function() {
         APURI.initUITimer = window.setInterval(APURI.appendTableColumn, 1000);
   if (typeof APURI.initUIFooter === 'undefined') 
         APURI.initUIFooter = window.setInterval(APURI.appendFooter, 2000);
-
+ APURI.util.bittiniiloDetector.init();
+ 
 })();
