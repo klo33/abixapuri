@@ -207,10 +207,10 @@ border: 3px solid #3E7800;
         top:-100px;
     }
 }
-#APURI_delayd.comedown {
+#APURI_delayd.comedown, #APURI_bittiniilo.comedown{
   animation: movedown 1s ease-out forwards;
 }
-#APURI_delayd.clearup {
+#APURI_delayd.clearup, #APURI_delayd.clearup {
   animation: moveup 1s ease-in forwards;
 }
 
