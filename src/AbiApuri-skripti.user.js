@@ -487,6 +487,11 @@ if (typeof APURI.examImportQuestion !== 'function') {
 						//console.log("Largest id "+ largestId+" Next: set ids");
 						APURI.traverseSetId(question, largestId+1);
                                                 //TODO luottaa, että sections[0] olemassa
+                                                if (typeof current.content.sections[0] === 'undefined') {
+                                                    current.content.sections[0] = {
+                                                        questions: []
+                                                    };
+                                                }
 						current.content.sections[0].questions.push(question);
 						// reorganize displaynumbers
 						//console.log('DisplayNumber setting');
