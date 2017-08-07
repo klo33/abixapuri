@@ -19,6 +19,9 @@
 3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
 
 ### Muutokset
+#### v0.1.1 (7.8.2017)
+- Virheenkorjauksia
+- Lisätty huomautus, jos Bittiniiloa käytetään yhtäaikaa
 #### v0.1.0 (28.5.2017)
 - Chrome-tuki
 - CKEditor päivitetty versioon v4.7 ja lisätty lisäosia
@@ -36,6 +39,17 @@ Uusista huomatuista virheistä ja ongelmista kannattaa raportoida ensisijaisesti
 AbixApuri on avointa ohjelmistoa, jossa ei ole varsinaista käyttötukea, mutta toki autan parhaani mukaan, jos tarve on suuri.
 Apuja voi kysellä minun sähköpostini lisäksi [Tietokoneet YO-kirjoituksissa Facebook-ryhmästä](https://www.facebook.com/groups/339542799419574/).
 
+### Ohjeet AbixAburin tai Bittiniilon poisasentamiseksi
+
+#### Bittiniilon kytkeminen pois käytöstä
+- Chromessa sivuvalikosta (...-ikoni) *Lisää työkaluja* -> *Laajennukset*
+Ota ruksi pois Bittiniilon *Käytössä* sarakkeesta. Jos haluat poistaa Bittiniilon kokonaan, voit valita myös roskakorin.
+Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöön valitsemalla *Ota käyttöön*.
+
+- Firefoxissa valikossa (kolme vaakaviivaa) valitse *Lisäosat* ja tarvittaessa sivuvalikosta *Laajennukset*. Bittiniilon kohdalla paina *Poista käytöstä* napista.
+#### AbixApurin kytkeminen pois käytöstä
+- Chromessa kun olet oma.abitti.fi-osoitteessa valitse TamperMonkey-laajennuksen kuvake (pyöreäreunainen neliö, jossa kaksi aukkoa) ja AbixApurin kohdalta käännä on->off. Tarvittaessa päälle kytkentä samoin.
+- Firefoxissa oma.abitti.fi-osoitteessa GreaseMonkey-laajennuksen kuvakkeesta (apinakuvake) alasnuoli -> ota valinta pois AbixApurin kohdalta. Tarvittaessa kytke uudelleen päälle ja päivitä verkkosivu.
 
 ### Tunnetut ongelmat
 + Chrome-selaimessa TamperMonkey'ssa kuvien liittämisessä leikepöydältä on vielä ongelmia. Firefox-GreaseMonkey-yhdistelmällä toimii.
