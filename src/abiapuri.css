@@ -164,7 +164,7 @@ li.APURI_import_exam .date::after {
     
 }
 
-#APURI_delayd {
+#APURI_delayd, #APURI_bittiniilo {
     height: 4em;
     background-color: #C2FF81;
     /*background-color: #C2FF81E6;*/
@@ -179,11 +179,11 @@ border: 3px solid #3E7800;
     margin: auto;
     
 }
-#APURI_delayd div.APURI_message {
+#APURI_delayd div.APURI_message, #APURI_bittiniilo div.APURI_message {
     padding: 1em;
 }
 
-#APURI_delayd button {
+#APURI_delayd button, #APURI_bittiniilo button {
     right: 5%;
     top: 0.7em;
     position: absolute;
