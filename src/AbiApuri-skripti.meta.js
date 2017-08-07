@@ -9,7 +9,7 @@
 // @include     https://oma.abitti.fi/school/exams
 // @include     https://oma.abitti.fi/school/grading
 // @include     https://oma.abitti.fi/
-// @version     0.1.0
+// @version     0.1.1
 // @grant       none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
