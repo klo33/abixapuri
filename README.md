@@ -18,9 +18,13 @@
 2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
 3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
 
+Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
+
 ### Muutokset
-#### v0.1.1 (7.8.2017)
+#### v0.1.2 (8.8.2017)
 - Virheenkorjauksia
+  * korjattu kokeen tuontiin liittyvä ongelma
+  * lisäkorjauksena v0.1.1 tullut ongelma korjattu
 - Lisätty huomautus, jos Bittiniiloa käytetään yhtäaikaa
 #### v0.1.0 (28.5.2017)
 - Chrome-tuki
@@ -40,6 +44,7 @@ AbixApuri on avointa ohjelmistoa, jossa ei ole varsinaista käyttötukea, mutta 
 Apuja voi kysellä minun sähköpostini lisäksi [Tietokoneet YO-kirjoituksissa Facebook-ryhmästä](https://www.facebook.com/groups/339542799419574/).
 
 ### Ohjeet AbixAburin tai Bittiniilon poisasentamiseksi
+AbixApurin toiminnallisuutta haittaa Bittiniilon aktiivisena olo. Mikäli et ole ostanut maksullista Bittiniilon lisenssiä, ei se auta kokeenlaadinnassa, jolloin se kannattaa poistaa käytöstä.
 
 #### Bittiniilon kytkeminen pois käytöstä
 - Chromessa sivuvalikosta (...-ikoni) *Lisää työkaluja* -> *Laajennukset*
