@@ -9,7 +9,7 @@
 // @include     https://oma.abitti.fi/school/exams
 // @include     https://oma.abitti.fi/school/grading
 // @include     https://oma.abitti.fi/
-// @version     0.1.1
+// @version     0.1.2
 // @grant       none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -53,14 +53,7 @@ if (typeof APURI === "undefined")
                 savedIndicator: "div.savedIndicator",
                 emptyQuestionWarning: 'div.empty-question-warning'
             },
-            util: {
-                dateToString(datestr) {
 
-                   var date = new Date(datestr);
-                   var output = ""+date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear();
-				   return output;
-                }
-            },
             questionsort: { 
                 'bufferOld': {}, 
                 bufferOrder: [],
@@ -266,6 +259,12 @@ if (typeof APURI === "undefined")
                     else
                         return false;
                     }
+                },
+                dateToString(datestr) {
+
+                   var date = new Date(datestr);
+                   var output = ""+date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear();
+				   return output;
                 }
 
                 
