@@ -1,0 +1,1 @@
+window.CKEDITOR_BASEPATH = "https://klo33.github.io/javascript/ckeditor/";

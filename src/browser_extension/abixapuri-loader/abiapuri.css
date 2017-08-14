@@ -1,0 +1,226 @@
+/*
+    For AbixApuri to alter oma.abitti.fi page functionality 
+    Created on : May 19, 2017, 11:31:07 AM
+    Author     : Joni Lehtola
+
+    Colors: text #6DD200 really dark #3E7800 really dim background #F1FBE8; 
+*/
+
+#APURI_modal_back {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 25; 
+    background: #AAA; 
+    opacity: .40; 
+    filter: Alpha(Opacity=40);
+}   
+
+#APURI_modal_content { 
+    position: fixed; 
+    overflow-y:auto; 
+    top: 60px; 
+    left: 20%; 
+    width: 60%; 
+    opacity: 1; 
+    height: 80%; 
+    z-index: 30; 
+    padding: 1em;
+    background: #FFF;
+    color: #3E7800;
+}
+
+td.APURI .edit-exam {
+    margin-top: 4px;
+    border-color: #3E7800;
+    background-color: #C2FF81;
+
+}
+
+#available-exams td.APURI .edit-exam .edit-link {
+    background-color: #F1FBE8; 
+    color: #3E7800;
+}
+
+#footer .APURI_footer {
+    color: #6DD200;
+    margin-bottom: 1em;
+    
+}
+
+#footer .APURI_footer a {
+    color: #3E7800;
+}
+
+#footer .APURI_footer_contact {
+    margin-top:  0.5em;
+}
+
+#footer .APURI_footer_contact h5 a {
+    color: #3E7800;
+}
+#footer .APURI_footer_contact p a {
+    color: #6DD200;
+}
+
+
+button.APURI {
+    background-color: #6dd200 !important;
+}
+
+.lapa .content .questionButtons {
+    margin-bottom: 5px !important;
+}
+.lapa .content .questionButtons.APURI {
+    margin-top: 0 !important;
+    line-height: 10px !important;
+    padding-left: 140px;
+}
+
+button.APURI_modal_alaNappi {
+  position: fixed; 
+  bottom: -10px; 
+  right: 10%;  
+}
+
+button.APURI_modal_ylaX {
+    position: fixed; 
+    top: 60px; 
+    right: 16%; 
+    width: 30px !important;
+}
+
+div.banner-left::after {
+    font-weight: bold;
+    content: " + Apuri" !important;
+}
+
+#pagebanner {
+    background-color: #6dd200 !important;
+}
+
+.APURI_examlist li {
+    border: 1px appworkspace outset;
+    list-style: none;
+    padding: 0.2em;
+    margin: 0.2em;
+    padding-left: 1em;
+   
+}
+
+.APURI_examlist li.even {
+    background-color: #F1FBE8;
+}
+
+.APURI_examlist li.odd {
+    background-color: #DAEFC8;
+}
+
+
+li.APURI_import_exam a.unloaded::before {
+    content: "\f101";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .loaded::before {
+    content: "\f103";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .date::before {
+    content:"(";
+}
+li.APURI_import_exam .date::after {
+    content:") ";
+}
+
+#APURI_sort_section {
+    list-style:none;
+}
+
+#APURI_sort_question li.APURI_sortable_question {
+	  list-style:none;
+	  display: box;
+    border: 1px black outset;
+    padding: 0.1em;
+	  padding-left: 1.5em;
+    margin: 0.2em;
+    background-color: #F1FBE8;
+}
+#APURI_sort_question li.APURI_sortable_question:before {
+    content: "\f047";
+    font-family: FontAwesome;
+    left:-20px;
+    position:relative;
+    top:0;
+    
+}
+
+#APURI_delayd, #APURI_bittiniilo {
+    height: 4em;
+    background-color: #C2FF81;
+    /*background-color: #C2FF81E6;*/
+    color: #3E7800;
+border: 3px solid #3E7800;
+    z-index: 20;
+    position: fixed;
+    width: 400px;
+    max-width: 90%;
+    min-width: 70%;
+    left: 15%;
+    margin: auto;
+    
+}
+#APURI_delayd div.APURI_message, #APURI_bittiniilo div.APURI_message {
+    padding: 1em;
+}
+
+#APURI_delayd button, #APURI_bittiniilo button {
+    right: 5%;
+    top: 0.7em;
+    position: absolute;
+    background-color: #3E7800 !important;
+}
+
+@keyframes movedown {
+    0% {
+        top:-100px;
+    }
+    100% {
+        top:0px;
+    }
+}
+
+@keyframes moveup {
+    0% {
+        top:0px;
+    }
+    100% {
+        top:-100px;
+    }
+}
+#APURI_delayd.comedown, #APURI_bittiniilo.comedown{
+  animation: movedown 1s ease-out forwards;
+}
+#APURI_delayd.clearup, #APURI_delayd.clearup {
+  animation: moveup 1s ease-in forwards;
+}
+
+#footer div.content {
+    margin-bottom: 0 !important;
+}
+
+#APURI_footer {
+    color: #3E7800;
+}
+#APURI_footer a {
+    text-decoration: underline;
+}
