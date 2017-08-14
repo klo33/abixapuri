@@ -43,18 +43,20 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 
 ### Selainlaajennokset
 - [Firefoxille][4]
+Tallenna laajennus koneellesi ja sen jälkeen raahaa ladattu XPI-tiedosto Firefoxin ikkunaan. 
 - [Chromelle][5]
+Chromessa ilmeisesti asennus onnistuu ainoastaan kehittäjätilassa (chrome://extensions -> kehittäjätila)
 
-#### Miksi haluan käyttää erillisiä selainlaajennoksia?
+#### Miksi haluaisin käyttää erillisiä selainlaajennoksia?
 Tietooni on tullut, että AbixAjurin juridisesta asemasta on heitetty epäilyksiä, viitaten siihen, että GreaseMonkey ja TamperMonkey eivät olisi luotettavia. Molemmat lisäosat ovat vakiintuneita ja hyvämaineisia, erityisesti viimeaikoina kun niiden skriptien asetuksia on pystynyt rajaamaan tarkemmin.
 
-Erillisen laajennuksen käyttö poistaa nämä epäilyt. Erityisesti tämä koskee Firefoxin laajennusta, joka on allekirjoitettu heidän laajennussertifikaatillaan.
+Erillisen laajennuksen käyttö poistaa kuitenkin nämä epäilyt.
 
-#### Miksi selainlaajennokset eivät ole selaimien laajennoksien omilla sivustoilla?
+#### Miksi selainlaajennokset eivät ole selaimien laajennoksien omissa kaupoissa?
 
-Laajennoksen lataavat YTL:n ulkopuolista koodia (CKEditor ja jäsennyksen käyttöliittymäkoodi sekä erikoisfontin renderöintikoodi), joka ei ole selainlaajennoksissa sallittua. Kaikki muut on erittäin helppo ja nopea saada toimimaan myös laajennoksen sisällä, mutta CK-Editor vaatisi aika paljon työtä, jotta sen pystyisi toiminnallisesti saamaan siihen asuun joka ei lataa mitään ohjelmakoodia YTL:n verkkosivujen ulkopuolelta.
+Laajennoksen lataavat YTL:n ulkopuolista koodia (CKEditor ja jäsennyksen käyttöliittymäkoodi sekä erikoisfontin renderöintikoodi), joka ei ole selainlaajennoksissa sallittua. Kaikki muu toiminnallisuus olisi erittäin helppo ja nopeaa saada toimimaan myös laajennoksen sisällä, mutta CKEditor vaatisi jonkin verran työtä, jotta sen pystyisi toiminnallisesti saamaan siihen asuun joka ei lataa mitään ohjelmakoodia YTL:n verkkosivujen ulkopuolelta.
 
-Juuri nyt tähän ei olla ryhtymässä, joten laajennoksia ei tule selainkauppoihin ihan lähiaikoina.
+Juuri nyt tähän en itse ryhtymässä, joten laajennoksia ei tule selainkauppoihin ihan lähiaikoina.
 
 ### Tuki ja ongelmatilanteet
 Uusista huomatuista virheistä ja ongelmista kannattaa raportoida ensisijaisesti [GitHubin projektin virheseurantaan](https://github.com/klo33/abixapuri/issues).
