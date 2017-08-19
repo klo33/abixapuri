@@ -8,8 +8,10 @@
 // @include     https://oma.abitti.fi/school/exam/*
 // @include     https://oma.abitti.fi/school/exams
 // @include     https://oma.abitti.fi/school/grading
+// @include     https://oma.abitti.fi/school/grading/*
+// @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.1.2
+// @version     0.2.0
 // @grant       none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -44,6 +46,32 @@ if (typeof unsafeWindow === 'undefined')
 
 if (typeof APURI === "undefined") 
         var APURI ={
+            settings: {
+                fetchGetHeaders: {
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',                    
+                }
+            },
+            fetch: {
+                getJson(uri, additionalHeaders = null) {
+                    var myHeaders = APURI.settings.fetchGetHeaders;
+                    if (additionalHeaders !== null) {
+                        myHeaders = Object.assign({}, APURI.settings.fetchGetHeaders);
+                        for (let key in additionalHeaders) {
+                            myHeaders[key] = additionalHeaders[key];
+                        }
+                    }
+                    return fetch(uri,  {
+                            credentials: 'include',
+                            headers: myHeaders
+                        }).then(function(response) {
+                            var contentType = response.headers.get("content-type");
+                            if(contentType && contentType.includes("application/json")) {
+                              return response.json();
+                            }
+                            throw new TypeError("Virhe haettaessa "+uri);
+                          });
+                }
+            },
             aukkotehtscript: "<script sec=\"apuri\" type=\"application/javascript\" id=\"apuri_script\">if(\"undefined\"===typeof APURI)var APURI={};\"function\"!==typeof APURI.paivvast&&(APURI.paivvast=function(a,b,c,k,l){c=$(\"#\"+c);var d=c.val().split(\"\n\");d[k-1]=\"#\"+k+\":\"+b.value;c.val(d.join(\"\n\"));1==l&&9!=a.keyCode&&(b=jQuery.Event(\"keydown\"),b.which=a.which,c.trigger(b),b=jQuery.Event(\"keyup\"),b.which=a.which,c.trigger(b))});\"undefined\"===typeof APURI.kentta&&(APURI.kentta=[]);\"function\"!==typeof APURI.purku&&(APURI.purku=function(a){\"undefined\"===typeof APURI.kentta[APURI.count]&&(APURI.kentta[APURI.count]=0);var b;b=document.createElement(a.tagName);for(var c in a.attributes)b.setAttribute(c.name,a.attributes[c].value);a.hasChildNodes()&&a.childNodes.forEach(function(a,c){if(a.nodeType==Node.TEXT_NODE){for(var d=a.textContent.trim().split(\"[]\"),g=document.createElement(\"span\"),f=0;f<d.length;f++){if(0<f){APURI.kentta[APURI.count]++;var h=document.createElement(\"form\");h.style.display=\"inline\";var e=document.createElement(\"input\");e.setAttribute(\"type\",\"text\");e.setAttribute(\"length\",\"10\");e.setAttribute(\"onChange\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", false);\");e.setAttribute(\"onKeyup\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", true);\");h.appendChild(e);g.appendChild(h)}g.appendChild(document.createTextNode(d[f]))}b.appendChild(g)}else a.nodeType==Node.ELEMENT_NODE&&\"SCRIPT\"!=a.tagName&&(a.textContent.includes(\"[]\")?b.appendChild(APURI.purku(a)):b.appendChild(a.cloneNode(!0)))});return b});\"undefined\"===typeof APURI.count?APURI.count=1:APURI.count++;\"undefined\"===typeof APURI.pjono&&(APURI.pjono=[]);(function(){var a;(a=document.currentScript)||(a=document.getElementsByTagName(\"script\"),a=a[a.length-1]);\"BODY\"==a.parentNode.tagName&&(a=document.getElementById(\"apuri_script\"));for(a=a.parentNode;\"SPAN\"!==a.tagName.toUpperCase()&&\"text\"!==a.className.toLowerCase;)a=a.parentNode;APURI.pjono[APURI.count]=a;a.style.display=\"none\";var b=a.parentNode,c=a.parentNode.parentNode.querySelector(\"textarea.answerText\");c.id=\"apuri_vastk_\"+APURI.count;c.style.height=\"10px\";c.style.display=\"none\";c=APURI.purku(a);b.insertBefore(c,a.nextSibling)})();</script>",
             modal_background_style:  "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
             modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
@@ -282,7 +310,7 @@ if (typeof APURI === "undefined")
                   let currentUuid = APURI.exam.getCurrentLocationUuid();
                   this.loadGradingObject(currentUuid)
                           .then(function(result) {
-                              this.gradesBuffer = result;
+                              APURI.grading.gradesBuffer = result;
                               APURI.initView(APURI.views.grading);
                   });
                 },
@@ -293,14 +321,29 @@ if (typeof APURI === "undefined")
                  */
                 loadGradingObject(examId) {
                     return new Promise((resolve, reject) => {
-                        $.getJSON(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`, function(data) {
+                        let waitForUser = Promise.resolve(1);
+                    
+                        if (APURI.user.userdata === null) {
+                            waitForUser = APURI.user.loadUserdata();
+                        }
+                        waitForUser.then(function() {
+                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`)
+                                    .then(function(data) {
+                                        resolve(data);
+                            })
+                                .catch(reject);                              
+                        }).catch(()=> {
+                            console.log("ERROR");
+                            reject();
+                        });
+                 /*       $.getJSON(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`, function(data) {
 		})
                         .done(function(data) {
                             resolve(data);    
                 })
                         .fail(function() {
                             reject();
-                        });
+                        });*/
                     });
                 },
                 /**
@@ -337,6 +380,25 @@ if (typeof APURI === "undefined")
                     return APURI.grading.getCsvDataForExam(uuid);
                 }
             },
+            user: {
+                userdata: null,
+                loadUserdata() {
+                    return new Promise((resolve, reject) => {
+                        APURI.fetch.getJson('https://oma.abitti.fi/kurko-api/user')
+                            .then(function(data) {
+                                APURI.user.userdata = data;
+                                if (typeof data.roles !== 'undefined' &&
+                                    typeof data.roles[0] !== 'undefined' &&
+                                    typeof data.roles[0].schoolId !== 'undefined') {
+                                        APURI.user.schoolId = data.roles[0].schoolId;
+                                        APURI.settings.fetchGetHeaders['x-school-id'] = APURI.user.schoolId;
+                                }
+                                resolve();        
+                            }).catch(reject);                    
+                    });
+                }
+                
+            },
             exam: {
                 /**
                  * Returns exam UUID extracted from the location of current window
@@ -364,14 +426,20 @@ if (typeof APURI === "undefined")
                  */
                 loadExam(examUuid) {
                     return new Promise((resolve, reject) => {
-                        $.getJSON(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`, function(data) {
+                        // TODO varmista että onko tämä turha odottaa käyttäjää??
+                        let waitForUser = Promise.resolve(1);
+                    
+                        if (APURI.user.userdata === null) {
+                            waitForUser = APURI.user.loadUserdata();
+                        }
+                        waitForUser.then(function() {
+                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`)
+                                    .then(function(data) {
+                                        resolve(data);
                             })
-                        .done(function(data) {
-                                resolve(data);    
-                            })
-                        .fail(function() {
-                                reject();
-                            });
+                                .catch(reject);                              
+                        }).catch(reject);
+                    
                     });
                 }
             },
