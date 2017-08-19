@@ -38,8 +38,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 // to make things easier with TamperMonkey in Chrome
+'use strict';
 if (typeof unsafeWindow === 'undefined')
-	unsafeWindow = window;
+	var unsafeWindow = window;
 
 if (typeof APURI === "undefined") 
         var APURI ={
@@ -162,7 +163,7 @@ if (typeof APURI === "undefined")
                           APURI.ui.clearWarning(id_text);  
                         };
                     }
-                    button.class = 'APURI tallennanappi'
+                    button.class = 'APURI tallennanappi';
                     button.onclick = action;
                     button.innerHTML = button_text;
                     outer.append(message).append(button);
@@ -183,7 +184,7 @@ if (typeof APURI === "undefined")
                     var outer = $('<div />').attr('id', 'APURI_delayd').attr('class','comedown');
                     var message = $('<div />').attr('class','APURI_message').html('Suurten kuvien tai liitteiden vuoksi <strong>tallennusta ei vielä tehty!</strong>');
                     var button = document.createElement('button');
-                    button.class = 'APURI tallennanappi'
+                    button.class = 'APURI tallennanappi';
                     button.onclick = APURI.postponedSaving.manualTrigger;
                     button.innerHTML = 'Tallenna';
                     outer.append(message).append(button);
@@ -260,6 +261,11 @@ if (typeof APURI === "undefined")
                         return false;
                     }
                 },
+                /**
+                 * Converts DateString to "D.M.YYYY"
+                 * @param {string} datestr date in some 
+                 * @returns {string} "D.M.YYYY" 
+                 */
                 dateToString(datestr) {
 
                    var date = new Date(datestr);
@@ -268,8 +274,218 @@ if (typeof APURI === "undefined")
                 }
 
                 
+            },
+            grading: {
+                gradesBuffer: null,
+                
+                initGradingCount() {
+                  let currentUuid = APURI.exam.getCurrentLocationUuid();
+                  this.loadGradingObject(currentUuid)
+                          .then(function(result) {
+                              this.gradesBuffer = result;
+                              APURI.initView(APURI.views.grading);
+                  });
+                },
+                 /**
+                 * Loads grading object
+                 * @param {string} examId UUID for exam
+                 * @returns {Promise} Promise which resolves for GradingObject  
+                 */
+                loadGradingObject(examId) {
+                    return new Promise((resolve, reject) => {
+                        $.getJSON(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`, function(data) {
+		})
+                        .done(function(data) {
+                            resolve(data);    
+                })
+                        .fail(function() {
+                            reject();
+                        });
+                    });
+                },
+                /**
+                 * Extracts CSV from GradingObject
+                 * @param {GradingObject} gradingObj grading
+                 * @param {Object} examObj Exam object
+                 * @return {string} CSV  
+                 */
+                extractCsv(gradingObj, examObj) {
+
+                    
+                },
+                /**
+                 * Returns CSV formatted string for the exam
+                 * @param {string} examUuid Exam UUID
+                 * @return {Promise} Promise which resolves for string 
+                 */
+                getCsvDataForExam(examUuid) {
+                    return new Promise((resolve, reject) => {
+                        Promise.all([
+                            APURI.grading.loadGradingObj(examUuid),
+                            APURI.exam.loadExam(examUuid)
+                        ]).then(values => {
+                            resolve(APURI.grading.extractCsv(values[0], values[1]));
+                        }).catch(reject);
+                    });
+                },
+                /**
+                 * Returns CSV formatted string for the exam in current view
+                 * @return {Promise} Promise which resolves for string 
+                 */
+                getCsvDataForCurrent() {
+                    let uuid = APURI.exam.getCurrentLocationUuid();
+                    return APURI.grading.getCsvDataForExam(uuid);
+                }
+            },
+            exam: {
+                /**
+                 * Returns exam UUID extracted from the location of current window
+                 * @returns {string} current locations exam UUID or null if not recognized
+                 */
+                getCurrentLocationUuid() {
+                    const patterns = [
+                        /^https:\/\/oma\.abitti\.fi\/school\/exam\/([^\/]+)\/?\#?\??.*$/,
+                        /^https:\/\/oma\.abitti\.fi\/school\/grading\/([^\/]+)\/?\#?\??.*$/,
+                        /^https:\/\/oma\.abitti\.fi\/school\/review\/([^\/]+)\/?\#?\??.*$/
+                    ];
+                    
+                    var location = window.location.href.split(/[?#]/)[0]; 
+                    for (var key in patterns) {
+                        let res = location.match(patterns[key]);
+                        if (res !== null)
+                            return res[1];
+                    }
+                    return null;
+                },
+                /**
+                 * Loads exam JSON
+                 * @param {string} examUuid UUID for exam
+                 * @returns {Promise} Promise which resolves for ExamObject  
+                 */
+                loadExam(examUuid) {
+                    return new Promise((resolve, reject) => {
+                        $.getJSON(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`, function(data) {
+                            })
+                        .done(function(data) {
+                                resolve(data);    
+                            })
+                        .fail(function() {
+                                reject();
+                            });
+                    });
+                }
+            },
+            /**
+             * View-object structure used
+             * initTimer - intervalTimerId
+             * show() - function spawned
+             */
+            views: {
+                gradingSummary: {
+                    initTimer: null,
+                    show: function () {
+                        
+                    }
+                },
+                grading:{
+                    initTimer: null,
+                    show: function () {
+                        
+                    }
+                },
+                examview: {
+                    initTimer: null,
+                    show: function() {
+                        if (document.getElementsByClassName("questionButtons").length > 0) {
+                                //console.log("begin button");
+                                var button = document.createElement("button");
+                                button.innerHTML="Tuo koetehtävä toisesta kokeesta";
+                                button.onclick = APURI.showImportDialog;
+                                button.setAttribute("class", "addQuestion APURI importExam");
+                                var button2 = document.createElement("button");
+                                button2.innerHTML="Uudelleenjärjestä koetehtävät";
+                                button2.onclick = APURI.showSortDialog;
+                                button2.setAttribute("class", "addQuestion APURI sortExam");
+                                $('div.questionButtons').append(button);
+                                $('<div />').attr('class', 'questionButtons APURI').append(button2).insertAfter('div.questionButtons');
+                                //document.getElementsByClassName('questionButtons')[0].appendChild(button);
+                                //console.log("buttons created");
+                                window.clearInterval(this.initTimer);
+                                APURI.ui.appendSupportNotice();
+
+                        }                       
+                    }
+                },
+                examviewBoxes: {
+                    initTimer: null,
+                    show: function() {
+                        APURI.replaceBoxes();
+                    }
+                },
+                examlist: {
+                    initTimer: null,
+                    show: function() {
+                        var taulukko = document.getElementById("available-exams");
+                        if (taulukko !== null) {
+                            if (taulukko.getAttribute("apuri_mod") === null) {
+                                //console.log("Tehdään kopiolinkit");
+                                var rivit = taulukko.getElementsByTagName("tr");
+                                for (var i = 0; i < rivit.length; i++) {
+                                    var uusisolu = $('<td />').attr('class', 'APURI');
+                                    var examUuid = rivit[i].getAttribute("data-exam-uuid");
+                                    if (examUuid !== null) {
+                                        // ollaan varsinaisella rivillä
+                                        var span = $('<span />').attr('class', 'edit-exam');
+                                        var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html("<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio");
+                                        link[0].onclick = APURI.listCopyExamTrigger;
+                                        span.append(link).appendTo(uusisolu);
+                                    }
+                                    uusisolu.appendTo(rivit[i]);
+                                }
+                                $('span.disabled-modify-exam-button-tooltip').html("Uudelleenkäyttääksesi koetta luo kopio \"Luo kopio\"-painikkeella");
+                                taulukko.setAttribute("apuri_mod", "done");
+                            }
+                        }                 
+                    }
+                },
+                footer: {
+                    initTimer: null,
+                    show: function () {
+                        console.log(this);
+                        if (document.getElementsByClassName("footer-column").length > 0) {
+                            APURI.ui.appendSupportNotice();
+                            window.clearInterval(this.initTimer);        
+                        }
+                    }
+                }
+            },
+            initView(viewObj, delayTiming = 1000) {
+                viewObj.initTimer = window.setInterval(function() {viewObj.show();}, delayTiming);
             }
         };
+/**
+ * Returns displaynumber of ID from exam object
+ * @param {object} obj examObject
+ * @param {integer} qid Question ID
+ * @return {string} Display Number for the question  
+ */
+APURI.getDisplayNumber = function(obj, qid) {
+    var result = null;
+    if (obj !== null && typeof obj === 'object') {
+            for (var key in obj) {
+                    if (key === 'id') {
+                            if (obj[key] === qid)
+                                return obj['displayNumber'];
+                    }
+                    if (typeof obj[key] === 'object') {
+                            result = APURI.getDisplayNumber(obj[key], qid);
+                            if (result !== null)
+                                return result;
+                    }
+            }
+    }
+    return null;
+};
 
 if (typeof APURI.paivkentTrigger !== 'function') {
 	APURI.paivkentTrigger = function(va) {
@@ -282,7 +498,7 @@ if (typeof APURI.paivkentTrigger !== 'function') {
 		var eu = jQuery.Event("keyup");
 		eu.which = 70;
 		va.trigger(eu);*/
-        }
+        };
     }
     
 
@@ -332,7 +548,7 @@ if (typeof APURI.paivkent !== 'function') {
                     // TODO -- EI VIELÄ TEHTY
                     // which check in intervals whether postponation is still valid
                 }
-	}
+	};
 }
 
 if (typeof APURI.examBuffer === "undefined") 
@@ -347,8 +563,12 @@ function printObject(o) {
 }
 
 
+APURI.ui.constructLoadCsv = function() {
+    
+};
+
 APURI.testi = function() {
-}
+};
 
 if (typeof APURI.examImportCurrent !== 'function') {
 	APURI.examImportCurrent = function(callback) {
@@ -365,7 +585,7 @@ if (typeof APURI.examImportCurrent !== 'function') {
 			//returnval = data;
 		});
 		
-	}
+	};
 }
 // https://oma.abitti.fi
 if (typeof APURI.examSaveCurrent !== 'function') {
@@ -390,7 +610,7 @@ if (typeof APURI.examSaveCurrent !== 'function') {
                             //console.log("Save complited successfully");
                         }
 		});
-	}
+	};
 }
 
 // source: copied from ...
@@ -423,7 +643,7 @@ if (typeof APURI.shortenText !== 'function') {
 
 		var newText = text.substr(0,cutIndex);
 		return newText + suffix;
-	}
+	};
 }
 
 
@@ -433,40 +653,40 @@ if (typeof APURI.findLargestId !== 'function') {
 		var largestId = 0;
 		if (largest > 0)
 			largestId = largest;
-		if (obj != null && typeof obj == 'object') {
+		if (obj !== null && typeof obj === 'object') {
 			if (typeof obj.id !== 'undefined') {
 				if (obj.id > largestId)
 					largestId = obj.id;
 			}
 			for (var key in obj) {	
-				if (typeof obj[key] == 'object') 
+				if (typeof obj[key] === 'object') 
 					largestId = APURI.findLargestId(obj[key], largestId);
 			}
 		}
 		
 		
 		return largestId;
-	}
+	};
 }
 
 if (typeof APURI.traverseSetId !== 'function') {
 	APURI.traverseSetId = function(obj, initval) {
 		var counter = 0;
-		if (typeof initval == 'number' && initval > 0) 
+		if (typeof initval === 'number' && initval > 0) 
 			counter = initval;
-		if (obj != null && typeof obj == 'object') {
+		if (obj !== null && typeof obj === 'object') {
 			for (var key in obj) {
-				if (key == 'id') {
+				if (key === 'id') {
 					obj[key] = counter++;
 					//console.log("id set to "+(counter-1));
 				}
-				if (typeof obj[key] == 'object') {
+				if (typeof obj[key] === 'object') {
 					counter = APURI.traverseSetId(obj[key], counter);
 				}
 			}
 		}
 		return counter;
-	}
+	};
 }
 
 if (typeof APURI.traverseDisplayNumber !== 'function') {
@@ -482,33 +702,33 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
                 
                 var countup = false;
 				
-		if (obj != null && typeof obj == 'object') {
+		if (obj !== null && typeof obj === 'object') {
 			if (typeof obj.displayNumber !== 'undefined') {
                                 if (typeof obj.level !== 'undefined')
                                     clevel = obj.level;
 				var debug = "";
                                 countup = true;
-				if (clevel == 1) {
+				if (clevel === 1) {
 					debug = obj.displayNumber = ""+(++count.level1);
 					count.level2 = 0;
 					count.level3 = 0;
-				} else if (clevel == 2) {
+				} else if (clevel === 2) {
 					debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
 					count.level3 = 0;
-				} else if (clevel == 3) {
+				} else if (clevel === 3) {
 					debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
 				}
 				//console.log("Set Display:"+debug);
                                 clevel++;
 			}
 			for (var key in obj) {
-				if (typeof obj[key] == 'object') {
+				if (typeof obj[key] === 'object') {
 					count = APURI.traverseDisplayNumber(obj[key], count, clevel);
 				}
 			}
 		}
 		return count;
-	}	
+	};	
 }
 
 if (typeof APURI.examImportQuestion !== 'function') {
@@ -526,7 +746,7 @@ if (typeof APURI.examImportQuestion !== 'function') {
 				var section = examObj.content.sections[i];
 				if (typeof section.questions !== 'undefined') {
 					for(var j=0; j<section.questions.length; j++) {				
-						if (section.questions[j].id == questionId) {
+						if (section.questions[j].id === questionId) {
 							//console.log("Found question");
 							question = section.questions[j];							
 							//break;
@@ -566,7 +786,7 @@ if (typeof APURI.examImportQuestion !== 'function') {
 		}
 		return false;
 		
-	}
+	};
 }
 
 if (typeof APURI.examImportExpand !== 'function') {
@@ -580,7 +800,7 @@ if (typeof APURI.examImportExpand !== 'function') {
 		//console.log("Event fired ("+examUuid+")"	);
 		var upper_a = $(kohdel);
 		var li = $('li[name=exam_'+examUuid+']');
-		if (upper_a.attr('class') == 'unloaded') {
+		if (upper_a.attr('class') === 'unloaded') {
 			//console.log("JSON "+li);
 			//printObject(li);
                         upper_a.attr('class', 'loaded');
@@ -620,7 +840,7 @@ if (typeof APURI.examImportExpand !== 'function') {
 		}
 		
 		return false;
-	}
+	};
 }
 
 if (typeof APURI.closeModal !== 'function') {
@@ -629,12 +849,12 @@ if (typeof APURI.closeModal !== 'function') {
 		$('#APURI_modal_content').remove();
                 if (APURI.questionsort.changed)
                     location.reload();
-	}
+	};
 }
 
 APURI.sort = {
     
-}
+};
 
 if (typeof APURI.showSortDialog !== 'function') {
     APURI.showSortDialog = function() {
@@ -683,10 +903,10 @@ if (typeof APURI.showSortDialog !== 'function') {
                                                             sis.append(coul);
                                                             for (var k=0; k<question.choices.length; k++) {
                                                                 var choice = question.choices[k];
-                                                                var text = APURI.shortenText($("<div />").html(choice.text).text(), 100);
+                                                                var texti = APURI.shortenText($("<div />").html(choice.text).text(), 100);
                                                                 var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id)
                                                                         .attr('class',"APURI_sortable_choice")
-                                                                        .html(choice.displayNumber+": "+text);
+                                                                        .html(choice.displayNumber+": "+texti);
                                                                 coul.append(cli);
                                                             }
                                                         }
@@ -739,7 +959,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                             //TODO luottaa, että sections[0] olemassa
                             // reorganize displaynumbers
                             //console.log('DisplayNumber setting');
-                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0)
+                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0);
                             APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             //console.log('Trying saving');
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
@@ -752,7 +972,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                 }
         });
 
-    }
+    };
 }
 
 
@@ -804,7 +1024,7 @@ if (typeof APURI.showImportDialog !== 'function') {
 			.append($('<p />').html("Valitse ensin koe ja sitten tehtävä, joka lisätään viimeiseksi tehtäväksi kokeeseen."))
 			.append(ul).append(closeButton).append(closeButton2).appendTo('body');
 		});
-	}
+	};
 }
 
 
@@ -876,7 +1096,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 			}
 	    }
 		   
-	}
+	};
 }
 
 
@@ -901,7 +1121,7 @@ if (typeof APURI.showUI !== 'function') {
         APURI.ui.appendSupportNotice();
     
             }
-	}
+	};
 }
 
 if (typeof APURI.loadScriptDirect !== 'function') {
@@ -916,7 +1136,7 @@ if (typeof APURI.loadScriptDirect !== 'function') {
                     script.onload=onload;
                 }
                 document.body.appendChild(script);
-        }
+        };
     }
 
 APURI.ui.appendCSS = function(cssaddr) {
@@ -985,11 +1205,12 @@ unsafeWindow.require(['Sortable'], function (Sortable){
     		
 	
 	
-	if (typeof APURI.initUITimer === 'undefined')
-                APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
-	if (typeof APURI.initBoxesTimer === 'undefined')
-                APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
-            
+	//if (typeof APURI.initUITimer === 'undefined')
+        //        APURI.initUITimer = window.setInterval(APURI.showUI, 1000);
+	//if (typeof APURI.initBoxesTimer === 'undefined')
+        //        APURI.initBoxesTimer = window.setInterval(APURI.replaceBoxes, 2000);
+        APURI.initView(APURI.views.examview);
+        APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
    	/*script.onload = function() {
             CKEDITOR.editorConfig = function( config ) {
@@ -1057,7 +1278,7 @@ APURI.listCopyExamTrigger = function(event) {
 APURI.appendTableColumn = function() {
     var taulukko = document.getElementById("available-exams");
     if (taulukko !== null) {
-        if (taulukko.getAttribute("apuri_mod") == null) {
+        if (taulukko.getAttribute("apuri_mod") === null) {
             //console.log("Tehdään kopiolinkit");
             var rivit = taulukko.getElementsByTagName("tr");
             for (var i = 0; i < rivit.length; i++) {
@@ -1085,20 +1306,41 @@ APURI.appendFooter = function() {
         window.clearInterval(APURI.initUIFooter);        
     }
 };
-
+/*
+ * Arviointinäkymässä
+ */
 (function() {
-   // console.log("..");
-    var accept_addresses = /^https:\/\/oma.abitti.fi(?:\/?|\/school\/exams\/?|\/school\/grading\/?)$/;
-    //console.log("...");
+    if (document.body.getAttribute("class")!=='arpa grading-print') 
+                    return;
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.grading.initGradingCount();
+    APURI.initView(APURI.views.footer, 2000);
+})();
+/*
+ * Arviointiyhteenvedossa
+ */
+(function() {
+    var accept_addresses = /^https:\/\/oma.abitti.fi\/school\/review\/?.*$/;
     if (window.location.href.match(accept_addresses) === null)
         return;
-   // console.log("KOELISTAUKSESSA OLLAAN");
-  APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
-        APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
-  if (typeof APURI.initUITimer === 'undefined') 
-        APURI.initUITimer = window.setInterval(APURI.appendTableColumn, 1000);
-  if (typeof APURI.initUIFooter === 'undefined') 
-        APURI.initUIFooter = window.setInterval(APURI.appendFooter, 2000);
- APURI.util.bittiniiloDetector.init();
- 
+    if (document.body.getAttribute("class")!=='arpa') 
+        return;
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.initView(APURI.views.gradingSummary);
+    APURI.initView(APURI.views.footer, 2000);
+})();
+/*
+ * Koelistassa
+ */
+(function() {
+    var accept_addresses = /^https:\/\/oma.abitti.fi(?:\/?|\/school\/exams\/?|\/school\/grading\/?)$/;
+    if (window.location.href.match(accept_addresses) === null)
+        return;
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.initView(APURI.views.examlist);
+    APURI.initView(APURI.views.footer, 2000);
+    APURI.util.bittiniiloDetector.init();
 })();
