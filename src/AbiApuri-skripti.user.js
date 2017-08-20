@@ -39,6 +39,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+/* global Promise, fetch, Sortable */
+
 // to make things easier with TamperMonkey in Chrome
 'use strict';
 if (typeof unsafeWindow === 'undefined')
@@ -48,17 +50,25 @@ if (typeof APURI === "undefined")
         var APURI ={
             settings: {
                 fetchGetHeaders: {
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',                    
+                    'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 }
             },
             fetch: {
+                /**
+                 * GETs JSON data from URL, uses headers from settings + additionals
+                 * @param {string} uri URI
+                 * @param {object} additionalHeaders Additional headers object
+                 * @returns {Promise} Promise which resolves for the JSON data
+                 */
                 getJson(uri, additionalHeaders = null) {
                     var myHeaders = APURI.settings.fetchGetHeaders;
                     if (additionalHeaders !== null) {
                         myHeaders = Object.assign({}, APURI.settings.fetchGetHeaders);
-                        for (let key in additionalHeaders) {
-                            myHeaders[key] = additionalHeaders[key];
-                        }
+                        for (let key in additionalHeaders) 
+                            if (additionalHeaders.hasOwnProperty(key)) {
+                                myHeaders[key] = additionalHeaders[key];
+                            }
+                        
                     }
                     return fetch(uri,  {
                             credentials: 'include',
@@ -104,8 +114,10 @@ if (typeof APURI === "undefined")
                     //    
                     //    count += APURI.replacedFields.list[i].field.value.length;
                     //}  BEFORE assoc array
-                    for (var key in APURI.replacedFields.list) {
-                        count += APURI.replacedFields.list[key].field.value.length;
+                    let list = APURI.replacedFields.list;
+                    for (var key in list) 
+                        if (list.hasOwnProperty(key)) {
+                        count += list[key].field.value.length;
                     }
                     APURI.replacedFields.contentLength = count;
                     if (count > APURI.postponedSaving.contentLimit) {
@@ -120,6 +132,10 @@ if (typeof APURI === "undefined")
                 postponedSaving: false
             },
             postponedSaving: {
+                /**
+                 * Checks whether saving is postponed currentlys
+                 * @returns {Boolean}
+                 */
                 isPostponed: function() {
                     if (!APURI.replacedFields.postponedSaving)
                         return false;
@@ -299,6 +315,9 @@ if (typeof APURI === "undefined")
                    var date = new Date(datestr);
                    var output = ""+date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear();
 				   return output;
+                },
+                wordCount(text) {
+                    return text.trim().split(/\s+/).length;
                 }
 
                 
@@ -345,6 +364,17 @@ if (typeof APURI === "undefined")
                             reject();
                         });*/
                     });
+                },
+                constructTitleObject(exam) {
+                  let template = this.constructTemplateObject(exam);
+                  for (let key in template) 
+                    if (template.hasOwnProperty(key)) {
+                        template[key]=APURI.getDisplayNumber(exam, key);
+                    }
+                  return template;                      
+                },
+                constructTemplateObject(exam) {
+                    
                 },
                 /**
                  * Extracts CSV from GradingObject
@@ -458,7 +488,26 @@ if (typeof APURI === "undefined")
                 grading:{
                     initTimer: null,
                     show: function () {
-                        
+                        let answerElement = $('#answers');
+                        if (typeof answerElement[0] !== 'undefined' && answerElement[0].innerHTML.length > 0
+                                && typeof APURI.grading.gradesBuffer !== 'undefined' 
+                                && APURI.grading.gradesBuffer !== null) {
+                            // vastaukset ovat latautuneet
+                            let grading = APURI.grading.gradesBuffer;
+                            for (let u=0; u<grading.length; u++) {
+                                let answers = grading[u].answers;
+                                for (let a=0; a<answers.length; a++) {
+                                    if (answers[a].content.type === 'text') {
+                                        // kyseessä on tekstivastaus
+                                        let wordCount = APURI.util.wordCount(answers[a].content.value);
+                                        let answerTextElement = $(`div[data-answer-id=${answers[a].id}]`);
+                                        let wordCountElem = $('<div />').attr('class','APURI APURI_wordcount').html(wordCount +' sanaa').insertAfter(`div[data-answer-id=${answers[a].id}] .answerText`);
+                                        
+                                    }
+                                }
+                            }
+                            clearInterval(this.initTimer);
+                        }
                     }
                 },
                 examview: {
@@ -1337,10 +1386,11 @@ unsafeWindow.require(['Sortable'], function (Sortable){
 APURI.listCopyExamTrigger = function(event) {
     var tag = event.target;
     if (tag !== null) {
-        examUuid = tag.getAttribute("uuid");
+        let examUuid = tag.getAttribute("uuid");
         //console.log("Trying to copy " + examUuid);
         APURI.makeCopyOfExam(examUuid);
     }
+    return false;
 };
 
 APURI.appendTableColumn = function() {
