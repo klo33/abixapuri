@@ -227,7 +227,12 @@ border: 3px solid #3E7800;
 
 .APURI_wordcount {
     text-align: right;
-    color: green;
+    color: #3E7800;
     font-size: small;
     margin-bottom: -1em;
+}
+
+.APURI_download a {
+    background: #F1FBE8;
+    color: #3E7800;
 }
