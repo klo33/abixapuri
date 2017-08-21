@@ -57,8 +57,8 @@ if (typeof APURI === "undefined")
                   bittiniilo_warning: "Käytät AbixApuria ja Bittiniiloa yhtäaikaa, mikä <strong>ei onnistu</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Ohjeet miten jompi kumpi kytketään pois toiminnasta</a>",
                   load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Lataa pisteytykset taulukkolaskentaohjelmaan',
                   reorder_assignments_title: "<h3>Järjestele koetehtävät</h3>",
-                  reorder_assignments_info: "Raahaa koetehtävät haluaamaasi järjestykseen. Muutokset järjestyksessä tallentuvat automaattisesti.",
-                  wordcount_suffix: ' sanaa',
+                  reorder_assignments_info: "Raahaa koetehtävät haluamaasi järjestykseen. Muutokset järjestyksessä tallentuvat automaattisesti.",
+                  wordcount_suffix: '%d sanaa',
                   import_assignment_button: "Tuo koetehtävä toisesta kokeesta",
                   reorder_assignments_button: "Uudelleenjärjestä koetehtävät",
                   import_assignment_title: "<h3>Lisää tehtävä toisesta kokeestasi</h3>",
@@ -74,27 +74,27 @@ if (typeof APURI === "undefined")
                   csv_grade: "Arvosana"
               }, 
               se: {
-                  postponed_saving_notice: '<strong>Ändringar är inte sparat ännu</strong> på grund av stora bilder eller bilagar.',
+                  postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
                   save_button: 'Spara',
-                  support_notice1: "Gröna elementär är <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.",
-                  support_notice2: "<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>",
-                  bittiniilo_warning: "Käytät AbixApuria ja Bittiniiloa yhtäaikaa, mikä <strong>ei onnistu</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Ohjeet miten jompi kumpi kytketään pois toiminnasta</a>",
-                  load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Lataa pisteytykset taulukkolaskentaohjelmaan',
-                  reorder_assignments_title: "<h3>Järjestele koetehtävät</h3>",
-                  reorder_assignments_info: "Raahaa koetehtävät haluaamaasi järjestykseen. Muutokset järjestyksessä tallentuvat automaattisesti.",
-                  wordcount_suffix: ' sanaa',
-                  import_assignment_button: "Tuo koetehtävä toisesta kokeesta",
-                  reorder_assignments_button: "Uudelleenjärjestä koetehtävät",
-                  import_assignment_title: "<h3>Lisää tehtävä toisesta kokeestasi</h3>",
-                  import_assignment_info: "Valitse ensin koe ja sitten tehtävä, joka lisätään viimeiseksi tehtäväksi kokeeseen.",
-                  copy_exam_tooltip: "Uudelleenkäyttääksesi koetta luo kopio \"Luo kopio\"-painikkeella",
-                  copy_exam_button: "<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio",
-                  import_assignment_cancel: "Sulje lisäämättä tehtävää",
+                  support_notice1: "De gröna elementen hör <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-till tilläggsprogrammet. SEN ansvarar inte för de funktionerna.",
+                  support_notice2: "<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Problemsituationer (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Hemsida</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-grupp</a></p>",
+                  bittiniilo_warning: "Du använder AbixApuri och Bittiniilo samtidigt, vilket <strong>inte lyckas</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Anvisningar till att stänga av någotdera programmet</a>",
+                  load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Ladda poängsättningarna i kalkylprogrammet',
+                  reorder_assignments_title: "<h3>Organisera provuppgifterna</h3>",
+                  reorder_assignments_info: "Dra provuppgifterna i den ordning du önskar. Ändringarna i ordningen sparas automatiskt.",
+                  wordcount_suffix: '%d ord',
+                  import_assignment_button: "Hämta en provuppgift från ett annat prov",
+                  reorder_assignments_button: "Omorganisera provuppgifterna",
+                  import_assignment_title: "<h3>Lägg till en uppgift från ett annat prov</h3>",
+                  import_assignment_info: "Välj först provet och sedan uppgiften, som läggs till som sista uppgiften i provet.",
+                  copy_exam_tooltip: "Skapa en kopia för att använda provet på nytt med \"Skapa en kopia\"-knappen",
+                  copy_exam_button: "<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Skapa en kopia",
+                  import_assignment_cancel: "Stäng utan att lägga till en uppgift",
                   close_button: "Stäng",
-                  csv_filename: "tulokset.csv",
+                  csv_filename: "resultat.csv",
                   csv_name: "Namn",
                   csv_email: "Epost",
-                  csv_sum: "Tillsammans",
+                  csv_sum: "Totalt",
                   csv_grade: "Vitsord"
               }  
             },
@@ -659,7 +659,7 @@ if (typeof APURI === "undefined")
                                         // kyseessä on tekstivastaus
                                         let wordCount = APURI.util.wordCount(answers[a].content.value);
                                         let answerTextElement = $(`div[data-answer-id=${answers[a].id}]`);
-                                        let wordCountElem = $('<div />').attr('class','APURI APURI_wordcount').html(wordCount + APURI.text.wordcount_suffix).insertAfter(`div[data-answer-id=${answers[a].id}] .answerText`);
+                                        let wordCountElem = $('<div />').attr('class','APURI APURI_wordcount').html(APURI.text.wordcount_suffix.replace("%d", wordCount)).insertAfter(`div[data-answer-id=${answers[a].id}] .answerText`);
                                         
                                     }
                                 }
