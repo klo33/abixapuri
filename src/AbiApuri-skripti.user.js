@@ -11,8 +11,8 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.0
-// @grant       none
+// @version     0.2.1
+// @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
 // ==/UserScript==
@@ -39,15 +39,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* global Promise, fetch, Sortable */
 
-// to make things easier with TamperMonkey in Chrome
+
 'use strict';
-if (typeof unsafeWindow === 'undefined')
-	var unsafeWindow = window;
-
-if (typeof APURI === "undefined") 
-        var APURI ={
+var APURI ={
             lang: {
               fi: {
                   postponed_saving_notice: 'Suurten kuvien tai liitteiden vuoksi <strong>tallennusta ei vielä tehty!</strong>',
@@ -73,10 +68,10 @@ if (typeof APURI === "undefined")
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana"
               }, 
-              se: {
+              sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
                   save_button: 'Spara',
-                  support_notice1: "De gröna elementen hör <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-till tilläggsprogrammet. SEN ansvarar inte för de funktionerna.",
+                  support_notice1: "De gröna elementen hör till <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-tilläggsprogrammet. SEN ansvarar inte för de funktionerna.",
                   support_notice2: "<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Problemsituationer (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Hemsida</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-grupp</a></p>",
                   bittiniilo_warning: "Du använder AbixApuri och Bittiniilo samtidigt, vilket <strong>inte lyckas</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Anvisningar till att stänga av någotdera programmet</a>",
                   load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Ladda poängsättningarna i kalkylprogrammet',
@@ -221,7 +216,7 @@ if (typeof APURI === "undefined")
                     if (typeof initelem !== 'undefined')
                         APURI.postponedSaving.triggeringField = initelem;
                     if (typeof APURI.postponedSaving.postponeTimer === 'undefined') {
-                        APURI.postponedSaving.postponeTimer = unsafeWindow.setTimeout(APURI.postponedSaving.timetrigger, APURI.postponedSaving.postponeDelay);
+                        APURI.postponedSaving.postponeTimer = setTimeout(APURI.postponedSaving.timetrigger, APURI.postponedSaving.postponeDelay);
                     }
                     APURI.ui.showDelaydsavingNotice();
                     }
@@ -243,7 +238,7 @@ if (typeof APURI === "undefined")
                     else
                         APURI.paivkentTrigger($('textarea')[0]); // jollei tietoa, niin valitaan vain joku kenttä.
                     if (typeof APURI.postponedSaving.postponeTimer !== 'undefined') {
-                        unsafeWindow.clearTimeout(APURI.postponedSaving.postponeTimer);
+                        clearTimeout(APURI.postponedSaving.postponeTimer);
                         delete APURI.postponedSaving.postponeTimer;
                     }
                     APURI.ui.clearDelaydsavingNotice();
@@ -636,10 +631,12 @@ if (typeof APURI === "undefined")
                     initTimer: null,
                     show: function () {
                         let gradingInfo = $('#gradingInfo');
-                        let link = $('<a />').attr('href', '#').html(APURI.text.load_csv_link);
-                        link[0].onclick = APURI.grading.loadCsvTrigger;                        
-                        $('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
-                        clearInterval(this.initTimer);
+						if ($('#gradingInfo script').length === 0) {
+							let link = $('<a />').attr('href', '#').html(APURI.text.load_csv_link);
+							link[0].onclick = APURI.grading.loadCsvTrigger;                        
+							$('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
+							clearInterval(this.initTimer);
+						}
                     }
                 },
                 grading:{
@@ -661,7 +658,15 @@ if (typeof APURI === "undefined")
                                         let answerTextElement = $(`div[data-answer-id=${answers[a].id}]`);
                                         let wordCountElem = $('<div />').attr('class','APURI APURI_wordcount').html(APURI.text.wordcount_suffix.replace("%d", wordCount)).insertAfter(`div[data-answer-id=${answers[a].id}] .answerText`);
                                         
-                                    }
+                                    } else if (typeof answers[a].content.type ==='string' 
+                                            && answers[a].content.type === 'richText') {
+                                        // kyseessä on muotoiltu teksti mutta yritetään silti
+                                        let tempElement = $('<div />').html(answers[a].content.value)[0];
+                                        let textContent = tempElement.innerText || tempElement.textContent;
+                                        let wordCount = APURI.util.wordCount(textContent);
+                                        let answerTextElement = $(`div[data-answer-id=${answers[a].id}]`);
+                                        let wordCountElem = $('<div />').attr('class','APURI APURI_wordcount').html(APURI.text.wordcount_suffix.replace("%d", wordCount)).insertAfter(`div[data-answer-id=${answers[a].id}] .answerText`);
+									}		
                                 }
                             }
                             clearInterval(this.initTimer);
@@ -737,11 +742,13 @@ if (typeof APURI === "undefined")
                 viewObj.initTimer = window.setInterval(function() {viewObj.show();}, delayTiming);
             }
         };
+
+	
 APURI.text = APURI.lang.fi;
 (function() {
     if (typeof navigator.language === 'string'
-            && navigator.language.substring(0,2) === 'se') {
-        APURI.text = APURI.lang.se;
+            && navigator.language.substring(0,2) === 'sv') {
+        APURI.text = APURI.lang.sv;
     } else {
         APURI.text = APURI.lang.fi;
     }
@@ -1335,7 +1342,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 APURI.replacedFields.list[repname]={field:x[i], savedIndicator:paivitystoken, emptyQuestionWarning: tyhjakysvar, httpLinkWarning: linkkivar};
                                 //console.log(".");
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
-				var elem = unsafeWindow.CKEDITOR.replace(x[i], {
+				var elem = CKEDITOR.replace(x[i], {
 				
 					extraPlugins: 'base64image,mathjax,base64audio',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
@@ -1405,7 +1412,7 @@ APURI.ui.appendCSS = function(cssaddr) {
         APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
        	APURI.loadScriptDirect('https://klo33.github.io/javascript/ckeditor/ckeditor.js',
             function() {
-                unsafeWindow.CKEDITOR.editorConfig = function( config ) {
+                CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
                     config.extraPlugins = 'base64image,mathjax';
                     config.uiColor = '#e4f3d3';
@@ -1427,12 +1434,12 @@ APURI.ui.appendCSS = function(cssaddr) {
         );
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
    
-        unsafeWindow.requirejs.config({
+        requirejs.config({
             paths: {
                 'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
             }
         });
-        unsafeWindow.require(['Sortable'], function (Sortable){
+        require(['Sortable'], function (Sortable){
                         window.Sortable = Sortable; // exports
                 });
         APURI.initView(APURI.views.examview);
@@ -1499,8 +1506,9 @@ APURI.listCopyExamTrigger = function(event) {
  * Arviointinäkymässä
  */
 (function() {
-    if (document.body.getAttribute("class")!=='arpa grading-print') 
-                    return;
+    var accept_addresses = /^https:\/\/oma.abitti.fi\/school\/grading\/......*$/;
+    if (window.location.href.match(accept_addresses) === null)
+        return;
     APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
     APURI.grading.initGradingCount();
