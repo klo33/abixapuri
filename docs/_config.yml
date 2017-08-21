@@ -1,0 +1,12 @@
+theme: jekyll-theme-slate
+# Site settings
+title: AbixApuri - käyttöliittymälaajennus Abittiin&trade;
+description: Avoimen lähdekoodin Abitti&trade;-lisäosa
+gems:
+  - jekyll-redirect-from
+encoding: UTF-8
+
+navigation:
+	"AbixApuri": "/"
+	"Tuki ja ohjeet": "/ohjeet.html"
+	"Selainliitännäinen": "/addon.html"

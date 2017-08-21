@@ -1,26 +1,10 @@
-# AbixApuri
-
-**AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
-[oma.abitti.fi]-koepalveluun. **AbixApuri** toimii Firefox- ja Chrome-selaimissa erillisen ladattavan laajennoksen ([GreaseMonkey][1]/[TamperMonkey][2]) avulla. 
-
-**AbixApuria** voi myös käyttää natiivin selainlaajennuksen avulla, josta tietoa alempana.
-
-## Ominaisuudet
-
-1. Tehtävätekstien muokkaus laajennetulla editorilla (WYSIWYG)
-   * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
-   * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
-2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta
-3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
-4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
+# AbixApuri-selainlisäosa
 
 ## Asentaminen
 
 1. Firefox-selaimessa lataa [GreaseMonkey][1]-lisäosa. Chrome-selaimessa lataa [TamperMonkey][2]-lisäosa.
 2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
 3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
-
-Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainlaajennoksen [Chromeen][5] tai [Firefoxiin][4], mutta tämä prosessi on monimutkaisempi. Tästä tietoa alempana.
 
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
@@ -40,23 +24,6 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
   * Ei toimi vielä alatehtävissä
 - Lisätty viivästetty tallennus, jos kuvia liittää suuria määriä
 - Eroteltu YTL:n toivomuksesta selkeämmin lisätyt elementit ja YTL:n elementit sekä tieto, että lisäosa on latautunut
-
-### Selainlaajennokset
-- [Firefoxille][4]
-Tallenna laajennus koneellesi ja sen jälkeen raahaa ladattu XPI-tiedosto Firefoxin ikkunaan. 
-- [Chromelle][5]
-Chromessa ilmeisesti asennus onnistuu ainoastaan kehittäjätilassa (chrome://extensions -> kehittäjätila)
-
-#### Miksi haluaisin käyttää erillisiä selainlaajennoksia?
-Tietooni on tullut, että AbixAjurin juridisesta asemasta on heitetty epäilyksiä, viitaten siihen, että GreaseMonkey ja TamperMonkey eivät olisi luotettavia. Molemmat lisäosat ovat vakiintuneita ja hyvämaineisia, erityisesti viimeaikoina kun niiden skriptien asetuksia on pystynyt rajaamaan tarkemmin.
-
-Erillisen laajennuksen käyttö poistaa kuitenkin nämä epäilyt.
-
-#### Miksi selainlaajennokset eivät ole selaimien laajennoksien omissa kaupoissa?
-
-Laajennoksen lataavat YTL:n ulkopuolista koodia (CKEditor ja jäsennyksen käyttöliittymäkoodi sekä erikoisfontin renderöintikoodi), joka ei ole selainlaajennoksissa sallittua. Kaikki muu toiminnallisuus olisi erittäin helppo ja nopeaa saada toimimaan myös laajennoksen sisällä, mutta CKEditor vaatisi jonkin verran työtä, jotta sen pystyisi toiminnallisesti saamaan siihen asuun joka ei lataa mitään ohjelmakoodia YTL:n verkkosivujen ulkopuolelta.
-
-Juuri nyt tähän en itse ryhtymässä, joten laajennoksia ei tule selainkauppoihin ihan lähiaikoina.
 
 ### Tuki ja ongelmatilanteet
 Uusista huomatuista virheistä ja ongelmista kannattaa raportoida ensisijaisesti [GitHubin projektin virheseurantaan](https://github.com/klo33/abixapuri/issues).
@@ -111,7 +78,5 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.1.2-an+fx.xpi?raw=true
-[5]:https://github.com/klo33/abixapuri/blob/master/dist/AbixApuri-loader-0.1.2.crx?raw=true
 [GPLv3]:https://www.gnu.org/licenses/gpl-3.0.en.html
 [oma.abitti.fi]:https://oma.abitti.fi
