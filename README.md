@@ -13,6 +13,8 @@
 2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta
 3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
 4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
+5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
+6. Sanalaskuri tekstivastauksiin
 
 ## Asentaminen
 
@@ -25,6 +27,10 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.2.1 (22.8.2017)
+- Arviointitaulukon voi ladata taulukkolaskentaohjelmaan CSV-muodossa
+- Arvioinnissa näytetään sanalaskuri tekstimuotoisen vastauksen pituudesta
+- Ruotsinkielinen käännös
 #### v0.1.2 (8.8.2017)
 - Virheenkorjauksia
   * korjattu kokeen tuontiin liittyvä ongelma
