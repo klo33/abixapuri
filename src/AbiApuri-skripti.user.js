@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.1
+// @version     0.2.2
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -66,7 +66,9 @@ var APURI ={
                   csv_name: "Nimi",
                   csv_email: "Sähköposti",
                   csv_sum: "Yhteensä",
-                  csv_grade: "Arvosana"
+                  csv_grade: "Arvosana",
+                  loading_spinner: "latautuu...<br />odota hetkinen",
+                  total_max_points: "maksimi yhteispistemäärä %d"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -90,7 +92,9 @@ var APURI ={
                   csv_name: "Namn",
                   csv_email: "Epost",
                   csv_sum: "Totalt",
-                  csv_grade: "Vitsord"
+                  csv_grade: "Vitsord",
+                  loading_spinner: "laddar...<br />vänta en liten stund",
+                  total_max_points: "totalt max poäng %d"
               }  
             },
             text: null,
@@ -332,6 +336,64 @@ var APURI ={
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
+                },
+                showLoadingSpinner(param) {
+                    let showDelay = 0;
+                    if (typeof param === 'number') {
+                        showDelay = param;
+                    }
+                    let el = $('<div />').attr('class', 'APURI_loading_overlay').html(`<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i><span class="sr-only">Loading...</span>`);
+                    let textel = $('<h1 />').html(APURI.text.loading_spinner);
+                    let outerEl = $('<div />').attr('id','APURI_loading_spinner').append(textel).append(el);
+                    document.body.appendChild(outerEl[0]);
+                    if (showDelay > 0) {
+                        setTimeout(APURI.ui.clearLoadingSpinner, showDelay);
+                    }
+                },
+                clearLoadingSpinner() {
+                    $('#APURI_loading_spinner').remove();
+                },
+                closeModalWindow() {
+                    $('#APURI_modal_back').remove();
+                    $('#APURI_modal_content').remove();
+                    if (APURI.questionsort.changed)
+                        location.reload();
+                },
+                /**
+                 * Shows dialog window
+                 * Example openModalWindow((div)=> { div.html().append(content); return div; }, "Paluu"); 
+                 * @param {type} renderFkt Callback function to render the page which is called as renderFkt(div) where div is the jQuery element of modal window where content can be appended to. MUST return the element back!
+                 * @param {type} buttonTitle
+                 * @param {type} actionFkt
+                 * @returns {undefined}
+                 */
+                openModalWindow(renderFkt, buttonTitle, actionFkt = null) {
+                        if (typeof buttonTitle === 'undefined')
+                            buttonTitle = APURI.text.close_button;
+                        if (actionFkt === null)
+                            actionFkt = APURI.ui.closeModalWindow;
+                        var outdiv = $('<div />');
+			outdiv.attr("class", "APURImodal_back");
+			outdiv.attr("id", "APURI_modal_back");
+			//outdiv.attr("style", APURI.modal_background_style);
+			var div = $('<div />');
+			div.attr("id", "APURI_modal_content");
+                        div = renderFkt(div);
+                        
+                        
+                        var closeButton = $('<button />');
+                        closeButton.html(buttonTitle);
+                        //closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
+                        closeButton.attr("class", "APURI APURI_modal_alaNappi");
+                        closeButton[0].onclick = actionFkt;
+                        var closeButton2 = $('<button />');
+                        closeButton2.html("X");
+                        closeButton2.attr("class", "APURI APURI_modal_ylaX");
+                        //closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
+                        closeButton2[0].onclick = APURI.ui.closeModalWindow;
+
+                        outdiv.appendTo('body');
+                        div.append(closeButton).append(closeButton2).appendTo('body');
                 }
             },
             util: {
@@ -578,6 +640,7 @@ var APURI ={
                 
             },
             exam: {
+                bufferLast: null,
                 /**
                  * Returns exam UUID extracted from the location of current window
                  * @returns {string} current locations exam UUID or null if not recognized
@@ -613,12 +676,68 @@ var APURI ={
                         waitForUser.then(function() {
                             APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`)
                                     .then(function(data) {
+                                        APURI.exam.buffer = data;
                                         resolve(data);
                             })
                                 .catch(reject);                              
                         }).catch(reject);
                     
                     });
+                },
+                /**
+                 * Searches questionObject from examObject
+                 * @param {.examObj} examObj ExamObject
+                 * @param {integer} questionId QuestionId
+                 * @returns {.examObj.content@arr;sections.questions}
+                 */
+                getQuestionObject(examObj, questionId) {
+                    // INFO: Has assumptions of exam object structure
+                    if (typeof questionId !== 'number')
+                        questionId = parseInt(questionId);
+                    for (let i=0; i<examObj.content.sections.length; i++) {
+                            // sectionloop
+                            let section = examObj.content.sections[i];
+                            if (typeof section.questions !== 'undefined') {
+                                    for(let j=0; j<section.questions.length; j++) {				
+                                            if (section.questions[j].id === questionId) {
+                                                    //console.log("Found question");
+                                                    return section.questions[j];							
+                                                    //break;
+                                            }
+                                    }
+                            }
+                    }
+                    return null;
+                },
+                sumMaxScore(examObj) {
+                    let maxScore = 0;
+                    for (let i=0; i<examObj.content.sections.length; i++) {
+                            // sectionloop
+                            let section = examObj.content.sections[i];
+                            if (typeof section.questions !== 'undefined') {
+                                    for(let j=0; j<section.questions.length; j++) {				
+                                        maxScore += section.questions[j].maxScore;
+                                    }
+                            }
+                    }
+                    return maxScore;
+                }
+            },
+            examList : {
+                sortByDate(examlist) {              
+                    examlist.exams.sort(function(a, b) {
+                        let dateA = a.creationDate;
+                        let dateB = b.creationDate;
+                        if (dateA < dateB) {
+                          return 1;
+                        }
+                        if (dateA > dateB) {
+                          return -1;
+                        }
+                        // names must be equal
+                        return 0;
+                      });
+                    return examlist;
                 }
             },
             /**
@@ -629,14 +748,18 @@ var APURI ={
             views: {
                 gradingSummary: {
                     initTimer: null,
+                    counter: 0,
                     show: function () {
                         let gradingInfo = $('#gradingInfo');
-						if ($('#gradingInfo script').length === 0) {
+                                                this.counter++;
+						if ($('#gradingInfo .APURI_download').length === 0) {
 							let link = $('<a />').attr('href', '#').html(APURI.text.load_csv_link);
 							link[0].onclick = APURI.grading.loadCsvTrigger;                        
 							$('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
-							clearInterval(this.initTimer);
 						}
+                                                if (this.counter > 10) {
+                                                    clearInterval(this.initTimer);
+                                                }
                     }
                 },
                 grading:{
@@ -1012,29 +1135,20 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
 	};	
 }
 
-if (typeof APURI.examImportQuestion !== 'function') {
+
 	APURI.examImportQuestion = function(event) {
 		var questiontag = $(event.target);
 		var examUuid = questiontag.attr('uuid');
-		var questionId = questiontag.attr('quid');
+		var questionId = parseInt(questiontag.attr('quid'));
 		var examObj = APURI.examBuffer[examUuid];
 		var question = {};
 		var latestDisplay = "";
+                APURI.ui.showLoadingSpinner();
 		
 		if (typeof examObj !== 'undefined') {
-			for (var i=0; i<examObj.content.sections.length; i++) {
-				// sectionloop
-				var section = examObj.content.sections[i];
-				if (typeof section.questions !== 'undefined') {
-					for(var j=0; j<section.questions.length; j++) {				
-						if (section.questions[j].id === questionId) {
-							//console.log("Found question");
-							question = section.questions[j];							
-							//break;
-						}
-					}
-				}
-			}
+
+                    question = APURI.exam.getQuestionObject(examObj, questionId);
+
 			if (typeof question.id !== 'undefined') {
 				// Load current examObject
 				//console.log("Trying loading current");
@@ -1068,7 +1182,7 @@ if (typeof APURI.examImportQuestion !== 'function') {
 		return false;
 		
 	};
-}
+
 
 if (typeof APURI.examImportExpand !== 'function') {
 	APURI.examImportExpand = function(event) {
@@ -1124,14 +1238,6 @@ if (typeof APURI.examImportExpand !== 'function') {
 	};
 }
 
-if (typeof APURI.closeModal !== 'function') {
-	APURI.closeModal = function() {
-		$('#APURI_modal_back').remove();
-		$('#APURI_modal_content').remove();
-                if (APURI.questionsort.changed)
-                    location.reload();
-	};
-}
 
 APURI.sort = {
     
@@ -1201,12 +1307,12 @@ if (typeof APURI.showSortDialog !== 'function') {
                 closeButton.html(APURI.text.close_button);
                 //closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
                 closeButton.attr("class", "APURI APURI_modal_alaNappi");
-                closeButton[0].onclick = APURI.closeModal;
+                closeButton[0].onclick = APURI.ui.closeModalWindow;
                 var closeButton2 = $('<button />');
                 closeButton2.html("X");
                 closeButton2.attr("class", "APURI APURI_modal_ylaX");
                 //closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
-                closeButton2[0].onclick = APURI.closeModal;
+                closeButton2[0].onclick = APURI.ui.closeModalWindow;
 
                 outdiv.appendTo('body');
                 div.html(APURI.text.reorder_assignments_title)
@@ -1266,6 +1372,8 @@ if (typeof APURI.showImportDialog !== 'function') {
         // TODO viive puuttuu !! - tässä ei niin kriittinen
 	APURI.showImportDialog = function() {
 	$.getJSON("https://oma.abitti.fi/kurko-api/exam/abitti-exam-events", function(data) {
+            
+                        data = APURI.examList.sortByDate(data);
 			var outdiv = $('<div />');
 			outdiv.attr("class", "APURImodal_back");
 			outdiv.attr("id", "APURI_modal_back");
@@ -1294,12 +1402,12 @@ if (typeof APURI.showImportDialog !== 'function') {
 			closeButton.html(APURI.text.import_assignment_cancel);
                         closeButton.attr("class", "APURI APURI_modal_alaNappi");
 			//closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
-			closeButton[0].onclick = APURI.closeModal;
+			closeButton[0].onclick = APURI.ui.closeModalWindow;
 			var closeButton2 = $('<button />');
 			closeButton2.html("X");
                         closeButton2.attr("class", "APURI APURI_modal_ylaX");
 			//closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
-			closeButton2[0].onclick = APURI.closeModal;
+			closeButton2[0].onclick = APURI.ui.closeModalWindow;
 			outdiv.appendTo('body');
 			div.html(APURI.text.import_assignment_title)
 			.append($('<p />').html(APURI.text.import_assignment_info))
@@ -1323,8 +1431,10 @@ if (typeof APURI.replaceBoxes !== 'function') {
                     x = x.concat(Array.prototype.slice.call(document.getElementsByClassName(fieldNames[j])));
                 }
                 var y = document.getElementById('instructionInput');
-                y.setAttribute('class', 'instructionInput');
-                x.push(y);
+                if (typeof y !== 'undefined' && y !== null) {
+                    y.setAttribute('class', 'instructionInput');
+                    x.push(y);
+                }
             
    /*		var x = (Array.prototype.slice.call(document.getElementsByClassName("questionText"))).concat(
                             Array.prototype.slice.call(document.getElementsByClassName("instructionInput")),
@@ -1449,6 +1559,7 @@ APURI.ui.appendCSS = function(cssaddr) {
 
 APURI.makeCopyOfExam = function(origUuid) {
             //Lataa vanha, josta tehdään kopio
+            APURI.ui.showLoadingSpinner();
 		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
 			var uusikoe = {title: "Uusi koe"};
                         // Luo uusi koe
