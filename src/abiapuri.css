@@ -32,6 +32,30 @@
     color: #3E7800;
 }
 
+#APURI_loading_spinner {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: 30;
+   background: #AAA;
+   opacity: .50; 
+}
+#APURI_loading_spinner h1 {
+    position: absolute;
+    text-align: center;
+    top: 20%;
+    width: 100%;
+}
+
+#APURI_loading_spinner .APURI_loading_overlay {
+    position: absolute;
+    text-align: center;
+    top: 40%;
+    width: 100%;
+}
+
 td.APURI .edit-exam {
     margin-top: 4px;
     border-color: #3E7800;
