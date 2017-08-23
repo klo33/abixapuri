@@ -27,6 +27,9 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.2.2 (23.8.2017)
+- Virheenkorjauksia
+  * korjattu tehtävän tuontiin liittyvä ongelma
 #### v0.2.1 (22.8.2017)
 - Arviointitaulukon voi ladata taulukkolaskentaohjelmaan CSV-muodossa
 - Arvioinnissa näytetään sanalaskuri tekstimuotoisen vastauksen pituudesta
@@ -86,6 +89,7 @@ Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöö
 ### Tunnetut ongelmat
 + Chrome-selaimessa TamperMonkey'ssa kuvien liittämisessä leikepöydältä on vielä ongelmia. Firefox-GreaseMonkey-yhdistelmällä toimii.
 + Viivästetyn tallennuksen ollessa aktiivinen, koetehtävien järjestelytoiminto kyllä pyrkii tallentamaan kokeen, mutta potentiaalisesti voi joutua tilanteeseen, että viimeisimmät muutokset menetetään.
++ Suurten kokeiden kohdalla koetehtävien järjestelytoiminto ei toimi, mikäli siirtelee tehtäviä nopeasti. Kiertokeino: Pidä taukoa vähintään viisi sekuntia tehtävien siirtojen välillä.
 
 ### Lisenssi ja vastuuvapaus
 
