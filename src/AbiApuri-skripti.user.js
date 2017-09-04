@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.2
+// @version     0.2.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -301,16 +301,21 @@ var APURI ={
                     $('#APURI_delayd').remove();
                 },
                 showEmptyQuestionWarning: function(elem) {
-                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning === 'undefined') {
+                    if (typeof APURI.replacedFields.list[elem] !== 'undefined' 
+                            && typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined') {
                         var emptyel = APURI.replacedFields.list[elem].field.parentNode.queryElement(APURI.ytle.emptyQuestionWarning);
                         APURI.replacedFields.list[elem].emptyQuestionWarning = emptyel;
                     }
-                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined') {
+                    if (typeof APURI.replacedFields.list[elem] !== 'undefined' 
+                            && typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined'
+                            && APURI.replacedFields.list[elem].emptyQuestionWarning !== null) {
                         APURI.replacedFields.list[elem].emptyQuestionWarning.style.visibility = "visible";
                     }                
                 },
                 hideEmptyQuestionWarning: function(elem) {
-                    if (typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined') {
+                    if (typeof APURI.replacedFields.list[elem] !== 'undefined' 
+                            && typeof APURI.replacedFields.list[elem].emptyQuestionWarning !== 'undefined'
+                            && APURI.replacedFields.list[elem].emptyQuestionWarning !== null) {
                         APURI.replacedFields.list[elem].emptyQuestionWarning.style.visibility = "hidden";
                     }                
                 },
@@ -915,7 +920,9 @@ if (typeof APURI.paivkent !== 'function') {
 		var va = $('textarea[name='+elem+']');
                 if (!(va.length >0)) { // jos ei elem ole nimi, niin sitten ilm. id
                     va = $('textarea[id='+elem+']');
-                } 
+                    let name = va.attr('name');
+                    elem = name;
+                }
                 if (!APURI.replacedFields.postponedSaving && input.length > APURI.postponedSaving.singleFieldLimit) {
                     APURI.replacedFields.calculateLength();
                 } 
