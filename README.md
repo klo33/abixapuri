@@ -27,6 +27,9 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.2.3 (4.9.2017)
+- Virheenkorjauksia
+  * koe ei aikaisemmin tallentunut jos muutettiin vain kokeen yleisohjetta tietyissä tilanteissa
 #### v0.2.2 (23.8.2017)
 - Virheenkorjauksia
   * korjattu tehtävän tuontiin liittyvä ongelma
