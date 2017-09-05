@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.2
+// @version     0.2.4
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -68,7 +68,9 @@ var APURI ={
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana",
                   loading_spinner: "latautuu...<br />odota hetkinen",
-                  total_max_points: "maksimi yhteispistemäärä %d"
+                  total_max_points: "maksimi yhteispistemäärä %d",
+                  search_exams_info: "Hae kokeista...",
+                  search_exams_clear: "Tyhjää haku"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -94,7 +96,9 @@ var APURI ={
                   csv_sum: "Totalt",
                   csv_grade: "Vitsord",
                   loading_spinner: "laddar...<br />vänta en liten stund",
-                  total_max_points: "totalt max poäng %d"
+                  total_max_points: "totalt max poäng %d",
+                  search_exams_info: "Sök i proven...",
+                  search_exams_clear: "Töm sökningen"
               }  
             },
             text: null,
@@ -834,7 +838,44 @@ var APURI ={
                 examlist: {
                     initTimer: null,
                     show: function() {
+                        var filterInput = document.getElementById("APURI_filter"); 
                         var taulukko = document.getElementById("available-exams");
+                        if (taulukko !== null && filterInput === null) {
+                            $("#APURI_filter");
+                            jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
+                                return function( elem ) {
+                                    return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+                                };
+                            });
+                            let wrapper = $('<div />').attr('class', 'APURI_filter_wrapper');
+                            let elem = $('<input />')
+                                    .attr('id', 'APURI_filter')
+                                    .attr('class', 'APURI')
+                                    .attr('placeholder', APURI.text.search_exams_info)
+                                    .keyup(function() {
+                                        $("#available-exams tbody").find("tr").hide();
+                                        let inputs = this.value.split(" ");
+                                        let jo = $("#available-exams tbody").find("tr.title-row");
+                                        $.each(inputs, function(i, v) {
+                                           jo = jo.filter("*:Contains('"+v+"')"); 
+                                        });
+                                        jo.show();
+                                        jo.next().show();
+                                    });
+                            let clearElem = $('<button />')
+                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .attr('id', 'APURI_filter_clear')
+                                    .attr('class', 'APURI APURI_filter_clear')
+                                    .attr('title', APURI.text.search_exams_clear)
+                                    .click(function() {
+                                        let input = $("#APURI_filter");
+                                        input.val('');
+                                        input.trigger('keyup');
+                            });
+                            wrapper.append(elem).append(clearElem);
+                            $("#available-exams thead tr th:first").next().append(wrapper);
+                                    
+                        }
                         if (taulukko !== null) {
                             if (taulukko.getAttribute("apuri_mod") === null) {
                                 //console.log("Tehdään kopiolinkit");

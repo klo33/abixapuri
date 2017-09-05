@@ -260,3 +260,23 @@ border: 3px solid #3E7800;
     background: #F1FBE8;
     color: #3E7800;
 }
+
+#APURI_filter {
+    background-color: #F1FBE8;
+    border-color: #3E7800;
+}
+
+.APURI_filter_wrapper {
+        display: inline;
+    position: static;
+    float: right;
+}
+
+#APURI_filter_clear {
+        position: relative;
+    right: 2em;
+    border: none;
+    background-color: transparent !important;
+    box-shadow: none;
+    overflow: hidden;
+}
