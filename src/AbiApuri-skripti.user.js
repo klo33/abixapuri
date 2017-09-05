@@ -1371,7 +1371,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                             //console.log(sortable.toArray());
                             //while (APURI.questionsort.waitingSaving !== 'null')
                                 ;// TODO KESKEN!!!!
-                            APURI.questionsort.waitingSaving = setInterval(APURI.questionsort.delayTrigger, 100);
+                            //APURI.questionsort.waitingSaving = setInterval(APURI.questionsort.delayTrigger, 100);
                             APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
                             var arrkey = sortable.toArray();
                             for (var i=0; i<arrkey.length; i++) {
