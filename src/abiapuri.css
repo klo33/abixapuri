@@ -262,8 +262,8 @@ border: 3px solid #3E7800;
 }
 
 .APURI_filter {
-    background-color: #F1FBE8;
-    border-color: #3E7800;
+    background-color: #F1FBE880 !important;
+    border-color: #3E7800 !important;
 }
 
 .APURI_filter_wrapper {
@@ -274,7 +274,7 @@ border: 3px solid #3E7800;
 
 .APURI_filter_clear {
         position: relative;
-    right: 2em;
+    right: 1.5em;
     border: none;
     background-color: transparent !important;
     box-shadow: none;
