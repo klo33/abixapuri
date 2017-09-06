@@ -15,6 +15,7 @@
 4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
 5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
 6. Sanalaskuri tekstivastauksiin
+7. Koelistauksesta voi hakea helposti
 
 ## Asentaminen
 
@@ -27,26 +28,34 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.2.4 (7.9.2017)
+- Toteutettu hakutoiminto koelistauksesta
+
 #### v0.2.3 (4.9.2017)
 - Virheenkorjauksia
   * koe ei aikaisemmin tallentunut jos muutettiin vain kokeen yleisohjetta tietyissä tilanteissa
+
 #### v0.2.2 (23.8.2017)
 - Virheenkorjauksia
   * korjattu tehtävän tuontiin liittyvä ongelma
+
 #### v0.2.1 (22.8.2017)
 - Arviointitaulukon voi ladata taulukkolaskentaohjelmaan CSV-muodossa
 - Arvioinnissa näytetään sanalaskuri tekstimuotoisen vastauksen pituudesta
 - Ruotsinkielinen käännös
+
 #### v0.1.2 (8.8.2017)
 - Virheenkorjauksia
   * korjattu kokeen tuontiin liittyvä ongelma
   * lisäkorjauksena v0.1.1 tullut ongelma korjattu
 - Lisätty huomautus, jos Bittiniiloa käytetään yhtäaikaa
+
 #### v0.1.0 (28.5.2017)
 - Chrome-tuki
 - CKEditor päivitetty versioon v4.7 ja lisätty lisäosia
 - Tuki tehtävän kopioinnille
 - Päivitetty ulkoasua ja korjattu bugeja mm. järjestelytoiminnossa
+
 #### v0.0.3 (22.5.2017)
 - Lisätty järjestystoiminnallisuus
   * Ei toimi vielä alatehtävissä

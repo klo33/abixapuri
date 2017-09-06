@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        AbixApuri
-// @name:se     AbixAssistenten
+// @name:sv     AbixAssistenten
 // @namespace   http://klo33.github.io/abixapuri
 // @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:se  AbixAssistenten erbjuder extra funktioner till oma.abitti.fi
+// @description:sv  AbixAssistenten erbjuder extra funktioner till oma.abitti.fi
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
 // @include     https://oma.abitti.fi/school/exams
@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.3
+// @version     0.2.4
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -68,7 +68,9 @@ var APURI ={
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana",
                   loading_spinner: "latautuu...<br />odota hetkinen",
-                  total_max_points: "maksimi yhteispistemäärä %d"
+                  total_max_points: "maksimi yhteispistemäärä %d",
+                  search_exams_info: "Hae kokeista...",
+                  search_exams_clear: "Tyhjää haku"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -94,7 +96,9 @@ var APURI ={
                   csv_sum: "Totalt",
                   csv_grade: "Vitsord",
                   loading_spinner: "laddar...<br />vänta en liten stund",
-                  total_max_points: "totalt max poäng %d"
+                  total_max_points: "totalt max poäng %d",
+                  search_exams_info: "Sök i proven...",
+                  search_exams_clear: "Töm sökningen"
               }  
             },
             text: null,
@@ -159,6 +163,7 @@ var APURI ={
             replacedFields: {
                 count: 0,
                 list: [], // täydennä {field: , indicatorSaved: }
+                titleField: null,
                 contentLength: 0,
                 calculateLength: function() {
                     var count =0;
@@ -832,8 +837,121 @@ var APURI ={
                 },
                 examlist: {
                     initTimer: null,
+                    showFilterInput(tableid, inputid) {
+                        let examsInput = document.getElementById(inputid);
+                        let examTaulukko = document.getElementById(tableid);
+                        if (examTaulukko !== null && examsInput === null) {
+                            jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
+                                return function( elem ) {
+                                    return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+                                };
+                            });
+                            let wrapper = $('<div />').attr('class', 'APURI_filter_wrapper');
+                            let elem = (function(inner_tableid, inner_inputid) {
+                                return $('<input />')
+                                    .attr('id', inner_inputid)
+                                    .attr('class', 'APURI APURI_filter')
+                                    .attr('placeholder', APURI.text.search_exams_info)
+                                    .keyup(function() {
+                                        $("#"+inner_tableid+" tbody").find("tr").hide();
+                                        let inputs = this.value.split(" ");
+                                        let jo = $("#"+inner_tableid+" tbody").find("tr.title-row");
+                                        $.each(inputs, function(i, v) {
+                                           jo = jo.filter("*:Contains('"+v+"')"); 
+                                        });
+                                        jo.show();
+                                        jo.next().show();
+                                    });
+                                })(tableid, inputid);
+                            let clearElem = (function(inner_inputid) {
+                                return $('<span />')
+                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .attr('id', inner_inputid+'_clear')
+                                    .attr('class', 'APURI APURI_filter_clear')
+                                    .attr('title', APURI.text.search_exams_clear)
+                                    .click(function() {
+                                        let input = $('#'+inner_inputid);
+                                        input.val('');
+                                        input.trigger('keyup');
+                            });})(inputid);                             
+                            wrapper.append(elem).append(clearElem);
+                            $("#"+tableid+" thead tr th:first").next().append(wrapper);                        
+                        }
+                    },
                     show: function() {
+                        var filterInput = document.getElementById("APURI_examfilter"); 
                         var taulukko = document.getElementById("available-exams");
+                        let heldExamsInput = document.getElementById("APURI_heldfilter");
+                        let heldTaulukko = document.getElementById("held-exams");
+                        if (heldTaulukko !== null && heldExamsInput === null) {
+                            jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
+                                return function( elem ) {
+                                    return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+                                };
+                            });
+                            let wrapper = $('<div />').attr('class', 'APURI_filter_wrapper');
+                            let elem = $('<input />')
+                                    .attr('id', 'APURI_heldfilter')
+                                    .attr('class', 'APURI APURI_filter')
+                                    .attr('placeholder', APURI.text.search_exams_info)
+                                    .keyup(function() {
+                                        $("#held-exams tbody").find("tr").hide();
+                                        let inputs = this.value.split(" ");
+                                        let jo = $("#held-exams tbody").find("tr");
+                                        $.each(inputs, function(i, v) {
+                                           jo = jo.filter("*:Contains('"+v+"')"); 
+                                        });
+                                        jo.show();
+                                    });
+                            let clearElem = $('<span />')
+                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .attr('id', 'APURI_heldfilter_clear')
+                                    .attr('class', 'APURI APURI_filter_clear')
+                                    .attr('title', APURI.text.search_exams_clear)
+                                    .click(function() {
+                                        let input = $("#APURI_heldfilter");
+                                        input.val('');
+                                        input.trigger('keyup');
+                            });
+                            wrapper.append(elem).append(clearElem);
+                            $("#held-exams thead tr th:first").next().append(wrapper);
+                        }
+                        if (taulukko !== null && filterInput === null) {
+                            $("#APURI_examfilter");
+                            jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
+                                return function( elem ) {
+                                    return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+                                };
+                            });
+                            let wrapper = $('<div />').attr('class', 'APURI_filter_wrapper');
+                            let elem = $('<input />')
+                                    .attr('id', 'APURI_examfilter')
+                                    .attr('class', 'APURI APURI_filter')
+                                    .attr('placeholder', APURI.text.search_exams_info)
+                                    .keyup(function() {
+                                        $("#available-exams tbody").find("tr").hide();
+                                        let inputs = this.value.split(" ");
+                                        let jo = $("#available-exams tbody").find("tr.title-row");
+                                        $.each(inputs, function(i, v) {
+                                           jo = jo.filter("*:Contains('"+v+"')"); 
+                                        });
+                                        jo.show();
+                                        jo.next().show();
+                                    });
+                            let clearElem = $('<span />')
+                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .attr('id', 'APURI_examfilter_clear')
+                                    .attr('class', 'APURI APURI_filter_clear')
+                                    .attr('title', APURI.text.search_exams_clear)
+                                    .click(function() {
+                                        let input = $("#APURI_examfilter");
+                                        input.val('');
+                                        input.trigger('keyup');
+                            });
+                            wrapper.append(elem).append(clearElem);
+                            $("#available-exams thead tr th:first").next().append(wrapper);
+                                    
+                        }
                         if (taulukko !== null) {
                             if (taulukko.getAttribute("apuri_mod") === null) {
                                 //console.log("Tehdään kopiolinkit");
@@ -922,7 +1040,7 @@ if (typeof APURI.paivkent !== 'function') {
                     va = $('textarea[id='+elem+']');
                     let name = va.attr('name');
                     elem = name;
-                }
+                } 
                 if (!APURI.replacedFields.postponedSaving && input.length > APURI.postponedSaving.singleFieldLimit) {
                     APURI.replacedFields.calculateLength();
                 } 
@@ -1261,70 +1379,53 @@ if (typeof APURI.showSortDialog !== 'function') {
                 APURI.questionsort.bufferOld = $.extend(true, {}, current);
                 APURI.questionsort.changed = false;
                 if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
-                        var outdiv = $('<div />');
-                        outdiv.attr("class", "APURI_modal_back");
-                        outdiv.attr("id", "APURI_modal_back");
-                        //outdiv.attr("style", APURI.modal_background_style);
-                        var div = $('<div />');
-                        div.attr("id", "APURI_modal_content");
-                        //div.attr("style", APURI.modal_foreground_style);
-
-                        var sectul = $('<ul />');
+                    APURI.ui.openModalWindow((div)=> {
+                         var sectul = $('<ul />');
                         sectul.attr("id", "APURI_sort_section");
-                                //var buffer = "";
-                                for (var i=0; i<current.content.sections.length; i++) {
-                                        // sectionloop
-                                        var section = current.content.sections[i];
-                                        var secli = $('<li />');
-                                        sectul.append(secli);
-                                        if (typeof section.questions !== 'undefined') {
-                                                var qul = $('<ul />');
-                                                qul.attr("id", "APURI_sort_question");
-                                                secli.append(qul);
-                                                for(var j=0; j<section.questions.length; j++) {				
-                                                        var question = section.questions[j];
-                                                       // console.log(".");
-                                                        var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
-                                                        var sis = $('<li />').attr('name',"q_"+question.id)
-                                                                .attr('class',"APURI_sortable_question").append($('<i class="fa fa-arrows hide_nothover" aria-hidden="true"></i>'))
-                                                                .html(question.displayNumber+": "+text);
-                                                        // jos monivalinta niin mahdollista kysymysten sorttaus
-                                                        if (typeof question.type !== 'undefined' && 
-                                                                question.type === 'choicegroup' &&
-                                                                typeof question.choices !== 'undefined') {
-                                                            var coul = $('<ul />');
-                                                            coul.attr("id", "APURI_sort_choice"+i+"."+j);
-                                                            sis.append(coul);
-                                                            for (var k=0; k<question.choices.length; k++) {
-                                                                var choice = question.choices[k];
-                                                                var texti = APURI.shortenText($("<div />").html(choice.text).text(), 100);
-                                                                var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id)
-                                                                        .attr('class',"APURI_sortable_choice")
-                                                                        .html(choice.displayNumber+": "+texti);
-                                                                coul.append(cli);
-                                                            }
-                                                        }
-                                                        qul.append(sis);
-
+                        //var buffer = "";
+                        for (var i=0; i<current.content.sections.length; i++) {
+                                // sectionloop
+                                var section = current.content.sections[i];
+                                var secli = $('<li />');
+                                sectul.append(secli);
+                                if (typeof section.questions !== 'undefined') {
+                                        var qul = $('<ul />');
+                                        qul.attr("id", "APURI_sort_question");
+                                        secli.append(qul);
+                                        for(var j=0; j<section.questions.length; j++) {				
+                                                var question = section.questions[j];
+                                               // console.log(".");
+                                                var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
+                                                var sis = $('<li />').attr('name',"q_"+question.id)
+                                                        .attr('class',"APURI_sortable_question").append($('<i class="fa fa-arrows hide_nothover" aria-hidden="true"></i>'))
+                                                        .html(question.displayNumber+": "+text);
+                                                // jos monivalinta niin mahdollista kysymysten sorttaus
+                                                if (typeof question.type !== 'undefined' && 
+                                                        question.type === 'choicegroup' &&
+                                                        typeof question.choices !== 'undefined') {
+                                                    var coul = $('<ul />');
+                                                    coul.attr("id", "APURI_sort_choice"+i+"."+j);
+                                                    sis.append(coul);
+                                                    for (var k=0; k<question.choices.length; k++) {
+                                                        var choice = question.choices[k];
+                                                        var texti = APURI.shortenText($("<div />").html(choice.text).text(), 100);
+                                                        var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id)
+                                                                .attr('class',"APURI_sortable_choice")
+                                                                .html(choice.displayNumber+": "+texti);
+                                                        coul.append(cli);
+                                                    }
                                                 }
+                                                qul.append(sis);
+
                                         }
                                 }
-                                //sisul.html(buffer);
-                var closeButton = $('<button />');
-                closeButton.html(APURI.text.close_button);
-                //closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
-                closeButton.attr("class", "APURI APURI_modal_alaNappi");
-                closeButton[0].onclick = APURI.ui.closeModalWindow;
-                var closeButton2 = $('<button />');
-                closeButton2.html("X");
-                closeButton2.attr("class", "APURI APURI_modal_ylaX");
-                //closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
-                closeButton2[0].onclick = APURI.ui.closeModalWindow;
-
-                outdiv.appendTo('body');
-                div.html(APURI.text.reorder_assignments_title)
-                .append($('<p />').html(APURI.text.reorder_assignments_info))
-                .append(sectul).append(closeButton).append(closeButton2).appendTo('body');
+                        }
+                        div.html(APURI.text.reorder_assignments_title)
+                          .append($('<p />').html(APURI.text.reorder_assignments_info))
+                          .append(sectul);
+                        return div;
+                    });
+                  
                 
                 var sorted = document.getElementById("APURI_sort_question");
                 Sortable.create(sorted, {
@@ -1339,10 +1440,14 @@ if (typeof APURI.showSortDialog !== 'function') {
                                 APURI.questionsort.bufferOrder[sortable.options.group.name][arrkey[i]] = current.content.sections[0].questions[i];
                             }
                             //console.log("Sortable.store.Get:"+sortable.options.group.name);
+                            return APURI.questionsort.bufferOrder;
                         },
                         set: function(sortable) {
                             //console.log("Sortable.store.SET:"+sortable.options.group.name);
                             //console.log(sortable.toArray());
+                            //while (APURI.questionsort.waitingSaving !== 'null')
+                                ;// TODO KESKEN!!!!
+                            //APURI.questionsort.waitingSaving = setInterval(APURI.questionsort.delayTrigger, 100);
                             APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
                             var arrkey = sortable.toArray();
                             for (var i=0; i<arrkey.length; i++) {
@@ -1381,17 +1486,43 @@ if (typeof APURI.showImportDialog !== 'function') {
 	$.getJSON("https://oma.abitti.fi/kurko-api/exam/abitti-exam-events", function(data) {
             
                         data = APURI.examList.sortByDate(data);
-			var outdiv = $('<div />');
-			outdiv.attr("class", "APURImodal_back");
-			outdiv.attr("id", "APURI_modal_back");
-			//outdiv.attr("style", APURI.modal_background_style);
-			var div = $('<div />');
-			div.attr("id", "APURI_modal_content");
-			//div.attr("style", APURI.modal_foreground_style);
-			
-			var ul = $('<ul />');//.html(buffer);
-                        ul.attr('class', 'APURI_examlist');
-			$.each(data.exams, function(index, value) {
+                        
+                        APURI.ui.openModalWindow((div)=> {
+                            jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
+                                return function( elem ) {
+                                    return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+                                };
+                            });
+                            let filterwrapper = $('<div />');
+                            let filterinput = $('<input />')
+                                    .attr('id', 'APURI_importfilter')
+                                    .attr('class', 'APURI')
+                                    .attr('placeholder', APURI.text.search_exams_info)
+                                    .keyup(function() {
+                                        $("#APURI_import-examlist").find("> li").hide();
+                                        let inputs = this.value.split(" ");
+                                        let jo = $("#APURI_import-examlist").find("> li");
+                                        $.each(inputs, function(i, v) {
+                                           jo = jo.filter("*:Contains('"+v+"')"); 
+                                        });
+                                        jo.show();
+                                    });
+                            let clearElem = $('<span />')
+                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .attr('id', 'APURI_importfilter_clear')
+                                    .attr('class', 'APURI APURI_filter_clear')
+                                    .attr('title', APURI.text.search_exams_clear)
+                                    .click(function() {
+                                        let input = $("#APURI_importfilter");
+                                        input.val('');
+                                        input.trigger('keyup');
+                            });
+                            filterwrapper.append(filterinput, clearElem);
+                            var ul = $('<ul />');//.html(buffer);
+                            ul
+                                    .attr('id', 'APURI_import-examlist')
+                                    .attr('class', 'APURI_examlist');
+                            $.each(data.exams, function(index, value) {
 						var sis = $('<li />').attr('name','exam_'+value.examUuid).attr('class','APURI_import_exam '+(index%2===0?'even':'odd'));
                                                 var pvm = APURI.util.dateToString(value.creationDate);
 						var sisa = $('<a />').attr('href','#').attr('uuid',value.examUuid).attr('class','unloaded').append($('<span />').attr('class','date').html(pvm)).append($('<span />').attr('class','title').html(value.title));
@@ -1403,22 +1534,15 @@ if (typeof APURI.showImportDialog !== 'function') {
 						//html = "<li name='exam_"+value.examUuid+"'><a href=\"#\" class='unloaded' onclick='APURI.examImportExpand(\""+value.examUuid+"\");'>"+value.title+"</a></li>";
 						//buffer += html;
 				});
-			var header = $('<h3 />');
-			header.html(APURI.text.import_assignment_title);
-			var closeButton = $('<button />');
-			closeButton.html(APURI.text.import_assignment_cancel);
-                        closeButton.attr("class", "APURI APURI_modal_alaNappi");
-			//closeButton.attr("style", "position: fixed; bottom: 10px; right: 10%;");
-			closeButton[0].onclick = APURI.ui.closeModalWindow;
-			var closeButton2 = $('<button />');
-			closeButton2.html("X");
-                        closeButton2.attr("class", "APURI APURI_modal_ylaX");
-			//closeButton2.attr("style", "position: fixed; top: 60px; right: 16%; width: 30px !important;");
-			closeButton2[0].onclick = APURI.ui.closeModalWindow;
-			outdiv.appendTo('body');
-			div.html(APURI.text.import_assignment_title)
-			.append($('<p />').html(APURI.text.import_assignment_info))
-			.append(ul).append(closeButton).append(closeButton2).appendTo('body');
+                            var header = $('<h3 />');
+                            header.html(APURI.text.import_assignment_title);
+                            div.html(APURI.text.import_assignment_title)
+                                .append($('<p />').html(APURI.text.import_assignment_info))
+                                .append(filterwrapper)
+                                .append(ul);
+                            return div; 
+                        }, APURI.text.import_assignment_cancel);
+
 		});
 	};
 }
