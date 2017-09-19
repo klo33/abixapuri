@@ -1547,7 +1547,13 @@ if (typeof APURI.showImportDialog !== 'function') {
 	};
 }
 
-
+APURI.filterLinebreaks = function(input) {
+    input = input.replace(/(?:<\/p>\n)/g, '</p>');
+    input = input.replace(/(?:<\/ol>\n)/g, '</ol>');
+    input = input.replace(/(?:<\/ul>\n)/g, '</ul>');
+    input = input.replace(/(?:<\/li>\n)/g, '</li>');
+    return input;
+};
 
 if (typeof APURI.replaceBoxes !== 'function') {
 	APURI.replaceBoxes = function() {
@@ -1591,6 +1597,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 					fileBrowserUploadUrl: 'base64',
 					extraAllowedContent: 'script[!sec]',
                                         entities_latin:false,
+                                        entities_greek:false,
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
@@ -1626,10 +1633,15 @@ if (typeof APURI.replaceBoxes !== 'function') {
 				(function(inner_elem){
 					inner_elem.on('change',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
-										inner_elem.updateElement();
-										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
+                                                                                
+                                                                                let content = APURI.filterLinebreaks(inner_elem.getData());
+                                                                                inner_elem.setData(content, {internal: true, noSnapshot:true});
+                                                                                inner_elem.element.value = content;
+                                                                                inner_elem.updateElement();
+										APURI.paivkent(inner_elem.name, content); });
 					inner_elem.on('keyup',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
+                                                                                console.log(inner_elem);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
 										})(elem);
@@ -1677,6 +1689,7 @@ APURI.ui.appendCSS = function(cssaddr) {
                     config.extraPlugins = 'base64image,mathjax,htmlwriter';
                     config.uiColor = '#e4f3d3';
                     config.entities_latin = false;
+                    config.entities_greek = false;
                     //config.fileBrowserUploadUrl = 'base64';
                     config.toolbar = [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
