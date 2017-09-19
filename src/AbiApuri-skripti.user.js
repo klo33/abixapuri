@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.4
+// @version     0.2.5
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -1585,11 +1585,12 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,base64audio',
+					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
 					extraAllowedContent: 'script[!sec]',
+                                        entities_latin:false,
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
@@ -1601,7 +1602,25 @@ if (typeof APURI.replaceBoxes !== 'function') {
 		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote' ] },
 		{ name: 'styles', items: [ 'Styles', 'Format' ] },
 		{ name: 'about', items: [ 'About' ] }
-	]
+	],
+                                        on: {
+                                            instanceReady: function (ev) {
+                                                this.dataProcessor.writer.setRules('p', {
+                indent: false,
+                breakBeforeOpen: false,
+                breakAfterOpen: false,
+                breakBeforeClose: false,
+                breakAfterClose: false                                                    
+                                                });
+                                                this.dataProcessor.writer.setRules('li', {
+                indent: false,
+                breakBeforeOpen: false,
+                breakAfterOpen: false,
+                breakBeforeClose: false,
+                breakAfterClose: false                                                    
+                                                });
+                                            }
+                                        }
                                         
 				});
 				(function(inner_elem){
@@ -1655,8 +1674,9 @@ APURI.ui.appendCSS = function(cssaddr) {
             function() {
                 CKEDITOR.editorConfig = function( config ) {
                     config.language = 'fi';
-                    config.extraPlugins = 'base64image,mathjax';
+                    config.extraPlugins = 'base64image,mathjax,htmlwriter';
                     config.uiColor = '#e4f3d3';
+                    config.entities_latin = false;
                     //config.fileBrowserUploadUrl = 'base64';
                     config.toolbar = [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
