@@ -281,3 +281,12 @@ border: 3px solid #3E7800;
     overflow: hidden;
     color: #3E7800;
 }
+
+.http-link-warning {
+    border: 1px solid;
+    background-color: #C2FF81 !important;
+    border-color: #3E7800 !important;    
+    color: #3E7800;
+    padding: 0.2em;
+    padding-left: 1em;
+}

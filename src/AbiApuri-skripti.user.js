@@ -61,6 +61,8 @@ var APURI ={
                   copy_exam_tooltip: "Uudelleenkäyttääksesi koetta luo kopio \"Luo kopio\"-painikkeella",
                   copy_exam_button: "<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio",
                   import_assignment_cancel: "Sulje lisäämättä tehtävää",
+                  http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki verkkomateriaaliin</strong> <br/>"
+                    + "Julkiseen verkkoon viittaavat linkit eivät toimi suljetussa Abitti-kokeessa",
                   close_button: "Sulje",
                   csv_filename: "tulokset.csv",
                   csv_name: "Nimi",
@@ -98,7 +100,9 @@ var APURI ={
                   loading_spinner: "laddar...<br />vänta en liten stund",
                   total_max_points: "totalt max poäng %d",
                   search_exams_info: "Sök i proven...",
-                  search_exams_clear: "Töm sökningen"
+                  search_exams_clear: "Töm sökningen",
+                  http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki verkkomateriaaliin</strong> <br/>"
+                    + "Varmista, että kuvasi ja materiaalisi toimivat suljetussa Abitti-kokeessa"
               }  
             },
             text: null,
@@ -107,7 +111,8 @@ var APURI ={
                     'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 },
                 csv_separator: ";",
-                csv_wrapping: "%s" //%s as replaced value
+                csv_wrapping: "%s", //%s as replaced value
+                link_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i
             },
             fetch: {
                 /**
@@ -324,8 +329,18 @@ var APURI ={
                         APURI.replacedFields.list[elem].emptyQuestionWarning.style.visibility = "hidden";
                     }                
                 },
+                detectHttpLink(elem, input) {
+                    if (APURI.util.linkDetector(input)) {
+                        APURI.ui.showHttpLinkWarning(elem);
+                    } else {
+                        APURI.ui.hideHttpLinkWarning(elem);
+                    }
+                },
                 showHttpLinkWarning: function(elem) {
-                    // TODO
+                    $('div[apuri-warning-for="'+elem+'"]').show();
+                },
+                hideHttpLinkWarning(elem) {
+                    $('div[apuri-warning-for="'+elem+'"]').hide();
                 },
                 showBittiniiloWarning: function() {
                     APURI.ui.showWarning(APURI.text.bittiniilo_warning, 
@@ -407,6 +422,10 @@ var APURI ={
                 }
             },
             util: {
+                linkDetector(content) {
+                    return APURI.settings.link_map.test(content);
+                    
+                },
                 bittiniiloDetector: {
                     init: function() {
                         APURI.util.bittiniiloDetector.timer = window.setInterval(APURI.util.bittiniiloDetector.trigger, 2000);
@@ -1056,9 +1075,7 @@ if (typeof APURI.paivkent !== 'function') {
                     // TULEVISSA VERSIOISSA
                     // joko rajoitus koon suhteen ja MYÖS, että ei tarkisteta joka kerta, vaan vain silloin tällöin
                     // koska regexp tarkistus aikaavievä, varsinkin jos on oikeasti base64-kuvia
-            if (false) { // tämä käännetty toistaiseksi pois päältä
-                    APURI.ui.showHttpLinkWarning(elem);
-                }
+            APURI.ui.detectHttpLink(elem, input);
 
 		va.val(input);
 		va[0].innerHTML=input;
@@ -1584,8 +1601,12 @@ if (typeof APURI.replaceBoxes !== 'function') {
 				x[i].setAttribute("name",repname);
                                 var paivitystoken = x[i].parentNode.querySelector(APURI.ytle.savedIndicator);
                                 var tyhjakysvar = x[i].parentNode.querySelector(APURI.ytle.emptyQuestionWarning);
-                                var linkkivar = x[i].parentNode.appendChild(($('<div />').attr('class','http-link-warning').html("Varmista, ettei tehtävänannossa ole linkkiä verkkoon, joka ei toimisi kokeessa"))[0]);
-                                linkkivar.style.visibility = 'hidden';
+                                let linkkivar = $('<div />').attr('apuri-warning-for',repname).attr('class','APURI http-link-warning').html(APURI.text.http_link_warning).hide();
+                                if (APURI.util.linkDetector(x[i].value)) {
+                                    linkkivar.show();
+                                }
+                                linkkivar = x[i].parentNode.appendChild(linkkivar[0]);
+                                //linkkivar.style.visibility = 'hidden';
                                 APURI.replacedFields.list[repname]={field:x[i], savedIndicator:paivitystoken, emptyQuestionWarning: tyhjakysvar, httpLinkWarning: linkkivar};
                                 //console.log(".");
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
