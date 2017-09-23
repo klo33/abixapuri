@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.5
+// @version     0.2.7
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -62,7 +62,7 @@ var APURI ={
                   copy_exam_button: "<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio",
                   import_assignment_cancel: "Sulje lisäämättä tehtävää",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki verkkomateriaaliin</strong> <br/>"
-                    + "Julkiseen verkkoon viittaavat linkit eivät toimi suljetussa Abitti-kokeessa",
+                    + "Verkkoon viittaavat linkit (esim. kuviin) eivät toimi suljetussa Abitti-kokeessa. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Lue lisää &gt;&gt;</a>",
                   close_button: "Sulje",
                   csv_filename: "tulokset.csv",
                   csv_name: "Nimi",
@@ -101,8 +101,8 @@ var APURI ={
                   total_max_points: "totalt max poäng %d",
                   search_exams_info: "Sök i proven...",
                   search_exams_clear: "Töm sökningen",
-                  http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki verkkomateriaaliin</strong> <br/>"
-                    + "Varmista, että kuvasi ja materiaalisi toimivat suljetussa Abitti-kokeessa"
+                  http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en webbkälla i din uppgiftsanvisning</strong> <br/>"
+                    + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>"
               }  
             },
             text: null,
