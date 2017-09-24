@@ -15,7 +15,8 @@
 4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
 5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
 6. Sanalaskuri tekstivastauksiin
-7. Koelistauksesta voi hakea helposti
+7. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
+(Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
 
 ## Asentaminen
 
@@ -90,7 +91,7 @@ Juuri nyt tähän en itse ryhtymässä, joten laajennoksia ei tule selainkauppoi
 Uusista huomatuista virheistä ja ongelmista kannattaa raportoida ensisijaisesti [GitHubin projektin virheseurantaan](https://github.com/klo33/abixapuri/issues).
 
 AbixApuri on avointa ohjelmistoa, jossa ei ole varsinaista käyttötukea, mutta toki autan parhaani mukaan, jos tarve on suuri.
-Apuja voi kysellä minun sähköpostini lisäksi [Tietokoneet YO-kirjoituksissa Facebook-ryhmästä](https://www.facebook.com/groups/339542799419574/).
+Apuja voi kysellä minun sähköpostini (ks. sivun alalaita) lisäksi [Tietokoneet YO-kirjoituksissa Facebook-ryhmästä](https://www.facebook.com/groups/339542799419574/).
 
 ### Ohjeet AbixAburin tai Bittiniilon poisasentamiseksi
 AbixApurin toiminnallisuutta haittaa Bittiniilon aktiivisena olo. Mikäli et ole ostanut maksullista Bittiniilon lisenssiä, ei se auta kokeenlaadinnassa, jolloin se kannattaa poistaa käytöstä.
@@ -112,7 +113,7 @@ Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöö
 
 ### Lisenssi ja vastuuvapaus
 
-Lisäosan kehittäjällä ei ole yhteyksissä Ylioppilastutkintolautakuntaan, eikä lisäosa ole YTL:n kehittämä. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Huomaa kuitenkin, että skriptikoodia ei ole laajasti testattu, joten käyttö omalla vastuulla. Jos olet epäilevä, niin käytä erillistä testitunnusta.
+Lisäosan kehittäjällä ei ole yhteyksissä Ylioppilastutkintolautakuntaan, eikä lisäosa ole YTL:n kehittämä. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
 
 Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopuolella, mutta lähettää YTL:n Abitti-palveluun rajapintakutsuja kyseisen sivun "päälle liimattuna osana" sekä lataa skriptitiedostoja internetistä (toiminnallisuuksiin liittyvät laajennuksia). Sinänsä toiminnallisuuksien ei pitäisi rikkoa yhtään mitään YTL:n eikä käyttäjän tiedoista, mutta skripti tekee muutoksia avoinna olevan kokeen tietoihin, mikä onkin sen käyttötarkoitus. Muihin kokeisiin laajennus ei tee muutoksia.
 
