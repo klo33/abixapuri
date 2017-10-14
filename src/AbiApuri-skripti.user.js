@@ -11,7 +11,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.7
+// @version     0.2.8
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -112,7 +112,9 @@ var APURI ={
                 },
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
-                link_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i
+                link_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
+//              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
+                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)[<xyz\d]?)/g
             },
             fetch: {
                 /**
@@ -425,6 +427,10 @@ var APURI ={
                 linkDetector(content) {
                     return APURI.settings.link_map.test(content);
                     
+                },
+                detectLessGreater(content) {
+                    // TODO: not implemented
+                    return APURI.settings.lessthan_map.test(content);
                 },
                 bittiniiloDetector: {
                     init: function() {
@@ -794,6 +800,9 @@ var APURI ={
                 grading:{
                     initTimer: null,
                     show: function () {
+                        clearInterval(this.initTimer);
+
+                        /*
                         let answerElement = $('#answers');
                         if (typeof answerElement[0] !== 'undefined' && answerElement[0].innerHTML.length > 0
                                 && typeof APURI.grading.gradesBuffer !== 'undefined' 
@@ -823,6 +832,7 @@ var APURI ={
                             }
                             clearInterval(this.initTimer);
                         }
+                        */
                     }
                 },
                 examview: {
@@ -850,8 +860,34 @@ var APURI ={
                 },
                 examviewBoxes: {
                     initTimer: null,
+                    multichoiceFieldCounter: 0,
                     show: function() {
                         APURI.replaceBoxes();
+                        this.multichoiceFieldInit();
+                    },
+                    multichoiceFieldInit() {
+                        $('table.options .optionRow input.option:not(:data(apuri-name))').each(
+                            function(index, element) {
+                                if (element.next().length == 0) {
+                                    this.multichoiceFieldCounter++;
+                                    let name = 'multifield-'+this.multichoiceFieldCounter;
+                                    element.data('apuri-name',name);
+                                    // ei ole vielä kenttää
+                                    $('<div />').data('apuri-warning-for',name).attr('class','APURI http-link-warning').html('TODO VAROITUSTEKSTI').hide().insertAfter(element);
+                                }
+                            }
+                        );
+                    },
+                    multichoiceFieldTrigger(field) {
+                        let name = $(field).attr('data-apuri-name');
+                        if (name !== null && APURI.util.detectLessGreater(field.value)) {
+                            $(`div[data-apuri-warning-for="${name}"]`).show();
+                        } else {
+                            $(`div[data-apuri-warning-for="${name}"]`).hide();                            
+                        }
+                    },
+                    multichoiceFieldSanitize(field) {
+                        
                     }
                 },
                 examlist: {
