@@ -72,7 +72,10 @@ var APURI ={
                   loading_spinner: "latautuu...<br />odota hetkinen",
                   total_max_points: "maksimi yhteispistemäärä %d",
                   search_exams_info: "Hae kokeista...",
-                  search_exams_clear: "Tyhjää haku"
+                  search_exams_clear: "Tyhjää haku",
+                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (Lue lisää &gt;&gt;) <br />Varmista tekstin toiminta esikatselusta.",
+                  lessthan_fix_button: "Yritä korjata tehtävä",
+                  lessthan_fix_done: "..."
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -102,7 +105,10 @@ var APURI ={
                   search_exams_info: "Sök i proven...",
                   search_exams_clear: "Töm sökningen",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en webbkälla i din uppgiftsanvisning</strong> <br/>"
-                    + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>"
+                    + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>",
+                  lessthan_warning: "Kentässä vaikuttaa olevan &lt;-merkki",
+                  lessthan_fix_button: "Korjaa",
+                  lessthan_fix_done: "..."
               }  
             },
             text: null,
@@ -425,11 +431,12 @@ var APURI ={
             },
             util: {
                 linkDetector(content) {
+                    APURI.settings.link_map.lastIndex = 0;
                     return APURI.settings.link_map.test(content);
                     
                 },
                 detectLessGreater(content) {
-                    // TODO: not implemented
+                    APURI.settings.lessthan_map.lastIndex = 0;
                     return APURI.settings.lessthan_map.test(content);
                 },
                 bittiniiloDetector: {
@@ -866,28 +873,42 @@ var APURI ={
                         this.multichoiceFieldInit();
                     },
                     multichoiceFieldInit() {
-                        $('table.options .optionRow input.option:not(:data(apuri-name))').each(
+                        $('table.options .optionRow input.option:not([data-apuri-name])').each(
                             function(index, element) {
-                                if (element.next().length == 0) {
-                                    this.multichoiceFieldCounter++;
-                                    let name = 'multifield-'+this.multichoiceFieldCounter;
-                                    element.data('apuri-name',name);
+                                let el = $(element);
+                                if (el.next().length === 0) {
+                                    APURI.views.examviewBoxes.multichoiceFieldCounter++;
+                                    let name = 'multifield-'+APURI.views.examviewBoxes.multichoiceFieldCounter;
+                                    // HUOM! TODO tutki vielä jQuery.data propertia
+                                    el.data('apuriName',name);
+                                    el.attr('data-apuri-name', name);
                                     // ei ole vielä kenttää
-                                    $('<div />').data('apuri-warning-for',name).attr('class','APURI http-link-warning').html('TODO VAROITUSTEKSTI').hide().insertAfter(element);
+                                    // TODO ei ole vielä tekstiä
+                                    $('<div />').data('apuriWarningFor',name).attr('data-apuri-warning-for', name).attr('class','APURI http-link-warning').html(APURI.text.lessthan_warning).append(
+                                                $('<a />').data('apuriSanitizeTarget', name).click(APURI.views.examviewBoxes.multichoiceSanitizeHandler).html(APURI.text.lessthan_fix_button)
+                                                ).hide().insertAfter(element);
+                                    el.on('input dbclick',APURI.views.examviewBoxes.multichoiceFieldTrigger);
+                                    el.trigger('dbclick');
                                 }
                             }
                         );
                     },
-                    multichoiceFieldTrigger(field) {
-                        let name = $(field).attr('data-apuri-name');
-                        if (name !== null && APURI.util.detectLessGreater(field.value)) {
+                    multichoiceFieldTrigger(event) {
+                        console.log("Field change triggered on", event);
+                        let name = $(event.target).data('apuriName');
+                        if (name !== null && APURI.util.detectLessGreater(event.target.value)) {
                             $(`div[data-apuri-warning-for="${name}"]`).show();
                         } else {
                             $(`div[data-apuri-warning-for="${name}"]`).hide();                            
                         }
                     },
+                    multichoiceSanitizeHandler(event) {
+                        let targetFieldName = $(event.target).data("apuriSanitizeTarget");
+                        let field = $(`input[data-apuri-name="${targetFieldName}"]`);
+                        APURI.views.examviewBoxes.multichoiceFieldSanitize(field[0]);
+                    },
                     multichoiceFieldSanitize(field) {
-                        
+                        console.log("Sanitize request for FIELD", field);
                     }
                 },
                 examlist: {
