@@ -5,11 +5,11 @@
 
 **AbixApuria** voi myös käyttää natiivin selainlaajennuksen avulla, josta tietoa alempana.
 
-## HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa
+## [HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa][7]
 **Päivitetty 16.11.2017**
 
-Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut v4, joka ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa Firefoxille [TamperMonkey][6]-lisäosa ja [asenna skripti uudelleen][3], jolloin saat AbixApurin toimimaan
-**!!!!**
+Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa Firefoxille [TamperMonkey][6]-lisäosa ja [asenna skripti uudelleen][3], jolloin saat AbixApurin toimimaan
+**[Tarkemmat ohjeet >>][7]**
 
 ## Ominaisuudet
 
@@ -35,6 +35,10 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.2.9 (17.11.2017)
+- Varoitus <-merkkien käytöstä, joka voi rikkoa tehtäviä
+- Lisätty huomatus Firefox-selaimien käyttäjille, jotta siirtyisivät TamperMonkey-lisäosan käyttäjiksi
+
 #### v0.2.6 (22.9.2017)
 - Lisätty varoitus Apuriin, jos tehtävänannossa on linkki verkkoon
 
@@ -113,6 +117,7 @@ Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöö
 - Firefoxissa oma.abitti.fi-osoitteessa GreaseMonkey-laajennuksen kuvakkeesta (apinakuvake) alasnuoli -> ota valinta pois AbixApurin kohdalta. Tarvittaessa kytke uudelleen päälle ja päivitä verkkosivu.
 
 ### Tunnetut ongelmat
++ GreaseMonkey v4 kanssa suuria yhteensopivuusongelmia. GreaseMonkey v4 tulee vakiona käyttöön Firefox-selaimen 57 Quantum päivityksen yhteydessä. Koska skriptin päivitys ei toimi lainkaan uudessa GreaseMonkeyssa, niin suositellaan toistaiseksi siirtymään TamperMonkey-lisäosan käyttöön myös Firefoxissa
 + Chrome-selaimessa TamperMonkey'ssa kuvien liittämisessä leikepöydältä on vielä ongelmia. Firefox-GreaseMonkey-yhdistelmällä toimii.
 + Viivästetyn tallennuksen ollessa aktiivinen, koetehtävien järjestelytoiminto kyllä pyrkii tallentamaan kokeen, mutta potentiaalisesti voi joutua tilanteeseen, että viimeisimmät muutokset menetetään.
 + Suurten kokeiden kohdalla koetehtävien järjestelytoiminto ei toimi, mikäli siirtelee tehtäviä nopeasti. Kiertokeino: Pidä taukoa vähintään viisi sekuntia tehtävien siirtojen välillä.
@@ -150,5 +155,6 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.1.2-an+fx.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/AbixApuri-loader-0.1.2.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
+[7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
 [GPLv3]:https://www.gnu.org/licenses/gpl-3.0.en.html
 [oma.abitti.fi]:https://oma.abitti.fi
