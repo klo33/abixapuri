@@ -1,9 +1,15 @@
 # AbixApuri
 
 **AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
-[oma.abitti.fi]-koepalveluun. **AbixApuri** toimii Firefox- ja Chrome-selaimissa erillisen ladattavan laajennoksen ([GreaseMonkey][1]/[TamperMonkey][2]) avulla. 
+[oma.abitti.fi]-koepalveluun. **AbixApuri** toimii Firefox- ja Chrome-selaimissa erillisen ladattavan laajennoksen ([TamperMonkey Firefoxille][6]/[TamperMonkey Chromelle][2]) avulla. 
 
 **AbixApuria** voi myös käyttää natiivin selainlaajennuksen avulla, josta tietoa alempana.
+
+## HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa
+**Päivitetty 16.11.2017**
+
+Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut v4, joka ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa Firefoxille [TamperMonkey][6]-lisäosa ja [asenna skripti uudelleen][3], jolloin saat AbixApurin toimimaan
+**!!!!**
 
 ## Ominaisuudet
 
@@ -20,7 +26,7 @@
 
 ## Asentaminen
 
-1. Firefox-selaimessa lataa [GreaseMonkey][1]-lisäosa. Chrome-selaimessa lataa [TamperMonkey][2]-lisäosa.
+1. Firefox-selaimessa lataa [TamperMonkey Firefoxille][6]-lisäosa. Chrome-selaimessa lataa [TamperMonkey Chromelle][2]-lisäosa.
 2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
 3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
 
@@ -143,5 +149,6 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
 [4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.1.2-an+fx.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/AbixApuri-loader-0.1.2.crx?raw=true
+[6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [GPLv3]:https://www.gnu.org/licenses/gpl-3.0.en.html
 [oma.abitti.fi]:https://oma.abitti.fi
