@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name        AbixApuri
+// @name:fi     AbixApuri
 // @name:sv     AbixAssistenten
 // @namespace   http://klo33.github.io/abixapuri
 // @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
+// @description:fi AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
 // @description:sv  AbixAssistenten erbjuder extra funktioner till oma.abitti.fi
 // @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
 // @include     https://oma.abitti.fi/school/exam/*
@@ -11,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.8
+// @version     0.2.9
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -47,8 +49,8 @@ var APURI ={
               fi: {
                   postponed_saving_notice: 'Suurten kuvien tai liitteiden vuoksi <strong>tallennusta ei vielä tehty!</strong>',
                   save_button: 'Tallenna',
-                  support_notice1: "Vihreät elementit ovat <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.",
-                  support_notice2: "<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>",
+                  support_notice1: "Vihreät elementit ovat <a  target='_blank' href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-laajennuksen lisäämiä. Niiden toiminnasta ei YTL vastaa.",
+                  support_notice2: "<h5><a target='_blank' href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Virhetilanteet (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Kotisivu</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-ryhmä</a></p>",
                   bittiniilo_warning: "Käytät AbixApuria ja Bittiniiloa yhtäaikaa, mikä <strong>ei onnistu</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Ohjeet miten jompi kumpi kytketään pois toiminnasta</a>",
                   load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Lataa pisteytykset taulukkolaskentaohjelmaan',
                   reorder_assignments_title: "<h3>Järjestele koetehtävät</h3>",
@@ -62,7 +64,7 @@ var APURI ={
                   copy_exam_button: "<i class='fa fa-files-o' aria-hidden='true'></i> &nbsp;Luo kopio",
                   import_assignment_cancel: "Sulje lisäämättä tehtävää",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki verkkomateriaaliin</strong> <br/>"
-                    + "Verkkoon viittaavat linkit (esim. kuviin) eivät toimi suljetussa Abitti-kokeessa. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Lue lisää &gt;&gt;</a>",
+                    + "Verkkoon viittaavat linkit (esim. kuviin) eivät toimi suljetussa Abitti-kokeessa. <a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Lue lisää &gt;&gt;</a>",
                   close_button: "Sulje",
                   csv_filename: "tulokset.csv",
                   csv_name: "Nimi",
@@ -73,16 +75,17 @@ var APURI ={
                   total_max_points: "maksimi yhteispistemäärä %d",
                   search_exams_info: "Hae kokeista...",
                   search_exams_clear: "Tyhjää haku",
-                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (Lue lisää &gt;&gt;) <br />Varmista tekstin toiminta esikatselusta.",
+                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
                   lessthan_fix_button: "Yritä korjata tehtävä",
-                  lessthan_fix_done: "..."
+                  lessthan_fix_done: "...",
+                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
                   save_button: 'Spara',
-                  support_notice1: "De gröna elementen hör till <a href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-tilläggsprogrammet. SEN ansvarar inte för de funktionerna.",
-                  support_notice2: "<h5><a href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a href='https://github.com/klo33/abixapuri/issues'>Problemsituationer (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Hemsida</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-grupp</a></p>",
-                  bittiniilo_warning: "Du använder AbixApuri och Bittiniilo samtidigt, vilket <strong>inte lyckas</strong>. <br/> <a href='https://klo33.github.io/abixapuri'>Anvisningar till att stänga av någotdera programmet</a>",
+                  support_notice1: "De gröna elementen hör till <a target='_blank' href='https://klo33.github.io/abixapuri/'>AbixApuri</a>-tilläggsprogrammet. SEN ansvarar inte för de funktionerna.",
+                  support_notice2: "<h5><a target='_blank' href='https://klo33.github.io/abixapuri'>AbixApuri</a></h5><p><a target='_blank' href='https://github.com/klo33/abixapuri/issues'>Problemsituationer (GitHub)</a></p><p><a href='https://klo33.github.io/abixapuri'>Hemsida</a>/<a href='https://www.facebook.com/groups/339542799419574/'>Facebook-grupp</a></p>",
+                  bittiniilo_warning: "Du använder AbixApuri och Bittiniilo samtidigt, vilket <strong>inte lyckas</strong>. <br/> <a target='_blank' href='https://klo33.github.io/abixapuri'>Anvisningar till att stänga av någotdera programmet</a>",
                   load_csv_link: '<i class="fa fa-download" aria-hidden="true"></i> &nbsp;Ladda poängsättningarna i kalkylprogrammet',
                   reorder_assignments_title: "<h3>Organisera provuppgifterna</h3>",
                   reorder_assignments_info: "Dra provuppgifterna i den ordning du önskar. Ändringarna i ordningen sparas automatiskt.",
@@ -105,10 +108,11 @@ var APURI ={
                   search_exams_info: "Sök i proven...",
                   search_exams_clear: "Töm sökningen",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en webbkälla i din uppgiftsanvisning</strong> <br/>"
-                    + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>",
-                  lessthan_warning: "Kentässä vaikuttaa olevan &lt;-merkki",
-                  lessthan_fix_button: "Korjaa",
-                  lessthan_fix_done: "..."
+                    + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>",
+                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
+                  lessthan_fix_button: "Korjaa vaihtoehto",
+                  lessthan_fix_done: "...",
+                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>"
               }  
             },
             text: null,
@@ -120,7 +124,7 @@ var APURI ={
                 csv_wrapping: "%s", //%s as replaced value
                 link_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
-                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)[<xyz\d]?)/g
+                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g
             },
             fetch: {
                 /**
@@ -430,6 +434,18 @@ var APURI ={
                 }
             },
             util: {
+                browserFirefoxDetect() {
+                    
+                    let pattern = /Firefox\/(\d\d)./g;
+                    let res = pattern.exec(navigator.userAgent);
+                    if (res !== null) {
+                        if (parseInt(res[1]) < 57)
+                            return true;
+                    }
+                    return false;
+                    //return (navigator.userAgent.indexOf("Firefox/57") > -1?true:false);                    
+                },
+
                 linkDetector(content) {
                     APURI.settings.link_map.lastIndex = 0;
                     return APURI.settings.link_map.test(content);
@@ -842,6 +858,19 @@ var APURI ={
                         */
                     }
                 },
+                extensionWarning:{
+                    initTimer: null,
+                    show: function () {
+                        if (APURI.util.browserFirefoxDetect()) {
+                            let div = jQuery('<div />').attr('id','APURI_extwarning').html(APURI.text.firefox_greasemonkey_warning);
+                            div.insertBefore('div#page-content h1');
+                        }
+                        if (document.querySelector('div#page-content h1') !== null || document.querySelector('#APURI_extwarning') !== null)
+                            clearInterval(this.initTimer);
+
+                    }
+                },
+  
                 examview: {
                     initTimer: null,
                     show: function() {
@@ -909,6 +938,9 @@ var APURI ={
                     },
                     multichoiceFieldSanitize(field) {
                         console.log("Sanitize request for FIELD", field);
+                        APURI.settings.lessthan_map.lastIndex = 0;
+                        field.value = field.value.replace(APURI.settings.lessthan_map, "&lt;");
+                        APURI.paivkentTrigger($(field));
                     }
                 },
                 examlist: {
@@ -1673,7 +1705,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
-					extraAllowedContent: 'script[!sec]',
+					extraAllowedContent: 'script[!sec *]; video[*] source[*];',
                                         entities_latin:false,
                                         entities_greek:false,
                                         toolbar: [
@@ -1759,7 +1791,7 @@ APURI.ui.appendCSS = function(cssaddr) {
 (function() {
                 if (document.body.getAttribute("class")!=='lapa') // varmista, että ollaan YTL:n kokeessa
                     return;
-        APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+        APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
        	APURI.loadScriptDirect('https://klo33.github.io/javascript/ckeditor/ckeditor.js',
             function() {
                 CKEDITOR.editorConfig = function( config ) {
@@ -1862,9 +1894,9 @@ APURI.listCopyExamTrigger = function(event) {
     var accept_addresses = /^https:\/\/oma.abitti.fi\/school\/grading\/......*$/;
     if (window.location.href.match(accept_addresses) === null)
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
-    APURI.grading.initGradingCount();
+//    APURI.grading.initGradingCount();
     APURI.initView(APURI.views.footer, 2000);
 })();
 /*
@@ -1876,7 +1908,7 @@ APURI.listCopyExamTrigger = function(event) {
         return;
     if (document.body.getAttribute("class")!=='arpa') 
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
     APURI.initView(APURI.views.gradingSummary);
     APURI.initView(APURI.views.footer, 2000);
@@ -1888,8 +1920,9 @@ APURI.listCopyExamTrigger = function(event) {
     var accept_addresses = /^https:\/\/oma.abitti.fi(?:\/?|\/school\/exams\/?|\/school\/grading\/?)$/;
     if (window.location.href.match(accept_addresses) === null)
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abiapuri.css");
+    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.initView(APURI.views.extensionWarning);
     APURI.initView(APURI.views.examlist);
     APURI.initView(APURI.views.footer, 2000);
     APURI.util.bittiniiloDetector.init();
