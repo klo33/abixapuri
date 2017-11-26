@@ -35,6 +35,9 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.3.0 (26.11.2017)
+- Kopioidaan liitteet otettaessa kopio kokeesta
+
 #### v0.2.9 (17.11.2017)
 - Varoitus <-merkkien käytöstä, joka voi rikkoa tehtäviä
 - Lisätty huomatus Firefox-selaimien käyttäjille, jotta siirtyisivät TamperMonkey-lisäosan käyttäjiksi

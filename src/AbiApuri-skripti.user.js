@@ -79,10 +79,11 @@ var APURI ={
                   lessthan_fix_button: "Yritä korjata tehtävä",
                   lessthan_fix_done: "...",
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
-                  attachments_startcopying: "Kokeessa on liitteitä. Kopioidaan...",
+                  attachments_startcopying: "Kokeessa on liitteitä. Kopioidaan...<br />Kopiointi saattaa kestää jonkin aikaa",
                   attachments_download_status: "Ladataan %n <span class='progress'>0</span> %",
                   attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
-                  attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>"
+                  attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -117,10 +118,11 @@ var APURI ={
                   lessthan_fix_button: "Korjaa vaihtoehto",
                   lessthan_fix_done: "...",
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
-                  attachments_startcopying: "Provet har bilagar. Kopierar...",
+                  attachments_startcopying: "Provet har bilagar. Kopierar...<br />Det tar en stund, vänligen vänta",
                   attachments_download_status: "Laddar ner %n <span class='progress'>0</span> %",
                   attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
-                  attachments_error: "<strong>Det var en fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>"
+                  attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>"
               }  
             },
             text: null,
