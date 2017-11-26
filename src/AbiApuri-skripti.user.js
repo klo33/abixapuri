@@ -81,7 +81,8 @@ var APURI ={
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
                   attachments_startcopying: "Kokeessa on liitteitä. Kopioidaan...",
                   attachments_download_status: "Ladataan %n <span class='progress'>0</span> %",
-                  attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %"
+                  attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
+                  attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -118,7 +119,8 @@ var APURI ={
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
                   attachments_startcopying: "Provet har bilagar. Kopierar...",
                   attachments_download_status: "Laddar ner %n <span class='progress'>0</span> %",
-                  attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %"
+                  attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
+                  attachments_error: "<strong>Det var en fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>"
               }  
             },
             text: null,
@@ -466,6 +468,9 @@ var APURI ={
                 },
                 hideDownloadStatus(filename = "noname") {
                     $(`#APURI_loading_download li[data-for-filename='${filename}']`).remove();                    
+                },
+                showDownloadReject(targetUuid) {
+                    $('<div />'.html(APURI.text.attachments_error.replace("%uuid", targetUuid))).appendTo('#APURI_loading_download');
                 }
             },
             util: {
@@ -586,6 +591,7 @@ var APURI ={
                     return new Promise((resolve, reject) => {
                         let xhr = new XMLHttpRequest();
                         xhr.open('GET', uri, true);
+                        xhr.responseType = 'blob';
                         xhr.onload = function(e) {
                             if (this.status >= 200 && this.status < 300) {
                                 let contentType = this.getResponseHeader('content-type');
@@ -635,7 +641,12 @@ var APURI ={
                                     }
                                     Promise.all(promiseStack).then(values => {
                                         resolve(values);
+                                    }).catch(values => {
+                                        APURI.ui.showDownloadReject(targetId);
+                                        reject(values);
                                     });
+                        }).catch(error => {
+                            reject(error);
                         });                        
                     });
                 },
@@ -668,7 +679,11 @@ var APURI ={
                                         APURI.ui.updateCurrentUpload(attachment.displayName, 100);
                                         APURI.ui.hideUploadStatus(attachment.displayName);
                                         resolve(attachment.displayName);
+                                    }).catch(error => {
+                                        reject(error);
                                     });
+                        }).catch(error => {
+                            reject(error);
                         });                        
                     });
                 }
@@ -1200,8 +1215,8 @@ var APURI ={
                             $("#held-exams thead tr th:first").next().append(wrapper);
                         }
                         if (taulukko !== null && filterInput === null) {
-                            //TESTING REMOVE THE NEXY LINE
-                            $('<div />').append($('<p />').html('KOPIOTESTI').click(APURI.testExamAttachmentCopyTrigger)).appendTo('#page-content');
+                            //TESTING REMOVE THE NEXT LINE
+                            //$('<div />').append($('<p />').html('KOPIOTESTI').click(APURI.testExamAttachmentCopyTrigger)).appendTo('#page-content');
                             $("#APURI_examfilter");
                             jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
                                 return function( elem ) {
