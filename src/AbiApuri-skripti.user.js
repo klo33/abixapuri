@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.0
+// @version     0.3.1
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -996,6 +996,29 @@ var APURI ={
              * show() - function spawned
              */
             views: {
+                attachmentLinkReplace: {
+                    initTimer: null,
+                    currentUuid: null,
+                    show: function () {
+                        let attachmentlink = /^[\/]?attachments\/(.+)$/;
+                        if (this.currentUuid === null) {
+                            this.currentUuid = APURI.exam.getCurrentLocationUuid();
+                        }
+                        let absoluteAttachmentPath = '/exam-api/exams/%uuid/attachments/';
+                        document.querySelectorAll('iframe').forEach( item => {
+                            let allImg = item.contentWindow.document.body.querySelectorAll('img,video,audio,source');                  
+                            for (let img of allImg) {
+                                let src = img.getAttribute('src');
+                                if (src !== null && attachmentlink.test(src)) {
+                                    let match = attachmentlink.exec(src);
+                                    let newUri = absoluteAttachmentPath.replace("%uuid", this.currentUuid)+match[1];
+                                    img.setAttribute('src', newUri);
+                                }
+                            }
+                            });
+                        
+                    }
+                },
                 gradingSummary: {
                     initTimer: null,
                     counter: 0,
@@ -1900,6 +1923,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
 					extraAllowedContent: 'script[!sec *]; video[*] source[*];',
+                                        allowedContent: true,
                                         entities_latin:false,
                                         entities_greek:false,
                                         toolbar: [
@@ -1993,6 +2017,7 @@ APURI.ui.appendCSS = function(cssaddr) {
                     config.extraPlugins = 'base64image,mathjax,htmlwriter';
                     config.uiColor = '#e4f3d3';
                     config.entities_latin = false;
+                    config.allowedContent = true;
                     config.entities_greek = false;
                     //config.fileBrowserUploadUrl = 'base64';
                     config.toolbar = [
@@ -2023,6 +2048,7 @@ APURI.ui.appendCSS = function(cssaddr) {
         APURI.initView(APURI.views.examview);
         APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
+        APURI.initView(APURI.views.attachmentLinkReplace, 1000);        
 })();
 
 APURI.makeCopyOfExam = function(origUuid) {
