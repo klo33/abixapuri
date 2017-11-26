@@ -18,10 +18,9 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
    * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
 2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta
 3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
-4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi
+4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi. Kopiossa tulee myös liitteet mukana.
 5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
-6. Sanalaskuri tekstivastauksiin
-7. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
+6. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
 (Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
 
 ## Asentaminen
@@ -41,6 +40,7 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 #### v0.2.9 (17.11.2017)
 - Varoitus <-merkkien käytöstä, joka voi rikkoa tehtäviä
 - Lisätty huomatus Firefox-selaimien käyttäjille, jotta siirtyisivät TamperMonkey-lisäosan käyttäjiksi
+- Poistettu kokeen vastauksien merkkimäärän laskuri, koska ominaisuus on nyt toteutettu Abitissa natiivina 
 
 #### v0.2.6 (22.9.2017)
 - Lisätty varoitus Apuriin, jos tehtävänannossa on linkki verkkoon
