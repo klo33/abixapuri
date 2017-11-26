@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.2.9
+// @version     0.3.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -78,7 +78,12 @@ var APURI ={
                   lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
                   lessthan_fix_button: "Yritä korjata tehtävä",
                   lessthan_fix_done: "...",
-                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>"
+                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
+                  attachments_startcopying: "Kokeessa on liitteitä. Kopioidaan...<br />Kopiointi saattaa kestää jonkin aikaa",
+                  attachments_download_status: "Ladataan %n <span class='progress'>0</span> %",
+                  attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
+                  attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -112,7 +117,12 @@ var APURI ={
                   lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
                   lessthan_fix_button: "Korjaa vaihtoehto",
                   lessthan_fix_done: "...",
-                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>"
+                  firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
+                  attachments_startcopying: "Provet har bilagar. Kopierar...<br />Det tar en stund, vänligen vänta",
+                  attachments_download_status: "Laddar ner %n <span class='progress'>0</span> %",
+                  attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
+                  attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>"
               }  
             },
             text: null,
@@ -154,7 +164,9 @@ var APURI ={
                             throw new TypeError("Virhe haettaessa "+uri);
                           });
                 }
+                
             },
+            
             aukkotehtscript: "<script sec=\"apuri\" type=\"application/javascript\" id=\"apuri_script\">if(\"undefined\"===typeof APURI)var APURI={};\"function\"!==typeof APURI.paivvast&&(APURI.paivvast=function(a,b,c,k,l){c=$(\"#\"+c);var d=c.val().split(\"\n\");d[k-1]=\"#\"+k+\":\"+b.value;c.val(d.join(\"\n\"));1==l&&9!=a.keyCode&&(b=jQuery.Event(\"keydown\"),b.which=a.which,c.trigger(b),b=jQuery.Event(\"keyup\"),b.which=a.which,c.trigger(b))});\"undefined\"===typeof APURI.kentta&&(APURI.kentta=[]);\"function\"!==typeof APURI.purku&&(APURI.purku=function(a){\"undefined\"===typeof APURI.kentta[APURI.count]&&(APURI.kentta[APURI.count]=0);var b;b=document.createElement(a.tagName);for(var c in a.attributes)b.setAttribute(c.name,a.attributes[c].value);a.hasChildNodes()&&a.childNodes.forEach(function(a,c){if(a.nodeType==Node.TEXT_NODE){for(var d=a.textContent.trim().split(\"[]\"),g=document.createElement(\"span\"),f=0;f<d.length;f++){if(0<f){APURI.kentta[APURI.count]++;var h=document.createElement(\"form\");h.style.display=\"inline\";var e=document.createElement(\"input\");e.setAttribute(\"type\",\"text\");e.setAttribute(\"length\",\"10\");e.setAttribute(\"onChange\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", false);\");e.setAttribute(\"onKeyup\",\"APURI.paivvast(event, this, 'apuri_vastk_\"+APURI.count+\"', \"+APURI.kentta[APURI.count]+\", true);\");h.appendChild(e);g.appendChild(h)}g.appendChild(document.createTextNode(d[f]))}b.appendChild(g)}else a.nodeType==Node.ELEMENT_NODE&&\"SCRIPT\"!=a.tagName&&(a.textContent.includes(\"[]\")?b.appendChild(APURI.purku(a)):b.appendChild(a.cloneNode(!0)))});return b});\"undefined\"===typeof APURI.count?APURI.count=1:APURI.count++;\"undefined\"===typeof APURI.pjono&&(APURI.pjono=[]);(function(){var a;(a=document.currentScript)||(a=document.getElementsByTagName(\"script\"),a=a[a.length-1]);\"BODY\"==a.parentNode.tagName&&(a=document.getElementById(\"apuri_script\"));for(a=a.parentNode;\"SPAN\"!==a.tagName.toUpperCase()&&\"text\"!==a.className.toLowerCase;)a=a.parentNode;APURI.pjono[APURI.count]=a;a.style.display=\"none\";var b=a.parentNode,c=a.parentNode.parentNode.querySelector(\"textarea.answerText\");c.id=\"apuri_vastk_\"+APURI.count;c.style.height=\"10px\";c.style.display=\"none\";c=APURI.purku(a);b.insertBefore(c,a.nextSibling)})();</script>",
             modal_background_style:  "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-level: 5; background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .40; filter: Alpha(Opacity=40);",
             modal_foreground_style:  "position: fixed; overflow-y:auto; top: 60px; left: 20%; width: 60%; opacity: 1; height: 80%; z-level: 10; background: #FFF;",
@@ -374,6 +386,12 @@ var APURI ={
                     a.click();
                     document.body.removeChild(a);
                 },
+                showAttachmentCopy() {
+                  $('#APURI_loading_download').show();  
+                },
+                clearAttachmentCopy() {
+                  $('#APURI_loading_download').hide();  
+                },
                 showLoadingSpinner(param) {
                     let showDelay = 0;
                     if (typeof param === 'number') {
@@ -381,6 +399,7 @@ var APURI ={
                     }
                     let el = $('<div />').attr('class', 'APURI_loading_overlay').html(`<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i><span class="sr-only">Loading...</span>`);
                     let textel = $('<h1 />').html(APURI.text.loading_spinner);
+                    let downloadel = $('<div />').attr('id', 'APURI_loading_download').html(APURI.text.attachments_startcopying).append($('<ul />')).hide().appendTo(el);
                     let outerEl = $('<div />').attr('id','APURI_loading_spinner').append(textel).append(el);
                     document.body.appendChild(outerEl[0]);
                     if (showDelay > 0) {
@@ -431,6 +450,29 @@ var APURI ={
 
                         outdiv.appendTo('body');
                         div.append(closeButton).append(closeButton2).appendTo('body');
+                },
+                showUploadStatus(filename = "noname") {
+                    let el = $('<li />').attr('data-for-filename', filename).html(APURI.text.attachments_upload_status.replace("%n",filename));
+                    $('#APURI_loading_download ul').append(el);
+                },
+                showDownloadStatus(filename = "noname") {
+                    let el = $('<li />').attr('data-for-filename', filename).html(APURI.text.attachments_download_status.replace("%n",filename));
+                    $('#APURI_loading_download ul').append(el);                    
+                },
+                updateCurrentUpload(filename, progress, e) {
+                    $(`#APURI_loading_download li[data-for-filename='${filename}'] .progress`).html(Math.round(progress));
+                },
+                updateCurrentDownload(filename, progress, e) {
+                    $(`#APURI_loading_download li[data-for-filename='${filename}'] .progress`).html(Math.round(progress));                    
+                },
+                hideUploadStatus(filename = "noname") {
+                    $(`#APURI_loading_download li[data-for-filename='${filename}']`).remove();
+                },
+                hideDownloadStatus(filename = "noname") {
+                    $(`#APURI_loading_download li[data-for-filename='${filename}']`).remove();                    
+                },
+                showDownloadReject(targetUuid) {
+                    $('<div />'.html(APURI.text.attachments_error.replace("%uuid", targetUuid))).appendTo('#APURI_loading_download');
                 }
             },
             util: {
@@ -494,9 +536,159 @@ var APURI ={
                 },
                 wordCount(text) {
                     return text.trim().split(/\s+/).length;
-                }
+                },
+                xhr : {
+                    makeRequest(opt) {
+                        return new Promise(function (resolve, reject) {
+                            let xhr = new XMLHttpRequest();
+                            xhr.open(opt.method, opt.uri, true);
+                            xhr.onload = function(e) {
+                                if (this.status >= 200 && this.status < 300) {
+                                    resolve(this.response);
+                                } else {
+                                    reject({
+                                        status: this.status,
+                                        statusText: xhr.statusText,
+                                        response: this.response
+                                    });
+                                }
+                            };
+                            xhr.onerror = function() {
+                                reject({
+                                    status: this.status,
+                                    statusText: xhr.statusText
+                                });
+                            }
+                        })
+                    }
+                },
+                uploadBlob(uri, blob, param = null, progressHandler = null) {
+                    return new Promise((resolve, reject) => {
+                        if (param === null || typeof param.filename === 'undefined') {
+                            reject();
+                        }
+                        let formdata = new FormData();
+                        formdata.append('attachmentUpload', blob, param.filename);
+                        let xhr = new XMLHttpRequest();
+                        xhr.open('POST', uri, true);
+                        xhr.onload = function(e) {
+                            resolve(e);
+                        };
+                        if (progressHandler === null) {
+                            progressHandler = function(e) {
+
+                            };
+                        }
+                        xhr.upload.onprogress = progressHandler;
+                        xhr.send(formdata);
+                        
+                    });
+                },
+                /**
+                 * 
+                 * @param {type} uri
+                 * @returns {Promise} resolves to Blob 
+                 */
+                downloadBlob(uri, progressHandler = null) {
+                    return new Promise((resolve, reject) => {
+                        let xhr = new XMLHttpRequest();
+                        xhr.open('GET', uri, true);
+                        xhr.responseType = 'blob';
+                        xhr.onload = function(e) {
+                            if (this.status >= 200 && this.status < 300) {
+                                let contentType = this.getResponseHeader('content-type');
+                                resolve(new Blob([this.response], {type: contentType}));
+                            } else {
+                                reject({
+                                    status: this.status,
+                                    statusText: xhr.statusText,
+                                    response: this.response
+                                });
+                            }
+                        };
+                        if (progressHandler === null) {
+                            progressHandler = function(e) {
+
+                            };
+                        }
+                        xhr.onprogress = progressHandler;
+                        xhr.onerror = function() {
+                            reject({
+                                status: this.status,
+                                statusText: xhr.statusText
+                            });
+                        };
+                        xhr.send();
+                    });
+                    
+                },
 
                 
+            },
+            attachments: {
+                /**
+                 * Copies all attachments of an exam to new one
+                 * @param {string} sourceId
+                 * @param {string} targerId
+                 * @returns {Promise}
+                 */
+                copyAttachments(sourceId, targetId) {
+                    return new Promise((resolve, reject) => {
+                        let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
+                        APURI.fetch.getJson(sourceAttachmentUri)
+                                .then(function(attachments) {
+                                    let promiseStack = [];
+                                    for (let attachment of attachments) {
+                                        promiseStack.push(APURI.attachments.copyAttachment(sourceId, targetId, attachment));
+                                    }
+                                    Promise.all(promiseStack).then(values => {
+                                        resolve(values);
+                                    }).catch(values => {
+                                        APURI.ui.showDownloadReject(targetId);
+                                        reject(values);
+                                    });
+                        }).catch(error => {
+                            reject(error);
+                        });                        
+                    });
+                },
+                
+                /**
+                 * 
+                 * @param {type} sourceExamId
+                 * @param {type} targetExamId
+                 * @param {type} attachment
+                 * @returns {Promise}
+                 */
+                copyAttachment(sourceExamId, targetExamId, attachment) {
+                    return new Promise((resolve, reject) => {
+                        let sourceUri = `/exam-api/exams/${sourceExamId}/attachments/${attachment.displayName}`;
+                        APURI.ui.showDownloadStatus(attachment.displayName);
+                        APURI.util.downloadBlob(sourceUri, function(e) {
+                            if (e.lengthComputable) {
+                                APURI.ui.updateCurrentDownload(attachment.displayName, (e.loaded/e.total)*100);
+                            }                            
+                        })
+                                .then(function(blob) {
+                                    APURI.ui.hideDownloadStatus(attachment.displayName);
+                                    APURI.ui.showUploadStatus(attachment.displayName);
+                                    let targetUri = `/exam-api/exams/${targetExamId}/attachments/add`;
+                                    APURI.util.uploadBlob(targetUri, blob, {filename: attachment.displayName, filetype: attachment.mimeType}, function(e) {
+                                        if (e.lengthComputable) {
+                                            APURI.ui.updateCurrentUpload(attachment.displayName, (e.loaded/e.total)*100);
+                                        }
+                                    }).then(function() {
+                                        APURI.ui.updateCurrentUpload(attachment.displayName, 100);
+                                        APURI.ui.hideUploadStatus(attachment.displayName);
+                                        resolve(attachment.displayName);
+                                    }).catch(error => {
+                                        reject(error);
+                                    });
+                        }).catch(error => {
+                            reject(error);
+                        });                        
+                    });
+                }
             },
             grading: {
                 gradesBuffer: null,
@@ -1025,6 +1217,8 @@ var APURI ={
                             $("#held-exams thead tr th:first").next().append(wrapper);
                         }
                         if (taulukko !== null && filterInput === null) {
+                            //TESTING REMOVE THE NEXT LINE
+                            //$('<div />').append($('<p />').html('KOPIOTESTI').click(APURI.testExamAttachmentCopyTrigger)).appendTo('#page-content');
                             $("#APURI_examfilter");
                             jQuery.expr[":"].Contains = jQuery.expr.createPseudo(function(arg) {
                                 return function( elem ) {
@@ -1079,7 +1273,7 @@ var APURI ={
                                 $('span.disabled-modify-exam-button-tooltip').html(APURI.text.copy_exam_tooltip);
                                 taulukko.setAttribute("apuri_mod", "done");
                             }
-                        }                 
+                        }
                     }
                 },
                 footer: {
@@ -1856,9 +2050,21 @@ APURI.makeCopyOfExam = function(origUuid) {
 								contentType: "application/json; charset=UTF-8",
 								dataType: "json",
 								success: function(data){
-//									//console.log("Kopio tehty onnistuneesti"); 
-                                                                        // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-									window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+									console.log("Kopio tehty onnistuneesti"); 
+									// Kopioidaan liitteet
+                                                                        if (origData.attachments.length > 0) {
+                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                                                                            APURI.ui.showAttachmentCopy();
+                                                                            APURI.attachments.copyAttachments(origUuid, uudenUuid)
+                                                                                    .then(filenames => {
+                                                                                console.log("Attachments copied", filenames);
+                                                                                APURI.ui.clearAttachmentCopy();                                                                                        
+                                                                                window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                                            });
+                                                                        } else {
+                                                                            // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
+                                                                            window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                                        }
 								},
 								failure: function(errMsg) {
 										console.log("ERROR kopion tallennuksessa: "+errMsg);
@@ -1885,6 +2091,16 @@ APURI.listCopyExamTrigger = function(event) {
         APURI.makeCopyOfExam(examUuid);
     }
     return false;
+};
+
+APURI.testExamAttachmentCopyTrigger = function() {
+    console.log("Start copyprocess");
+    APURI.ui.showLoadingSpinner();
+    APURI.ui.showAttachmentCopy();
+    APURI.attachments.copyAttachments('7949611d-d720-4197-8d9d-4606129dc9a5','25cea84c-a83e-413e-bfec-23376a701508')
+            .then(function() {
+                console.log("Finished copying");
+    });
 };
 
 /*
