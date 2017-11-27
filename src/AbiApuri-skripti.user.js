@@ -1004,12 +1004,16 @@ var APURI ={
                         if (this.currentUuid === null) {
                             this.currentUuid = APURI.exam.getCurrentLocationUuid();
                         }
+//                        console.log("ImgSrcReplace");
                         let absoluteAttachmentPath = '/exam-api/exams/%uuid/attachments/';
                         document.querySelectorAll('iframe').forEach( item => {
                             let allImg = item.contentWindow.document.body.querySelectorAll('img,video,audio,source');                  
                             for (let img of allImg) {
                                 let src = img.getAttribute('src');
                                 if (src !== null && attachmentlink.test(src)) {
+                                    if (img.getAttribute('data-cke-saved-src') === null) {
+                                        img.setAttribute('data-cke-saved-src',src);
+                                    }
                                     let match = attachmentlink.exec(src);
                                     let newUri = absoluteAttachmentPath.replace("%uuid", this.currentUuid)+match[1];
                                     img.setAttribute('src', newUri);
@@ -1918,7 +1922,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter',
+					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -1929,7 +1933,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio','abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
@@ -1961,7 +1965,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 				(function(inner_elem){
 					inner_elem.on('change',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
-                                                                                
+//                                                                                console.log("Change->update", inner_elem);                                                                                
                                                                                 let content = APURI.filterLinebreaks(inner_elem.getData());
                                                                                 inner_elem.setData(content, {internal: true, noSnapshot:true});
                                                                                 inner_elem.element.value = content;
@@ -1969,7 +1973,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
 										APURI.paivkent(inner_elem.name, content); });
 					inner_elem.on('keyup',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
-                                                                                console.log(inner_elem);
+//                                                                                console.log("KeyUp->update", inner_elem);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
 										})(elem);
@@ -2011,28 +2015,9 @@ APURI.ui.appendCSS = function(cssaddr) {
                     return;
         APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
        	APURI.loadScriptDirect('https://klo33.github.io/javascript/ckeditor/ckeditor.js',
+//       	APURI.loadScriptDirect('https://localhost/cke/ckeditor.js',
             function() {
-                CKEDITOR.editorConfig = function( config ) {
-                    config.language = 'fi';
-                    config.extraPlugins = 'base64image,mathjax,htmlwriter';
-                    config.uiColor = '#e4f3d3';
-                    config.entities_latin = false;
-                    config.allowedContent = true;
-                    config.entities_greek = false;
-                    //config.fileBrowserUploadUrl = 'base64';
-                    config.toolbar = [
-		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
-		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar' ] },
-		{ name: 'tools', items: [ 'Maximize' ] },
-		{ name: 'document', items: [ 'Source' ] },
-		'/',
-		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Strike','-','Subscript','Superscript', '-', 'RemoveFormat' ] },
-		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote' ] },
-		{ name: 'styles', items: [ 'Styles', 'Format' ] },
-		{ name: 'about', items: [ 'About' ] }
-        	];
-                };
+                
             }
         );
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');

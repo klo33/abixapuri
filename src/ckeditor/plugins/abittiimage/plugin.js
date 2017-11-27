@@ -1,3 +1,7 @@
+/* CKEDITOR abiximg-plugin
+ * Browse Abitti-exam attachment API and insert links to documents
+ * (c) Joni Lehtola, 2017. GPLv3
+ */
 CKEDITOR.plugins.add( 'abittiimage', {
     icons: 'abittiimg',
     init: function( editor ) {
