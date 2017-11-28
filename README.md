@@ -14,6 +14,7 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
 ## Ominaisuudet
 
 1. Tehtävätekstien muokkaus laajennetulla editorilla (WYSIWYG)
+   * Abitti-kokeen liitetiedostojen lisäys ja käyttö helposti omalla työkalulla suoraan koetehtävänantoon.
    * Näyttää liitetiedostojen kuvat ja videot jo suoraan editoinnin aikana sekä mahdollistaa kuvien koon muuttamisen
    * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
    * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
