@@ -6,6 +6,9 @@
 	"icons" : {
 		"96": "icons/abix-96.png"
 	},
+	"web_accessible_resources": [
+		"assets/*", "assets/ckeditor/*"
+	],
 	"content_scripts": [
 		{
 			"matches": ["*://oma.abitti.fi/*"],
