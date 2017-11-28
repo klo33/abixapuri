@@ -35,6 +35,10 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.3.2 (28.11.2017)
+- Lisätty editoriin työkalu, jolla liitteet saa helposti käyttöön kokeessa
+- Tyylikorjauksia
+
 #### v0.3.1 (27.11.2017)
 - Parannettu tukea liitetiedostoille: 
   * Näyttää liitetiedostolinkit kuvissa ja videoissa oikein jo muokkauksen aikana
