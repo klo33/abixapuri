@@ -59,7 +59,7 @@
 td.APURI .edit-exam {
     margin-top: 4px;
     border-color: #3E7800;
-    background-color: #C2FF81;
+    /*background-color: #C2FF81;*/
 
 }
 
@@ -89,6 +89,9 @@ td.APURI .edit-exam {
     color: #6DD200;
 }
 
+.abiximage-info {
+    color: #3E7800;
+}
 
 button.APURI {
     background-color: #6dd200 !important;

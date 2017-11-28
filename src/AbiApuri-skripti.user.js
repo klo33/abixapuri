@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.1
+// @version     0.3.2
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -83,7 +83,8 @@ var APURI ={
                   attachments_download_status: "Ladataan %n <span class='progress'>0</span> %",
                   attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
-                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>"
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>",
+                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-työkalulla." 
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -122,7 +123,8 @@ var APURI ={
                   attachments_download_status: "Laddar ner %n <span class='progress'>0</span> %",
                   attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
-                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>"
+                  attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>",
+                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-värktygen." 
               }  
             },
             text: null,
@@ -132,7 +134,10 @@ var APURI ={
                 },
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
-                link_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
+//                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
+                link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
+                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/i,
+                attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g
             },
@@ -365,6 +370,19 @@ var APURI ={
                 },
                 hideHttpLinkWarning(elem) {
                     $('div[apuri-warning-for="'+elem+'"]').hide();
+                },
+                detectNonExAttachmentLink(elem, input) {
+                    if (APURI.util.nonExLinkDetector(input)) {
+                        APURI.ui.showAttachmentLinkWarning(elem);
+                    } else {
+                        APURI.ui.hideAttachmentLinkWarning(elem);
+                    }
+                },
+                showAttachmentLinkWarning: function(elem) {
+                    $('div[apuri-attachment-warning-for="'+elem+'"]').show();
+                },
+                hideAttachmentLinkWarning(elem) {
+                    $('div[apuri-attachment-warning-for="'+elem+'"]').hide();
                 },
                 showBittiniiloWarning: function() {
                     APURI.ui.showWarning(APURI.text.bittiniilo_warning, 
@@ -626,6 +644,20 @@ var APURI ={
                 
             },
             attachments: {
+                currentList: null,
+                loadAttachmentList() {
+                    let uuid = APURI.exam.getCurrentLocationUuid();
+                    return new Promise((resolve, reject) => {
+                        let sourceAttachmentUri = `/exam-api/exams/${uuid}/attachments`;
+                        APURI.fetch.getJson(sourceAttachmentUri)
+                                .then(attachments => {
+                                APURI.attachments.currentList = attachments;
+                                resolve(attachents);
+                        }).catch(function(e) {
+                            console.log("Network error on loading attachments");
+                        });
+                    });
+                },
                 /**
                  * Copies all attachments of an exam to new one
                  * @param {string} sourceId
@@ -996,6 +1028,26 @@ var APURI ={
              * show() - function spawned
              */
             views: {
+                ckeAbiximageInfo: {
+                    initTimer: null,
+                    show: function () {
+                        let instructionElement = $('.attachment-instructions');
+                        let ckeinfo = document.getElementById('abiximage-info');
+                        if (instructionElement.length > 0 && ckeinfo ===null) {
+                            instructionElement.append($('<span />').attr('id','abiximage-info').attr('class', 'APURI abiximage-info').html(APURI.text.cke_abiximg_info));
+                            clearInterval(this.initTimer);                                 
+                        }
+                    }                    
+                },
+                attachmentsPoller: {
+                    initTimer: null,
+                    show: function () {
+                        APURI.attachments.loadAttachmentList();                        
+                    },
+                    init: function() {
+                        APURI.attachments.loadAttachmentList();
+                    }
+                },
                 attachmentLinkReplace: {
                     initTimer: null,
                     currentUuid: null,
@@ -1314,6 +1366,9 @@ var APURI ={
                 }
             },
             initView(viewObj, delayTiming = 1000) {
+                if (typeof viewObj.init === 'function') {
+                    viewObj.init();
+                }
                 viewObj.initTimer = window.setInterval(function() {viewObj.show();}, delayTiming);
             }
         };
@@ -1912,12 +1967,14 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 var paivitystoken = x[i].parentNode.querySelector(APURI.ytle.savedIndicator);
                                 var tyhjakysvar = x[i].parentNode.querySelector(APURI.ytle.emptyQuestionWarning);
                                 let linkkivar = $('<div />').attr('apuri-warning-for',repname).attr('class','APURI http-link-warning').html(APURI.text.http_link_warning).hide();
+                                let atlinkkivar = $('<div />').attr('apuri-attachment-warning-for',repname).attr('class','APURI http-link-warning').html(APURI.text.attachment_link_warning).hide();
                                 if (APURI.util.linkDetector(x[i].value)) {
                                     linkkivar.show();
                                 }
                                 linkkivar = x[i].parentNode.appendChild(linkkivar[0]);
+                                atlinkkivar = x[i].parentNode.appendChild(atlinkkivar[0]);
                                 //linkkivar.style.visibility = 'hidden';
-                                APURI.replacedFields.list[repname]={field:x[i], savedIndicator:paivitystoken, emptyQuestionWarning: tyhjakysvar, httpLinkWarning: linkkivar};
+                                APURI.replacedFields.list[repname]={field:x[i], savedIndicator:paivitystoken, emptyQuestionWarning: tyhjakysvar, httpLinkWarning: linkkivar, attachmentLinkWarning: atlinkkivar};
                                 //console.log(".");
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
@@ -2009,7 +2066,9 @@ APURI.ui.appendCSS = function(cssaddr) {
 	document.head.appendChild(linkcss);
 
 };
-
+/**
+ * Koetehtäväeditorinäkymä
+ */
 (function() {
                 if (document.body.getAttribute("class")!=='lapa') // varmista, että ollaan YTL:n kokeessa
                     return;
@@ -2021,7 +2080,7 @@ APURI.ui.appendCSS = function(cssaddr) {
             }
         );
         APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
-   
+        APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
                 'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
@@ -2031,6 +2090,7 @@ APURI.ui.appendCSS = function(cssaddr) {
                         window.Sortable = Sortable; // exports
                 });
         APURI.initView(APURI.views.examview);
+        APURI.initView(APURI.views.ckeAbiximageInfo);
         APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
         APURI.initView(APURI.views.attachmentLinkReplace, 1000);        

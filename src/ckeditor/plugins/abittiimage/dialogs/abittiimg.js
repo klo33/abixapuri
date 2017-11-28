@@ -136,26 +136,36 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 				tag = editor.document.createElement('img');
 				tag.setAttribute('src', linkAddress);
                                 tag.setAttribute('data-cke-saved-src',linkAddress);
+                                tag.setAttribute('style','max-width: 100%;height: auto;');
 				tag.setAttribute('alt', altText);				
 			} else if (mimeType.startsWith("video/")) {
 				tag = editor.document.createElement('video');
-				tag.setAttribute('controls','true');
-				let sourcetag = editor.document.createElement('source');
+				tag.setAttribute('controls','controls');
+                                tag.setAttribute('style','max-width: 100%;height: auto;');
+				tag.setAttribute('src', linkAddress);
+                                tag.setAttribute('data-cke-saved-src',linkAddress);
+				tag.setAttribute('type', mimeType);
+/*				let sourcetag = editor.document.createElement('source');
 				sourcetag.setAttribute('src', linkAddress);
                                 sourcetag.setAttribute('data-cke-saved-src',linkAddress);
 				sourcetag.setAttribute('type', mimeType);
-				sourcetag.appendTo(tag);
+				sourcetag.appendTo(tag);*/
 			} else if (mimeType.startsWith("audio/")) {
 				tag = editor.document.createElement('audio');
-				tag.setAttribute('controls','true');
-				let sourcetag = editor.document.createElement('source');
+				tag.setAttribute('controls','controls');
+                                tag.setAttribute('style','max-width: 100%;height: auto;');
+				tag.setAttribute('src', linkAddress);
+                                tag.setAttribute('data-cke-saved-src',linkAddress);
+				tag.setAttribute('type', mimeType);
+/*				let sourcetag = editor.document.createElement('source');
                                 sourcetag.setAttribute('data-cke-saved-src',linkAddress);
 				sourcetag.setAttribute('src', linkAddress);
 				sourcetag.setAttribute('type', mimeType);
-				sourcetag.appendTo(tag);
+				sourcetag.appendTo(tag);*/
 			} else {
 				tag = editor.document.createElement('a');
 				tag.setAttribute('href', linkAddress);
+                                tag.setAttribute('data-cke-saved-href',linkAddress);
 				tag.appendText(altText);
 			}
 			editor.insertElement(tag);
