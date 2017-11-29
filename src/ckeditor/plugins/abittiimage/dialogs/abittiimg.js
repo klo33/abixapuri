@@ -164,6 +164,7 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 				sourcetag.appendTo(tag);*/
 			} else {
 				tag = editor.document.createElement('a');
+                                tag.setAttribute('target', '_blank');
 				tag.setAttribute('href', linkAddress);
                                 tag.setAttribute('data-cke-saved-href',linkAddress);
 				tag.appendText(altText);
