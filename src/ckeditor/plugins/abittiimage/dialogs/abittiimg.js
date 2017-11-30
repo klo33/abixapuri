@@ -75,9 +75,9 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 							function(content) {
 						//window.setTimeout(function() {
 						console.log("Content", content);
-							let inner = "<p><ul style='height: 20em;overflow: scroll;'>";
+							let inner = "<p><ul style='overflow: auto; max-height: 20em;'>"; // height: 20em;
 							for (let i=0; i<content.length; i++) {
-								inner += `<li style='margin-left: 10px;list-style-type: none;cursor: pointer; padding-bottom:0.5em !important;'><a class='cke_specialchar' style='cursor:pointer !important' href='#' onclick='return false' data-filename='${content[i].displayName}' data-mime='${content[i].mimeType}'>${content[i].displayName}</a></li>`;
+								inner += `<li style='margin-left: 10px;list-style-type: none;cursor: pointer; padding-bottom:0.05em !important;'><a class='cke_specialchar' style='text-align: left !important; cursor:pointer !important;' href='#' onclick='return false' data-filename='${content[i].displayName}' data-mime='${content[i].mimeType}'>${content[i].displayName}</a></li>`;
 							}
 							inner += '</ul></p>';
 							let element = CKEDITOR.document.getById(container.domId);
