@@ -84,7 +84,7 @@ var APURI ={
                   attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>",
-                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' style='height:16px; width:16px;' />-työkalulla." 
+                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-työkalulla." 
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -124,7 +124,7 @@ var APURI ={
                   attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>",
-                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png'  style='height:16px; width:16px;' />-värktygen." 
+                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-värktygen." 
               }  
             },
             text: null,
@@ -1031,7 +1031,7 @@ var APURI ={
                 ckeAbiximageInfo: {
                     initTimer: null,
                     show: function () {
-                        let instructionElement = $('p.attachment-instructions');
+                        let instructionElement = $('.attachment-instructions');
                         let ckeinfo = document.getElementById('abiximage-info');
                         if (instructionElement.length > 0 && ckeinfo ===null) {
                             instructionElement.append($('<span />').attr('id','abiximage-info').attr('class', 'APURI abiximage-info').html(APURI.text.cke_abiximg_info));

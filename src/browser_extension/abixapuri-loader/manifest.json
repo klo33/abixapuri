@@ -1,16 +1,16 @@
 ﻿{
 	"manifest_version": 2,
 	"name": "AbixApuri",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "AbixApuri tuo lisätoiminnallisuutta oma.abitti.fi-palveluun",
+	"homepage_url": "https://klo33.github.io/abixapuri",
 	"icons" : {
 		"96": "icons/abix-96.png"
 	},
 	"content_scripts": [
 		{
 			"matches": [
-			"*://oma.abitti.fi/school/exam/*","*://oma.abitti.fi/school/exams","*://oma.abitti.fi/school/grading", "*://oma.abitti.fi/"
-			
+			"*://oma.abitti.fi/school/exam/*","*://oma.abitti.fi/school/exams","*://oma.abitti.fi/school/grading", "*://oma.abitti.fi/", "*://oma.abitti.fi/school/review/*", "*://oma.abitti.fi/school/grading/*"
 			],
 			"js": ["loader.js"]
 		}

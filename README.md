@@ -14,6 +14,7 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
 ## Ominaisuudet
 
 1. Tehtävätekstien muokkaus laajennetulla editorilla (WYSIWYG)
+   * Abitti-kokeen liitetiedostojen lisäys ja käyttö helposti omalla työkalulla suoraan koetehtävänantoon.
    * Näyttää liitetiedostojen kuvat ja videot jo suoraan editoinnin aikana sekä mahdollistaa kuvien koon muuttamisen
    * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
    * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
@@ -35,6 +36,10 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.3.2 (28.11.2017)
+- Lisätty editoriin työkalu, jolla liitteet saa helposti käyttöön kokeessa
+- Tyylikorjauksia
+
 #### v0.3.1 (27.11.2017)
 - Parannettu tukea liitetiedostoille: 
   * Näyttää liitetiedostolinkit kuvissa ja videoissa oikein jo muokkauksen aikana
