@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.2
+// @version     0.3.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -136,10 +136,14 @@ var APURI ={
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
-                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/i,
+                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/ig,
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
-                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g
+                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
+                api: {
+                    student_answers: '/exam-api/grading/%uuid/student-answers',
+                    attachments_list: '/exam-api/exams/%uuid/attachments'
+                }
             },
             fetch: {
                 /**
@@ -555,6 +559,25 @@ var APURI ={
                 wordCount(text) {
                     return text.trim().split(/\s+/).length;
                 },
+                /*
+                 * Returns all links to attachments in text
+                 * @param {type} text
+                 * @returns {Array|APURI.util.getLinksToAttachments.resultset}
+                 */
+                getLinksToAttachments(text) {
+                    let resultset = [];
+                    for (let res = APURI.settings.attachment_map.exec(text); 
+                        res !== null; res = APURI.settings.attachment_map.exec(text)) {
+                        
+                        resultset.push(res[1]||res[2]);
+                    }
+                    APURI.settings.attachment_map.lastIndex = 0;
+                    if (resultset.length > 0) {
+                        return resultset;
+                    } else {
+                        return null;
+                    }
+                },
                 xhr : {
                     makeRequest(opt) {
                         return new Promise(function (resolve, reject) {
@@ -645,6 +668,35 @@ var APURI ={
             },
             attachments: {
                 currentList: null,
+                /**
+                 * 
+                 * @param {type} listFiles
+                 * @param {type} listAttachments
+                 * @returns {APURI.attachments.matchLists.result} {matched - list of matched files, nonmatched - list of nonmatched files}
+                 */
+                matchLists(listFiles, listAttachments) {
+                    let result = {
+                        matched: [],
+                        nonmatched: []
+                    };
+                    let attachmentsMap = new Map();
+                    for (let attachment of listAttachments) {
+                        if (typeof attachment == 'string')
+                            attachmentsMap.set(attachment, {displayName: attachment});
+                        if (typeof attachment == 'object' && typeof attachment.displayName == 'string') {
+                            attachmentsMap.set(attachment.displayName, attachment);
+                        }
+                    }
+                    for (let file of listFiles) {
+                        if (attachmentsMap.has(file)) {
+                            result.matched.push(file);
+                        } else {
+                            result.nonmatched.push(file);
+                        }
+                    }
+                    return result;
+                    
+                },
                 loadAttachmentList() {
                     let uuid = APURI.exam.getCurrentLocationUuid();
                     return new Promise((resolve, reject) => {
@@ -664,10 +716,22 @@ var APURI ={
                  * @param {string} targerId
                  * @returns {Promise}
                  */
-                copyAttachments(sourceId, targetId) {
+                copyAttachments(sourceId, targetId, listFiles = null) {
                     return new Promise((resolve, reject) => {
                         let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
-                        APURI.fetch.getJson(sourceAttachmentUri)
+                        var fetchList = {};
+                        if (listFiles === null)
+                            fetchList = APURI.fetch.getJson(sourceAttachmentUri);
+                        else {
+                            fetchList = new Promise((resolve, reject) => {
+                                let fetched = [];
+                                for (let file of listFiles) {
+                                    fetched.push({displayName: file});
+                                }
+                                resolve(fetched);
+                            });
+                        }
+                        fetchList
                                 .then(function(attachments) {
                                     let promiseStack = [];
                                     for (let attachment of attachments) {
@@ -689,7 +753,7 @@ var APURI ={
                  * 
                  * @param {type} sourceExamId
                  * @param {type} targetExamId
-                 * @param {type} attachment
+                 * @param {type} attachment, pitää olla ominaisuudest displayName ja mimeType
                  * @returns {Promise}
                  */
                 copyAttachment(sourceExamId, targetExamId, attachment) {
@@ -705,6 +769,9 @@ var APURI ={
                                     APURI.ui.hideDownloadStatus(attachment.displayName);
                                     APURI.ui.showUploadStatus(attachment.displayName);
                                     let targetUri = `/exam-api/exams/${targetExamId}/attachments/add`;
+                                    if (typeof attachment.mimeType === 'undefined') {
+                                        attachment.mimeType = blob.type;
+                                    }
                                     APURI.util.uploadBlob(targetUri, blob, {filename: attachment.displayName, filetype: attachment.mimeType}, function(e) {
                                         if (e.lengthComputable) {
                                             APURI.ui.updateCurrentUpload(attachment.displayName, (e.loaded/e.total)*100);
@@ -1003,6 +1070,84 @@ var APURI ={
                             }
                     }
                     return maxScore;
+                },
+                saveExam(exam, reload = true) {
+                    $.ajax({
+                            type: "POST",
+                            url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
+                            data: JSON.stringify(exam.content),
+                            accept: "application/json; text/javascript",
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: "json",
+                            success: function(data){
+                                //console.log("Saved successfully"); 
+                                if (reload)
+                                    window.location.reload(true);
+                            },
+                            failure: function(errMsg) {
+                                    console.log("ERROR: "+errMsg);
+
+                            },
+                            complete: function(data){
+                                //console.log("Save complited successfully");
+                            }
+                    });
+                },
+                traverseSetId(obj, initval = 0) {
+                    var counter = 0;
+                    if (typeof initval === 'number' && initval > 0) 
+                            counter = initval;
+                    if (obj !== null && typeof obj === 'object') {
+                            for (var key in obj) {
+                                    if (key === 'id') {
+                                            obj[key] = counter++;
+                                            //console.log("id set to "+(counter-1));
+                                    }
+                                    if (typeof obj[key] === 'object') {
+                                            counter = APURI.exam.traverseSetId(obj[key], counter);
+                                    }
+                            }
+                    }
+                    return counter;
+        	},
+                traverseDisplayNumber(obj, curr, clevel = 1) {
+                    var count = {level1: 0,
+                                             level2: 0,
+                                             level3: 0};
+                    if (typeof curr === 'number' && curr > 1) { 
+                            count.level1 = curr-1;
+                    } else if (typeof curr === 'object') {
+                            count = curr;
+                    }
+
+                    var countup = false;
+
+                    if (obj !== null && typeof obj === 'object') {
+                            if (typeof obj.displayNumber !== 'undefined') {
+                                    if (typeof obj.level !== 'undefined')
+                                        clevel = obj.level;
+                                    var debug = "";
+                                    countup = true;
+                                    if (clevel === 1) {
+                                            debug = obj.displayNumber = ""+(++count.level1);
+                                            count.level2 = 0;
+                                            count.level3 = 0;
+                                    } else if (clevel === 2) {
+                                            debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
+                                            count.level3 = 0;
+                                    } else if (clevel === 3) {
+                                            debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
+                                    }
+                                    //console.log("Set Display:"+debug);
+                                    clevel++;
+                            }
+                            for (var key in obj) {
+                                    if (typeof obj[key] === 'object') {
+                                            count = APURI.exam.traverseDisplayNumber(obj[key], count, clevel);
+                                    }
+                            }
+                    }
+                    return count;
                 }
             },
             examList : {
@@ -1093,6 +1238,16 @@ var APURI ={
                 },
                 grading:{
                     initTimer: null,
+                    answers: null,
+                    init() {
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        let apianswers = APURI.settings.api.student_answers.replace('%uuid', uuid);
+                        APURI.fetch.getJson(apianswers).then(function(answers) {
+                            this.answers = answers;
+                            console.log("Vastaukset", answers);
+                        });
+                        // TODO kesken
+                    },
                     show: function () {
                         clearInterval(this.initTimer);
 
@@ -1580,70 +1735,31 @@ if (typeof APURI.findLargestId !== 'function') {
 	};
 }
 
-if (typeof APURI.traverseSetId !== 'function') {
-	APURI.traverseSetId = function(obj, initval) {
-		var counter = 0;
-		if (typeof initval === 'number' && initval > 0) 
-			counter = initval;
-		if (obj !== null && typeof obj === 'object') {
-			for (var key in obj) {
-				if (key === 'id') {
-					obj[key] = counter++;
-					//console.log("id set to "+(counter-1));
-				}
-				if (typeof obj[key] === 'object') {
-					counter = APURI.traverseSetId(obj[key], counter);
-				}
-			}
-		}
-		return counter;
-	};
-}
-
-if (typeof APURI.traverseDisplayNumber !== 'function') {
-	APURI.traverseDisplayNumber = function(obj, curr, clevel = 1) {
-		var count = {level1: 0,
-					 level2: 0,
-					 level3: 0};
-		if (typeof curr === 'number' && curr > 1) { 
-			count.level1 = curr-1;
-		} else if (typeof curr === 'object') {
-			count = curr;
-		}
-                
-                var countup = false;
-				
-		if (obj !== null && typeof obj === 'object') {
-			if (typeof obj.displayNumber !== 'undefined') {
-                                if (typeof obj.level !== 'undefined')
-                                    clevel = obj.level;
-				var debug = "";
-                                countup = true;
-				if (clevel === 1) {
-					debug = obj.displayNumber = ""+(++count.level1);
-					count.level2 = 0;
-					count.level3 = 0;
-				} else if (clevel === 2) {
-					debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
-					count.level3 = 0;
-				} else if (clevel === 3) {
-					debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
-				}
-				//console.log("Set Display:"+debug);
-                                clevel++;
-			}
-			for (var key in obj) {
-				if (typeof obj[key] === 'object') {
-					count = APURI.traverseDisplayNumber(obj[key], count, clevel);
-				}
-			}
-		}
-		return count;
-	};	
-}
 
 
 	APURI.examImportQuestion = function(event) {
+                var doImport = function(current, question) {
+                    if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
+                        //console.log('Loaded successfully current');
+                        // Prepare question
+                        var largestId = APURI.findLargestId(current);
+                        //console.log("Largest id "+ largestId+" Next: set ids");
+                        APURI.exam.traverseSetId(question, largestId+1);
+                        //TODO luottaa, että sections[0] olemassa
+                        if (typeof current.content.sections[0] === 'undefined') {
+                            current.content.sections[0] = {
+                                questions: []
+                            };
+                        }
+                        current.content.sections[0].questions.push(question);
+                        // reorganize displaynumbers
+                        //console.log('DisplayNumber setting');
+                        APURI.exam.traverseDisplayNumber(current, 1);
+                        //console.log('Trying saving');
+                        APURI.examSaveCurrent(current);
+                        //console.log('...');
+                    }
+                };
 		var questiontag = $(event.target);
 		var examUuid = questiontag.attr('uuid');
 		var questionId = parseInt(questiontag.attr('quid'));
@@ -1655,36 +1771,41 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
 		if (typeof examObj !== 'undefined') {
 
                     question = APURI.exam.getQuestionObject(examObj, questionId);
-
-			if (typeof question.id !== 'undefined') {
-				// Load current examObject
-				//console.log("Trying loading current");
-				APURI.examImportCurrent(function(current){
-					if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
-						//console.log('Loaded successfully current');
-						// Prepare question
-						var largestId = APURI.findLargestId(current);
-						//console.log("Largest id "+ largestId+" Next: set ids");
-						APURI.traverseSetId(question, largestId+1);
-                                                //TODO luottaa, että sections[0] olemassa
-                                                if (typeof current.content.sections[0] === 'undefined') {
-                                                    current.content.sections[0] = {
-                                                        questions: []
-                                                    };
-                                                }
-						current.content.sections[0].questions.push(question);
-						// reorganize displaynumbers
-						//console.log('DisplayNumber setting');
-						APURI.traverseDisplayNumber(current, 1);
-						//console.log('Trying saving');
-						APURI.examSaveCurrent(current);
-						//console.log('...');
-					}
-				});
-				
-			} else {
-				console.log("Failed to find question");
-			}
+                    if (typeof question.id !== 'undefined') {
+                        // Load current examObject
+                        //console.log("Trying loading current");
+                        let links = APURI.util.getLinksToAttachments(question);
+                        if (examObj.attachments.length > 0 && typeof links == 'object' && links.length > 0) {
+                            let attachmentsProposed = APURI.attachments.matchLists(links, examObj.attachments);
+                            APURI.examImportCurrent(function (currentExam) {
+                                let attachmentsToImport = APURI.attachments.matchLists(attachmentsProposed.matched, currentExam.attachments);
+                                // import ONLY the attachments NOT currently found
+                                attachmentsToImport = attachmentsToImport.nonmatched;
+                                console.log("Attachments to import", attachmentsToImport);
+                                APURI.attachments.copyAttachments(examObj.examUuid, currentExam.examUuid, attachmentsToImport)
+                                        .then(function() {
+                                            console.log("Question attachments imported successfully");
+                                            doImport(currentExam, question);
+                                })
+                                        .catch(function(err) {
+                                            console.log("Failed to import attachments", err);
+                                            console.log("Question import proceed anyway");
+                                            doImport(currentExam, question);
+                                });
+                                
+                                // TODO DO the actual import
+                                // TODO do we need if check - and do the import only if list is non-empty??
+                                // in other words does the Promise of empty resolve immediatly?
+                            });
+                        } else {
+                            // No nothing to import
+                            APURI.examImportCurrent(function(current){
+                                doImport(current, question);
+                            });
+                        }
+                    } else {
+                            console.log("Failed to find question");
+                    }
 		}
 		return false;
 		
@@ -1840,8 +1961,8 @@ if (typeof APURI.showSortDialog !== 'function') {
                             //TODO luottaa, että sections[0] olemassa
                             // reorganize displaynumbers
                             //console.log('DisplayNumber setting');
-                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0);
-                            APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                            APURI.exam.traverseSetId(APURI.questionsort.bufferSaved, 0);
+                            APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             //console.log('Trying saving');
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
                             //console.log('...');
@@ -1979,7 +2100,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter,abittiimage',
+					extraPlugins: 'base64image,mathjax,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -1990,7 +2111,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio','abittiimg' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
