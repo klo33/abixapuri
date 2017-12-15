@@ -717,6 +717,7 @@ var APURI ={
                  * @returns {Promise}
                  */
                 copyAttachments(sourceId, targetId, listFiles = null) {
+                    console.log("Copy attachments called source=%s, target=%s, list=%o",sourceId, targetId, listFiles);
                     return new Promise((resolve, reject) => {
                         let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
                         var fetchList = {};
@@ -1767,20 +1768,29 @@ if (typeof APURI.findLargestId !== 'function') {
 		var question = {};
 		var latestDisplay = "";
                 APURI.ui.showLoadingSpinner();
-		
+                console.log("DEBUG Import begin");
 		if (typeof examObj !== 'undefined') {
 
                     question = APURI.exam.getQuestionObject(examObj, questionId);
                     if (typeof question.id !== 'undefined') {
+                        console.log("DEBUG Import questions found", question);
                         // Load current examObject
                         //console.log("Trying loading current");
-                        let links = APURI.util.getLinksToAttachments(question);
-                        if (examObj.attachments.length > 0 && typeof links == 'object' && links.length > 0) {
+                        console.log("DEBUG question as text", JSON.stringify(question));
+                        console.log("DEBUG question as text-replaced ", JSON.stringify(question).replace('\\"', '"').replace("\\'", "'"));
+                        let links = APURI.util.getLinksToAttachments(JSON.stringify(question).replace(/\\"/g,'"').replace(/\\'/g, "'"));
+                        console.log("DEBUG Import links to att", links, examObj);
+                        if (typeof examObj.attachments !== 'undefined' && examObj.attachments.length > 0 
+                                && typeof links === 'object' && links !== null && links.length > 0) {
                             let attachmentsProposed = APURI.attachments.matchLists(links, examObj.attachments);
+                            console.log("DEBUG Import links >> copyprocess: to proposed", attachmentsProposed);
                             APURI.examImportCurrent(function (currentExam) {
+
                                 let attachmentsToImport = APURI.attachments.matchLists(attachmentsProposed.matched, currentExam.attachments);
+                                console.log("DEBUG Import current exam loaded", attachmentsToImport);
                                 // import ONLY the attachments NOT currently found
                                 attachmentsToImport = attachmentsToImport.nonmatched;
+                                console.log("DEBUG Import links to import", attachmentsToImport);
                                 console.log("Attachments to import", attachmentsToImport);
                                 APURI.attachments.copyAttachments(examObj.examUuid, currentExam.examUuid, attachmentsToImport)
                                         .then(function() {
