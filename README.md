@@ -18,12 +18,13 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
    * Näyttää liitetiedostojen kuvat ja videot jo suoraan editoinnin aikana sekä mahdollistaa kuvien koon muuttamisen
    * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
    * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
-2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta
+2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta. Tehtävän kopiointi huomioi myös liitteet.
 3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
 4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi. Kopiossa tulee myös liitteet mukana.
 5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
 6. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
 (Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
+7. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
 
 ## Asentaminen
 
@@ -36,6 +37,11 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.4.0 (17.12.2017)
+- Arviointimerkinnän laajennus: Merkintöjen lisääminen kokeen sisältä helpompaa, kun voi käyttää suoraan vanhoja kommentteja
+- Koetehtävää kopioitaessa toisesta kokeesta, kopioidaan myös kaikki liitteet johon tehtävässä viitataan
+- Liitetyökalun korjauksia (ääniliitteet toimivat paremmin)
+
 #### v0.3.2 (28.11.2017)
 - Lisätty editoriin työkalu, jolla liitteet saa helposti käyttöön kokeessa
 - Tyylikorjauksia

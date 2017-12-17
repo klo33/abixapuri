@@ -1337,7 +1337,6 @@ var APURI ={
                         });
                     },
                     init() {
-                        console.log("Init");
                         let uuid = APURI.exam.getCurrentLocationUuid();
                         APURI.exam.loadExam(uuid).then(exam => {
                                 let ids = APURI.exam.getQuestionIds(exam);
@@ -1363,7 +1362,6 @@ var APURI ={
                         // TODO kesken
                     },
                     show: function () {
-                        console.log("Trigger");
 //                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
                         let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
                         if (answerBoxes !== null && answerBoxes.length > 0) {
@@ -1373,7 +1371,7 @@ var APURI ={
                                     if (mutation.type == 'childList') {
                                         for (let child of mutation.addedNodes) {
                                             if (child.className === "add-annotation-popup") {
-                                                $(child).attr('style','top: 98.5px !important;');
+                                                //$(child).attr('style','top: 98.5px !important;');
                                                 // search for input field
                                                 let inputNode = null;
                                                 for (let subchild of child.children) {
@@ -1384,13 +1382,13 @@ var APURI ={
                                                 }
                                                 let questionId = $(child).closest('.answer').attr('data-question-id');
                                                 questionId = parseInt(questionId);
-                                                let el = $('<div />').attr('style','position: relative;z-index:100; background: #eee;').attr('class','APURI_comment_container').appendTo(child);
+                                                let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
 
                                                     // set of showed comments
                                                     let commentSet = new Set();
                                                     let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
-                                                    console.log("Question comm", questionComments);
+//                                                    console.log("Question comm", questionComments);
                                                     if (questionComments !== null && typeof questionComments !== 'undefined') {
                                                         for (let comm of questionComments.comments) {
                                                             if (commentSet.size > 6) break;
@@ -1407,7 +1405,7 @@ var APURI ={
                                                     for (let comm of commentSet) {
                                                         (function(inputField, text) {
                                                             let handler = function() {
-                                                                console.log("Click", inputField, text);
+  //                                                              console.log("Click", inputField, text);
                                                                 if (inputNode.value === "") {
                                                                     inputNode.value = text;                                                                
                                                                 } else {
@@ -1424,9 +1422,14 @@ var APURI ={
                                                         })(inputNode, comm);
 
                                                     }
-                                                                                                     
+                                                    let currTop = parseInt(child.style.top);
+                                                    if (currTop-(25*commentSet.size) < -120) {
+                                                        child.style.top = (currTop-(25*commentSet.size))+"px";
+                                                    } else {
+                                                        child.style.top = (currTop+75)+"px";
+                                                    }                                                                                                  
                                                 }).catch(err => {
-                                                    console.log("ERROR",err)
+    //                                                console.log("ERROR",err)
                                                 });
 
                                             }
@@ -1446,7 +1449,7 @@ var APURI ={
                             }
                             
                          clearInterval(this.initTimer);
-                         console.log("DEBUG Trigger clear");
+      //                   console.log("DEBUG Trigger clear");
                         }
                             
 
