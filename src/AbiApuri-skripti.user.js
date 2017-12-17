@@ -184,7 +184,9 @@ var APURI ={
 			},
             ytle: {  // YTL:n kokeen vakioita
                 savedIndicator: "div.savedIndicator",
-                emptyQuestionWarning: 'div.empty-question-warning'
+                emptyQuestionWarning: 'div.empty-question-warning',
+                grading_answertext: '#answers answer-text-container answerText',
+                grading_popup: 'answerText add-annotation-popup'
             },
 
             questionsort: { 
@@ -801,6 +803,18 @@ var APURI ={
                               APURI.initView(APURI.views.grading);
                   });
                 },
+                
+                getQuestionByAnswer(answerPapers, answerId) {
+                    if (answerPapers === null)
+                        return null;
+                    for (let answerPaper of answerPapers) {
+                        for (let answer of answerPaper.answers) {
+                            if (answer.id == answerId)
+                                return answer.questionId;
+                        }
+                    }
+                    return null;
+                },
                 /**
                  * 
                  * @param {type} data
@@ -813,12 +827,15 @@ var APURI ={
                         for (let answer of pupil.answers) {
                             if (answer.metadata !== null && (questionId === null || answer.questionId === questionId))
                                 for (let annotation of answer.metadata.annotations) {
-                                    if (comments.has(annotation.message)) {
-                                        let obj = comments.get(annotation.message);
-                                        obj++;
-                                        comments.set(annotation.message, obj);
-                                    } else {
-                                        comments.set(annotation.message, 1);
+                                    let subannos = annotation.message.split(" / ");
+                                    for (let subanno of subannos) {
+                                        if (comments.has(subanno)) {
+                                            let obj = comments.get(subanno);
+                                            obj++;
+                                            comments.set(subanno, obj);
+                                        } else {
+                                            comments.set(subanno, 1);
+                                        }
                                     }
                                 }
                         }
@@ -826,7 +843,7 @@ var APURI ={
                     let retval = Array.from(comments, ([k, v]) => {
                         return {message: k, count:v};});
                     retval.sort((a, b) => {
-                        if (a.count < b.count)
+                        if (a.count > b.count)
                             return -1;
                         else
                             return 1;
@@ -1070,6 +1087,20 @@ var APURI ={
                     
                     });
                 },
+                getQuestionIds(examObj) {
+                    let result = [];
+                    for (let i=0; i<examObj.content.sections.length; i++) {
+                            // sectionloop
+                            let section = examObj.content.sections[i];
+                            if (typeof section.questions !== 'undefined') {
+                                    for(let j=0; j<section.questions.length; j++) {
+                                            result.push(section.questions[j].id);
+                                    }
+                            }
+                    }
+                    return result;
+                    
+                },
                 /**
                  * Searches questionObject from examObject
                  * @param {.examObj} examObj ExamObject
@@ -1277,25 +1308,148 @@ var APURI ={
                     initTimer: null,
                     answers: null,
                     commentsAll: null,
+                    /**
+                     * Rakenne tälle Map[id] = {questionId, comments: []}
+                     * @type type
+                     */
+                    commentsByQuestion: new Map(),
+                    loadComments(questionId = null) {
+                        return new Promise((resolve, reject) => {
+                            let uuid = APURI.exam.getCurrentLocationUuid();
+                            APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                            APURI.views.grading.answers = answers;
+                                            let comments = APURI.grading.getAllComments(answers);
+                                            APURI.views.grading.commentsAll = comments;
+                                            if (questionId !== null) {
+                                                let qComments = APURI.grading.getAllComments(answers, id);
+                                                APURI.views.grading.commentsByQuestion.set(questionId, {
+                                                    questionId: questionId,
+                                                    comments: qComments
+                                                });
+                                            }
+                                            resolve(comments);
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });
+                            
+                        });
+                    },
                     init() {
+                        console.log("Init");
                         let uuid = APURI.exam.getCurrentLocationUuid();
-                        APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
-                                        console.log("VV", answers, this);
-                                        APURI.views.grading.answers = answers;
-                                        console.log("Vastauksets", answers);
-                                        let comments = APURI.grading.getAllComments(answers);
-                                        APURI.views.grading.commentsAll = comments;
-                                        console.log("Comments", comments);
-                            })
-                            .catch((err)=>{
-                                console.log("ERROR", err);
-                            });
-                        
+                        APURI.exam.loadExam(uuid).then(exam => {
+                                let ids = APURI.exam.getQuestionIds(exam);
+                                APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                    APURI.views.grading.answers = answers;
+                                    for (let id of ids) {
+                                        let comments = APURI.grading.getAllComments(answers, id);
+                                        APURI.views.grading.commentsByQuestion.set(id, {
+                                                    questionId: id,
+                                                    comments: comments
+                                                });
+                                    }
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });                                
+                        });
+                        APURI.views.grading.loadComments().then(x => {
+                            
+                        });                        
    
                         // TODO kesken
                     },
                     show: function () {
-                        clearInterval(this.initTimer);
+                        console.log("Trigger");
+//                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
+                        let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
+                        if (answerBoxes !== null && answerBoxes.length > 0) {
+                            let config = {attributes: false, childList: true};
+                            let callback = function(mutationList) {
+                                for (let mutation of mutationList) {
+                                    if (mutation.type == 'childList') {
+                                        for (let child of mutation.addedNodes) {
+                                            if (child.className === "add-annotation-popup") {
+                                                $(child).attr('style','top: 98.5px !important;');
+                                                // search for input field
+                                                let inputNode = null;
+                                                for (let subchild of child.children) {
+                                                    if (subchild.className === 'add-annotation-text') {
+                                                        inputNode = subchild;
+                                                        break;
+                                                    }
+                                                }
+                                                let questionId = $(child).closest('.answer').attr('data-question-id');
+                                                questionId = parseInt(questionId);
+                                                let el = $('<div />').attr('style','position: relative;z-index:100; background: #eee;').attr('class','APURI_comment_container').appendTo(child);
+                                                APURI.views.grading.loadComments().then(x => {
+
+                                                    // set of showed comments
+                                                    let commentSet = new Set();
+                                                    let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
+                                                    console.log("Question comm", questionComments);
+                                                    if (questionComments !== null && typeof questionComments !== 'undefined') {
+                                                        for (let comm of questionComments.comments) {
+                                                            if (commentSet.size > 6) break;
+                                                            commentSet.add(comm.message);
+                                                        }
+                                                    }
+
+                                                    // jos tilaa, niin lisää globaaleja
+                                                    for (let comm of APURI.views.grading.commentsAll) {
+                                                        if  (commentSet.size > 6)  break;
+                                                        commentSet.add(comm.message);
+                                                    }
+                                                    
+                                                    for (let comm of commentSet) {
+                                                        (function(inputField, text) {
+                                                            let handler = function() {
+                                                                console.log("Click", inputField, text);
+                                                                if (inputNode.value === "") {
+                                                                    inputNode.value = text;                                                                
+                                                                } else {
+                                                                    if (inputNode.value.endsWith(" / ")) {
+                                                                        inputNode.value += text;
+                                                                    } else {
+                                                                        inputNode.value += ' / '+text;
+                                                                    }
+                                                                }
+                                                                return false;
+                                                            };
+
+                                                            $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',handler).appendTo(el);
+                                                        })(inputNode, comm);
+
+                                                    }
+                                                                                                     
+                                                }).catch(err => {
+                                                    console.log("ERROR",err)
+                                                });
+
+                                            }
+                                        }
+                                    }
+                                    //console.log("MUTATION", mutation);
+                                }
+                            }
+                                                 
+                            for (let box of answerBoxes) {
+                                let wholeAnswer = $(box).closest('.answer');
+                                let answerId = wholeAnswer.attr('data-answer-id');
+                                let questionId = APURI.grading.getQuestionByAnswer(APURI.views.grading.answers ,answerId);
+                                wholeAnswer.attr('data-question-id', questionId);
+                                let obs = new MutationObserver(callback);
+                                obs.observe(box, config);
+                            }
+                            
+                         clearInterval(this.initTimer);
+                         console.log("DEBUG Trigger clear");
+                        }
+                            
+
 
                         /*
                         let answerElement = $('#answers');
