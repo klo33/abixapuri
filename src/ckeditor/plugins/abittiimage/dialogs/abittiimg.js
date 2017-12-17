@@ -160,6 +160,7 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 				tag.setAttribute('src', linkAddress);
                                 tag.setAttribute('data-cke-saved-src',linkAddress);
 				tag.setAttribute('type', mimeType);
+                                tag.setAttribute('style','width: 50%;');
 /*				let sourcetag = editor.document.createElement('source');
                                 sourcetag.setAttribute('data-cke-saved-src',linkAddress);
 				sourcetag.setAttribute('src', linkAddress);
