@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.3
+// @version     0.4.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -801,12 +801,45 @@ var APURI ={
                               APURI.initView(APURI.views.grading);
                   });
                 },
+                /**
+                 * 
+                 * @param {type} data
+                 * @param {type} questionId
+                 * @returns {comments} Map questionText -> count
+                 */
+                getAllComments(data, questionId = null) {
+                    let comments = new Map();
+                    for (let pupil of data) {
+                        for (let answer of pupil.answers) {
+                            if (answer.metadata !== null && (questionId === null || answer.questionId === questionId))
+                                for (let annotation of answer.metadata.annotations) {
+                                    if (comments.has(annotation.message)) {
+                                        let obj = comments.get(annotation.message);
+                                        obj++;
+                                        comments.set(annotation.message, obj);
+                                    } else {
+                                        comments.set(annotation.message, 1);
+                                    }
+                                }
+                        }
+                    }
+                    let retval = Array.from(comments, ([k, v]) => {
+                        return {message: k, count:v};});
+                    retval.sort((a, b) => {
+                        if (a.count < b.count)
+                            return -1;
+                        else
+                            return 1;
+                    });
+                    //let retval = Array.from(comments, [key, val] => {return {message: key, count: val}});
+                    return retval;
+                },
                  /**
                  * Loads grading object
                  * @param {string} examId UUID for exam
                  * @returns {Promise} Promise which resolves for GradingObject  
                  */
-                loadGradingObject(examId) {
+                loadGradingObject(examId, sortByName = true) {
                     return new Promise((resolve, reject) => {
                         let waitForUser = Promise.resolve(1);
                     
@@ -816,7 +849,10 @@ var APURI ={
                         waitForUser.then(function() {
                             APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`)
                                     .then(function(data) {
-                                        resolve(APURI.grading.sortGradingObject(data));
+                                        if (sortByName)
+                                            resolve(APURI.grading.sortGradingObject(data));
+                                        else
+                                            resolve(data);
                             })
                                 .catch(reject);                              
                         }).catch(()=> {
@@ -1240,13 +1276,22 @@ var APURI ={
                 grading:{
                     initTimer: null,
                     answers: null,
+                    commentsAll: null,
                     init() {
                         let uuid = APURI.exam.getCurrentLocationUuid();
-                        let apianswers = APURI.settings.api.student_answers.replace('%uuid', uuid);
-                        APURI.fetch.getJson(apianswers).then(function(answers) {
-                            this.answers = answers;
-                            console.log("Vastaukset", answers);
-                        });
+                        APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                        console.log("VV", answers, this);
+                                        APURI.views.grading.answers = answers;
+                                        console.log("Vastauksets", answers);
+                                        let comments = APURI.grading.getAllComments(answers);
+                                        APURI.views.grading.commentsAll = comments;
+                                        console.log("Comments", comments);
+                            })
+                            .catch((err)=>{
+                                console.log("ERROR", err);
+                            });
+                        
+   
                         // TODO kesken
                     },
                     show: function () {
@@ -2315,6 +2360,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
     APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
 //    APURI.grading.initGradingCount();
+    APURI.initView(APURI.views.grading);
     APURI.initView(APURI.views.footer, 2000);
 })();
 /*
