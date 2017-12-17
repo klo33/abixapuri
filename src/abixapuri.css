@@ -302,3 +302,21 @@ border: 3px solid #3E7800;
     margin-top: 0;
     padding-bottom: 0;
 }
+
+.APURI_comment_container {
+    position:   relative;
+    z-index:    50; 
+    background: #F1FBE8;
+}
+
+.APURI_comment_question {
+    
+}
+
+.APURI_comment_common {
+    
+}
+
+.arpa #answers .student .answer .add-annotation-popup {
+    z-index: 20 !important;
+}

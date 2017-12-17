@@ -118,7 +118,17 @@ button.APURI_modal_ylaX {
 
 div.banner-left::after {
     font-weight: bold;
-    content: " + Apuri" !important;
+    content: " - AbixApuri ei latautunut" !important;
+}
+div#instructions-wrapper:after {
+    content: "AbixApuri ei ole tällä hetkellä käytössäsi. Vaikuttaa siltä, että sinun pitää tehdä asentaa AbixApuri uudelleen. Seuraa ohjeita osoitteesta http://bit.ly/abixapuri";
+    display: block;
+        background-color: #C2FF81;
+    /*background-color: #C2FF81E6;*/
+    color: #3E7800;
+    font-weight: bold;
+    border: 3px solid #3E7800;
+    padding: 1em;
 }
 
 #pagebanner {

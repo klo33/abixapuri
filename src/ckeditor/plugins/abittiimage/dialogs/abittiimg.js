@@ -76,10 +76,14 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 						//window.setTimeout(function() {
 						console.log("Content", content);
 							let inner = "<p><ul style='overflow: auto; max-height: 20em;'>"; // height: 20em;
-							for (let i=0; i<content.length; i++) {
+                                                        let i = 0;
+							for (i=0; i<content.length; i++) {
 								inner += `<li style='margin-left: 10px;list-style-type: none;cursor: pointer; padding-bottom:0.05em !important;'><a class='cke_specialchar' style='text-align: left !important; cursor:pointer !important;' href='#' onclick='return false' data-filename='${content[i].displayName}' data-mime='${content[i].mimeType}'>${content[i].displayName}</a></li>`;
 							}
 							inner += '</ul></p>';
+                                                        if (i === 0) {
+                                                            inner = `<p>Kokeessa ei ole yhtään Abitti-liitetiedostoa. Liitä ensin kokeeseen liitetiedostoja.</p>`;
+                                                        }
 							let element = CKEDITOR.document.getById(container.domId);
 							element.setHtml(inner);
 							let res = element.getElementsByTag('a');
@@ -153,7 +157,6 @@ CKEDITOR.dialog.add('abittiimgDialog', function(editor) {
 			} else if (mimeType.startsWith("audio/")) {
 				tag = editor.document.createElement('audio');
 				tag.setAttribute('controls','controls');
-                                tag.setAttribute('style','max-width: 100%;height: auto;');
 				tag.setAttribute('src', linkAddress);
                                 tag.setAttribute('data-cke-saved-src',linkAddress);
 				tag.setAttribute('type', mimeType);

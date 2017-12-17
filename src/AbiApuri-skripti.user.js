@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.2
+// @version     0.4.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -136,10 +136,14 @@ var APURI ={
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
-                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/i,
+                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/ig,
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
-                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g
+                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
+                api: {
+                    student_answers: '/exam-api/grading/%uuid/student-answers',
+                    attachments_list: '/exam-api/exams/%uuid/attachments'
+                }
             },
             fetch: {
                 /**
@@ -180,7 +184,9 @@ var APURI ={
 			},
             ytle: {  // YTL:n kokeen vakioita
                 savedIndicator: "div.savedIndicator",
-                emptyQuestionWarning: 'div.empty-question-warning'
+                emptyQuestionWarning: 'div.empty-question-warning',
+                grading_answertext: '#answers answer-text-container answerText',
+                grading_popup: 'answerText add-annotation-popup'
             },
 
             questionsort: { 
@@ -555,6 +561,25 @@ var APURI ={
                 wordCount(text) {
                     return text.trim().split(/\s+/).length;
                 },
+                /*
+                 * Returns all links to attachments in text
+                 * @param {type} text
+                 * @returns {Array|APURI.util.getLinksToAttachments.resultset}
+                 */
+                getLinksToAttachments(text) {
+                    let resultset = [];
+                    for (let res = APURI.settings.attachment_map.exec(text); 
+                        res !== null; res = APURI.settings.attachment_map.exec(text)) {
+                        
+                        resultset.push(res[1]||res[2]);
+                    }
+                    APURI.settings.attachment_map.lastIndex = 0;
+                    if (resultset.length > 0) {
+                        return resultset;
+                    } else {
+                        return null;
+                    }
+                },
                 xhr : {
                     makeRequest(opt) {
                         return new Promise(function (resolve, reject) {
@@ -645,6 +670,35 @@ var APURI ={
             },
             attachments: {
                 currentList: null,
+                /**
+                 * 
+                 * @param {type} listFiles
+                 * @param {type} listAttachments
+                 * @returns {APURI.attachments.matchLists.result} {matched - list of matched files, nonmatched - list of nonmatched files}
+                 */
+                matchLists(listFiles, listAttachments) {
+                    let result = {
+                        matched: [],
+                        nonmatched: []
+                    };
+                    let attachmentsMap = new Map();
+                    for (let attachment of listAttachments) {
+                        if (typeof attachment == 'string')
+                            attachmentsMap.set(attachment, {displayName: attachment});
+                        if (typeof attachment == 'object' && typeof attachment.displayName == 'string') {
+                            attachmentsMap.set(attachment.displayName, attachment);
+                        }
+                    }
+                    for (let file of listFiles) {
+                        if (attachmentsMap.has(file)) {
+                            result.matched.push(file);
+                        } else {
+                            result.nonmatched.push(file);
+                        }
+                    }
+                    return result;
+                    
+                },
                 loadAttachmentList() {
                     let uuid = APURI.exam.getCurrentLocationUuid();
                     return new Promise((resolve, reject) => {
@@ -664,10 +718,23 @@ var APURI ={
                  * @param {string} targerId
                  * @returns {Promise}
                  */
-                copyAttachments(sourceId, targetId) {
+                copyAttachments(sourceId, targetId, listFiles = null) {
+                    console.log("Copy attachments called source=%s, target=%s, list=%o",sourceId, targetId, listFiles);
                     return new Promise((resolve, reject) => {
                         let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
-                        APURI.fetch.getJson(sourceAttachmentUri)
+                        var fetchList = {};
+                        if (listFiles === null)
+                            fetchList = APURI.fetch.getJson(sourceAttachmentUri);
+                        else {
+                            fetchList = new Promise((resolve, reject) => {
+                                let fetched = [];
+                                for (let file of listFiles) {
+                                    fetched.push({displayName: file});
+                                }
+                                resolve(fetched);
+                            });
+                        }
+                        fetchList
                                 .then(function(attachments) {
                                     let promiseStack = [];
                                     for (let attachment of attachments) {
@@ -689,7 +756,7 @@ var APURI ={
                  * 
                  * @param {type} sourceExamId
                  * @param {type} targetExamId
-                 * @param {type} attachment
+                 * @param {type} attachment, pitää olla ominaisuudest displayName ja mimeType
                  * @returns {Promise}
                  */
                 copyAttachment(sourceExamId, targetExamId, attachment) {
@@ -705,6 +772,9 @@ var APURI ={
                                     APURI.ui.hideDownloadStatus(attachment.displayName);
                                     APURI.ui.showUploadStatus(attachment.displayName);
                                     let targetUri = `/exam-api/exams/${targetExamId}/attachments/add`;
+                                    if (typeof attachment.mimeType === 'undefined') {
+                                        attachment.mimeType = blob.type;
+                                    }
                                     APURI.util.uploadBlob(targetUri, blob, {filename: attachment.displayName, filetype: attachment.mimeType}, function(e) {
                                         if (e.lengthComputable) {
                                             APURI.ui.updateCurrentUpload(attachment.displayName, (e.loaded/e.total)*100);
@@ -733,12 +803,60 @@ var APURI ={
                               APURI.initView(APURI.views.grading);
                   });
                 },
+                
+                getQuestionByAnswer(answerPapers, answerId) {
+                    if (answerPapers === null)
+                        return null;
+                    for (let answerPaper of answerPapers) {
+                        for (let answer of answerPaper.answers) {
+                            if (answer.id == answerId)
+                                return answer.questionId;
+                        }
+                    }
+                    return null;
+                },
+                /**
+                 * 
+                 * @param {type} data
+                 * @param {type} questionId
+                 * @returns {comments} Map questionText -> count
+                 */
+                getAllComments(data, questionId = null) {
+                    let comments = new Map();
+                    for (let pupil of data) {
+                        for (let answer of pupil.answers) {
+                            if (answer.metadata !== null && (questionId === null || answer.questionId === questionId))
+                                for (let annotation of answer.metadata.annotations) {
+                                    let subannos = annotation.message.split(" / ");
+                                    for (let subanno of subannos) {
+                                        if (comments.has(subanno)) {
+                                            let obj = comments.get(subanno);
+                                            obj++;
+                                            comments.set(subanno, obj);
+                                        } else {
+                                            comments.set(subanno, 1);
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                    let retval = Array.from(comments, ([k, v]) => {
+                        return {message: k, count:v};});
+                    retval.sort((a, b) => {
+                        if (a.count > b.count)
+                            return -1;
+                        else
+                            return 1;
+                    });
+                    //let retval = Array.from(comments, [key, val] => {return {message: key, count: val}});
+                    return retval;
+                },
                  /**
                  * Loads grading object
                  * @param {string} examId UUID for exam
                  * @returns {Promise} Promise which resolves for GradingObject  
                  */
-                loadGradingObject(examId) {
+                loadGradingObject(examId, sortByName = true) {
                     return new Promise((resolve, reject) => {
                         let waitForUser = Promise.resolve(1);
                     
@@ -748,7 +866,10 @@ var APURI ={
                         waitForUser.then(function() {
                             APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`)
                                     .then(function(data) {
-                                        resolve(APURI.grading.sortGradingObject(data));
+                                        if (sortByName)
+                                            resolve(APURI.grading.sortGradingObject(data));
+                                        else
+                                            resolve(data);
                             })
                                 .catch(reject);                              
                         }).catch(()=> {
@@ -966,6 +1087,20 @@ var APURI ={
                     
                     });
                 },
+                getQuestionIds(examObj) {
+                    let result = [];
+                    for (let i=0; i<examObj.content.sections.length; i++) {
+                            // sectionloop
+                            let section = examObj.content.sections[i];
+                            if (typeof section.questions !== 'undefined') {
+                                    for(let j=0; j<section.questions.length; j++) {
+                                            result.push(section.questions[j].id);
+                                    }
+                            }
+                    }
+                    return result;
+                    
+                },
                 /**
                  * Searches questionObject from examObject
                  * @param {.examObj} examObj ExamObject
@@ -1003,6 +1138,84 @@ var APURI ={
                             }
                     }
                     return maxScore;
+                },
+                saveExam(exam, reload = true) {
+                    $.ajax({
+                            type: "POST",
+                            url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
+                            data: JSON.stringify(exam.content),
+                            accept: "application/json; text/javascript",
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: "json",
+                            success: function(data){
+                                //console.log("Saved successfully"); 
+                                if (reload)
+                                    window.location.reload(true);
+                            },
+                            failure: function(errMsg) {
+                                    console.log("ERROR: "+errMsg);
+
+                            },
+                            complete: function(data){
+                                //console.log("Save complited successfully");
+                            }
+                    });
+                },
+                traverseSetId(obj, initval = 0) {
+                    var counter = 0;
+                    if (typeof initval === 'number' && initval > 0) 
+                            counter = initval;
+                    if (obj !== null && typeof obj === 'object') {
+                            for (var key in obj) {
+                                    if (key === 'id') {
+                                            obj[key] = counter++;
+                                            //console.log("id set to "+(counter-1));
+                                    }
+                                    if (typeof obj[key] === 'object') {
+                                            counter = APURI.exam.traverseSetId(obj[key], counter);
+                                    }
+                            }
+                    }
+                    return counter;
+        	},
+                traverseDisplayNumber(obj, curr, clevel = 1) {
+                    var count = {level1: 0,
+                                             level2: 0,
+                                             level3: 0};
+                    if (typeof curr === 'number' && curr > 1) { 
+                            count.level1 = curr-1;
+                    } else if (typeof curr === 'object') {
+                            count = curr;
+                    }
+
+                    var countup = false;
+
+                    if (obj !== null && typeof obj === 'object') {
+                            if (typeof obj.displayNumber !== 'undefined') {
+                                    if (typeof obj.level !== 'undefined')
+                                        clevel = obj.level;
+                                    var debug = "";
+                                    countup = true;
+                                    if (clevel === 1) {
+                                            debug = obj.displayNumber = ""+(++count.level1);
+                                            count.level2 = 0;
+                                            count.level3 = 0;
+                                    } else if (clevel === 2) {
+                                            debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
+                                            count.level3 = 0;
+                                    } else if (clevel === 3) {
+                                            debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
+                                    }
+                                    //console.log("Set Display:"+debug);
+                                    clevel++;
+                            }
+                            for (var key in obj) {
+                                    if (typeof obj[key] === 'object') {
+                                            count = APURI.exam.traverseDisplayNumber(obj[key], count, clevel);
+                                    }
+                            }
+                    }
+                    return count;
                 }
             },
             examList : {
@@ -1093,8 +1306,153 @@ var APURI ={
                 },
                 grading:{
                     initTimer: null,
+                    answers: null,
+                    commentsAll: null,
+                    /**
+                     * Rakenne tälle Map[id] = {questionId, comments: []}
+                     * @type type
+                     */
+                    commentsByQuestion: new Map(),
+                    loadComments(questionId = null) {
+                        return new Promise((resolve, reject) => {
+                            let uuid = APURI.exam.getCurrentLocationUuid();
+                            APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                            APURI.views.grading.answers = answers;
+                                            let comments = APURI.grading.getAllComments(answers);
+                                            APURI.views.grading.commentsAll = comments;
+                                            if (questionId !== null) {
+                                                let qComments = APURI.grading.getAllComments(answers, id);
+                                                APURI.views.grading.commentsByQuestion.set(questionId, {
+                                                    questionId: questionId,
+                                                    comments: qComments
+                                                });
+                                            }
+                                            resolve(comments);
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });
+                            
+                        });
+                    },
+                    init() {
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.exam.loadExam(uuid).then(exam => {
+                                let ids = APURI.exam.getQuestionIds(exam);
+                                APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                    APURI.views.grading.answers = answers;
+                                    for (let id of ids) {
+                                        let comments = APURI.grading.getAllComments(answers, id);
+                                        APURI.views.grading.commentsByQuestion.set(id, {
+                                                    questionId: id,
+                                                    comments: comments
+                                                });
+                                    }
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });                                
+                        });
+                        APURI.views.grading.loadComments().then(x => {
+                            
+                        });                        
+   
+                        // TODO kesken
+                    },
                     show: function () {
-                        clearInterval(this.initTimer);
+//                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
+                        let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
+                        if (answerBoxes !== null && answerBoxes.length > 0) {
+                            let config = {attributes: false, childList: true};
+                            let callback = function(mutationList) {
+                                for (let mutation of mutationList) {
+                                    if (mutation.type == 'childList') {
+                                        for (let child of mutation.addedNodes) {
+                                            if (child.className === "add-annotation-popup") {
+                                                //$(child).attr('style','top: 98.5px !important;');
+                                                // search for input field
+                                                let inputNode = null;
+                                                for (let subchild of child.children) {
+                                                    if (subchild.className === 'add-annotation-text') {
+                                                        inputNode = subchild;
+                                                        break;
+                                                    }
+                                                }
+                                                let questionId = $(child).closest('.answer').attr('data-question-id');
+                                                questionId = parseInt(questionId);
+                                                let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
+                                                APURI.views.grading.loadComments().then(x => {
+
+                                                    // set of showed comments
+                                                    let commentSet = new Set();
+                                                    let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
+//                                                    console.log("Question comm", questionComments);
+                                                    if (questionComments !== null && typeof questionComments !== 'undefined') {
+                                                        for (let comm of questionComments.comments) {
+                                                            if (commentSet.size > 6) break;
+                                                            commentSet.add(comm.message);
+                                                        }
+                                                    }
+
+                                                    // jos tilaa, niin lisää globaaleja
+                                                    for (let comm of APURI.views.grading.commentsAll) {
+                                                        if  (commentSet.size > 6)  break;
+                                                        commentSet.add(comm.message);
+                                                    }
+                                                    
+                                                    for (let comm of commentSet) {
+                                                        (function(inputField, text) {
+                                                            let handler = function() {
+  //                                                              console.log("Click", inputField, text);
+                                                                if (inputNode.value === "") {
+                                                                    inputNode.value = text;                                                                
+                                                                } else {
+                                                                    if (inputNode.value.endsWith(" / ")) {
+                                                                        inputNode.value += text;
+                                                                    } else {
+                                                                        inputNode.value += ' / '+text;
+                                                                    }
+                                                                }
+                                                                return false;
+                                                            };
+
+                                                            $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',handler).appendTo(el);
+                                                        })(inputNode, comm);
+
+                                                    }
+                                                    let currTop = parseInt(child.style.top);
+                                                    if (currTop-(25*commentSet.size) < -120) {
+                                                        child.style.top = (currTop-(25*commentSet.size))+"px";
+                                                    } else {
+                                                        child.style.top = (currTop+75)+"px";
+                                                    }                                                                                                  
+                                                }).catch(err => {
+    //                                                console.log("ERROR",err)
+                                                });
+
+                                            }
+                                        }
+                                    }
+                                    //console.log("MUTATION", mutation);
+                                }
+                            }
+                                                 
+                            for (let box of answerBoxes) {
+                                let wholeAnswer = $(box).closest('.answer');
+                                let answerId = wholeAnswer.attr('data-answer-id');
+                                let questionId = APURI.grading.getQuestionByAnswer(APURI.views.grading.answers ,answerId);
+                                wholeAnswer.attr('data-question-id', questionId);
+                                let obs = new MutationObserver(callback);
+                                obs.observe(box, config);
+                            }
+                            
+                         clearInterval(this.initTimer);
+      //                   console.log("DEBUG Trigger clear");
+                        }
+                            
+
 
                         /*
                         let answerElement = $('#answers');
@@ -1580,70 +1938,31 @@ if (typeof APURI.findLargestId !== 'function') {
 	};
 }
 
-if (typeof APURI.traverseSetId !== 'function') {
-	APURI.traverseSetId = function(obj, initval) {
-		var counter = 0;
-		if (typeof initval === 'number' && initval > 0) 
-			counter = initval;
-		if (obj !== null && typeof obj === 'object') {
-			for (var key in obj) {
-				if (key === 'id') {
-					obj[key] = counter++;
-					//console.log("id set to "+(counter-1));
-				}
-				if (typeof obj[key] === 'object') {
-					counter = APURI.traverseSetId(obj[key], counter);
-				}
-			}
-		}
-		return counter;
-	};
-}
-
-if (typeof APURI.traverseDisplayNumber !== 'function') {
-	APURI.traverseDisplayNumber = function(obj, curr, clevel = 1) {
-		var count = {level1: 0,
-					 level2: 0,
-					 level3: 0};
-		if (typeof curr === 'number' && curr > 1) { 
-			count.level1 = curr-1;
-		} else if (typeof curr === 'object') {
-			count = curr;
-		}
-                
-                var countup = false;
-				
-		if (obj !== null && typeof obj === 'object') {
-			if (typeof obj.displayNumber !== 'undefined') {
-                                if (typeof obj.level !== 'undefined')
-                                    clevel = obj.level;
-				var debug = "";
-                                countup = true;
-				if (clevel === 1) {
-					debug = obj.displayNumber = ""+(++count.level1);
-					count.level2 = 0;
-					count.level3 = 0;
-				} else if (clevel === 2) {
-					debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
-					count.level3 = 0;
-				} else if (clevel === 3) {
-					debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
-				}
-				//console.log("Set Display:"+debug);
-                                clevel++;
-			}
-			for (var key in obj) {
-				if (typeof obj[key] === 'object') {
-					count = APURI.traverseDisplayNumber(obj[key], count, clevel);
-				}
-			}
-		}
-		return count;
-	};	
-}
 
 
 	APURI.examImportQuestion = function(event) {
+                var doImport = function(current, question) {
+                    if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
+                        //console.log('Loaded successfully current');
+                        // Prepare question
+                        var largestId = APURI.findLargestId(current);
+                        //console.log("Largest id "+ largestId+" Next: set ids");
+                        APURI.exam.traverseSetId(question, largestId+1);
+                        //TODO luottaa, että sections[0] olemassa
+                        if (typeof current.content.sections[0] === 'undefined') {
+                            current.content.sections[0] = {
+                                questions: []
+                            };
+                        }
+                        current.content.sections[0].questions.push(question);
+                        // reorganize displaynumbers
+                        //console.log('DisplayNumber setting');
+                        APURI.exam.traverseDisplayNumber(current, 1);
+                        //console.log('Trying saving');
+                        APURI.examSaveCurrent(current);
+                        //console.log('...');
+                    }
+                };
 		var questiontag = $(event.target);
 		var examUuid = questiontag.attr('uuid');
 		var questionId = parseInt(questiontag.attr('quid'));
@@ -1651,40 +1970,54 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
 		var question = {};
 		var latestDisplay = "";
                 APURI.ui.showLoadingSpinner();
-		
+                console.log("DEBUG Import begin");
 		if (typeof examObj !== 'undefined') {
 
                     question = APURI.exam.getQuestionObject(examObj, questionId);
+                    if (typeof question.id !== 'undefined') {
+                        console.log("DEBUG Import questions found", question);
+                        // Load current examObject
+                        //console.log("Trying loading current");
+                        console.log("DEBUG question as text", JSON.stringify(question));
+                        console.log("DEBUG question as text-replaced ", JSON.stringify(question).replace('\\"', '"').replace("\\'", "'"));
+                        let links = APURI.util.getLinksToAttachments(JSON.stringify(question).replace(/\\"/g,'"').replace(/\\'/g, "'"));
+                        console.log("DEBUG Import links to att", links, examObj);
+                        if (typeof examObj.attachments !== 'undefined' && examObj.attachments.length > 0 
+                                && typeof links === 'object' && links !== null && links.length > 0) {
+                            let attachmentsProposed = APURI.attachments.matchLists(links, examObj.attachments);
+                            console.log("DEBUG Import links >> copyprocess: to proposed", attachmentsProposed);
+                            APURI.examImportCurrent(function (currentExam) {
 
-			if (typeof question.id !== 'undefined') {
-				// Load current examObject
-				//console.log("Trying loading current");
-				APURI.examImportCurrent(function(current){
-					if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
-						//console.log('Loaded successfully current');
-						// Prepare question
-						var largestId = APURI.findLargestId(current);
-						//console.log("Largest id "+ largestId+" Next: set ids");
-						APURI.traverseSetId(question, largestId+1);
-                                                //TODO luottaa, että sections[0] olemassa
-                                                if (typeof current.content.sections[0] === 'undefined') {
-                                                    current.content.sections[0] = {
-                                                        questions: []
-                                                    };
-                                                }
-						current.content.sections[0].questions.push(question);
-						// reorganize displaynumbers
-						//console.log('DisplayNumber setting');
-						APURI.traverseDisplayNumber(current, 1);
-						//console.log('Trying saving');
-						APURI.examSaveCurrent(current);
-						//console.log('...');
-					}
-				});
-				
-			} else {
-				console.log("Failed to find question");
-			}
+                                let attachmentsToImport = APURI.attachments.matchLists(attachmentsProposed.matched, currentExam.attachments);
+                                console.log("DEBUG Import current exam loaded", attachmentsToImport);
+                                // import ONLY the attachments NOT currently found
+                                attachmentsToImport = attachmentsToImport.nonmatched;
+                                console.log("DEBUG Import links to import", attachmentsToImport);
+                                console.log("Attachments to import", attachmentsToImport);
+                                APURI.attachments.copyAttachments(examObj.examUuid, currentExam.examUuid, attachmentsToImport)
+                                        .then(function() {
+                                            console.log("Question attachments imported successfully");
+                                            doImport(currentExam, question);
+                                })
+                                        .catch(function(err) {
+                                            console.log("Failed to import attachments", err);
+                                            console.log("Question import proceed anyway");
+                                            doImport(currentExam, question);
+                                });
+                                
+                                // TODO DO the actual import
+                                // TODO do we need if check - and do the import only if list is non-empty??
+                                // in other words does the Promise of empty resolve immediatly?
+                            });
+                        } else {
+                            // No nothing to import
+                            APURI.examImportCurrent(function(current){
+                                doImport(current, question);
+                            });
+                        }
+                    } else {
+                            console.log("Failed to find question");
+                    }
 		}
 		return false;
 		
@@ -1840,8 +2173,8 @@ if (typeof APURI.showSortDialog !== 'function') {
                             //TODO luottaa, että sections[0] olemassa
                             // reorganize displaynumbers
                             //console.log('DisplayNumber setting');
-                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0);
-                            APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                            APURI.exam.traverseSetId(APURI.questionsort.bufferSaved, 0);
+                            APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             //console.log('Trying saving');
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
                             //console.log('...');
@@ -1979,7 +2312,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter,abittiimage',
+					extraPlugins: 'base64image,mathjax,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -1990,7 +2323,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio','abittiimg' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
@@ -2184,6 +2517,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
     APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
 //    APURI.grading.initGradingCount();
+    APURI.initView(APURI.views.grading);
     APURI.initView(APURI.views.footer, 2000);
 })();
 /*
