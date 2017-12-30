@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.4.0
+// @version     0.4.1
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -136,13 +136,15 @@ var APURI ={
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
-                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/ig,
+                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\.?\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\.\/?attachments\/([^"']+))/ig,
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
                 api: {
                     student_answers: '/exam-api/grading/%uuid/student-answers',
-                    attachments_list: '/exam-api/exams/%uuid/attachments'
+                    attachments_list: '/exam-api/exams/%uuid/attachments',
+                    exam_data: '/exam-api/exams/%uuid/exam',
+                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam'
                 }
             },
             fetch: {
@@ -864,8 +866,9 @@ var APURI ={
                             waitForUser = APURI.user.loadUserdata();
                         }
                         waitForUser.then(function() {
-                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`)
+                            APURI.fetch.getJson(APURI.settings.api.student_answers.replace("%uuid",examId)) //    `https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`
                                     .then(function(data) {
+                                        console.log("Loaded grading object", data);
                                         if (sortByName)
                                             resolve(APURI.grading.sortGradingObject(data));
                                         else
@@ -1068,7 +1071,7 @@ var APURI ={
                  * @param {string} examUuid UUID for exam
                  * @returns {Promise} Promise which resolves for ExamObject  
                  */
-                loadExam(examUuid) {
+                loadExam(examUuid, heldExam = false) {
                     return new Promise((resolve, reject) => {
                         // TODO varmista että onko tämä turha odottaa käyttäjää??
                         let waitForUser = Promise.resolve(1);
@@ -1077,12 +1080,25 @@ var APURI ={
                             waitForUser = APURI.user.loadUserdata();
                         }
                         waitForUser.then(function() {
-                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`)
-                                    .then(function(data) {
+                            let waitForUnheldExam = Promise.reject(1);
+                            if (!heldExam) {
+                                // try fetching unheld exam
+                                waitForUnheldExam = APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`);
+                            }
+                            waitForUnheldExam.then(function(data) {
                                         APURI.exam.buffer = data;
                                         resolve(data);
                             })
-                                .catch(reject);                              
+                                .catch(function(result) {
+                                    // Loading exam failed --> try held exam
+                                    // console.log("Failed loading exam "+examUuid+":",result);
+                                    APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/held-exam/${examUuid}/exam`)
+                                            .then(function(data) {
+                                                APURI.exam.buffer = data;
+                                                resolve(data);
+                                            })
+                                            .catch(reject);
+                            });                              
                         }).catch(reject);
                     
                     });
@@ -1401,9 +1417,9 @@ var APURI ={
                                                         if  (commentSet.size > 6)  break;
                                                         commentSet.add(comm.message);
                                                     }
-                                                    
+                                                    let counter = 0;
                                                     for (let comm of commentSet) {
-                                                        (function(inputField, text) {
+                                                        (function(inputField, text, num) {
                                                             let handler = function() {
   //                                                              console.log("Click", inputField, text);
                                                                 if (inputNode.value === "") {
@@ -1417,10 +1433,16 @@ var APURI ={
                                                                 }
                                                                 return false;
                                                             };
-
+                                                            if (counter < 8) {
+                                                                $(inputNode).on("keydown", event => {
+                                                                   if (event.altKey === true && event.which === 49+num) {
+                                                                       handler();
+                                                                   }
+                                                                });
+                                                            }
                                                             $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',handler).appendTo(el);
-                                                        })(inputNode, comm);
-
+                                                        })(inputNode, comm, counter);
+                                                        counter++;
                                                     }
                                                     let currTop = parseInt(child.style.top);
                                                     if (currTop-(25*commentSet.size) < -120) {
