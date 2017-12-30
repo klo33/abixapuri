@@ -37,6 +37,12 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.4.1 (30.12.2017)
+- Näppäimistöoikotiet arviontimerkintöjen tekemiseen Windowsilla ja Linuxilla (Alt + merkinnän sijainti [1-6])
+- Korjauksia
+  * Laajennettu liitetiedoston linkin tunnistusta kattamaan ./-tilanteet
+  * YTL:n API muutoksia
+
 #### v0.4.0 (17.12.2017)
 - Arviointimerkinnän laajennus: Merkintöjen lisääminen kokeen sisältä helpompaa, kun voi käyttää suoraan vanhoja kommentteja
 - Koetehtävää kopioitaessa toisesta kokeesta, kopioidaan myös kaikki liitteet johon tehtävässä viitataan

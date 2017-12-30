@@ -140,6 +140,10 @@ var APURI ={
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
+                local: {
+                    enableReviewKeyboardShortcuts: false,
+                    enableReviewShortcuts: true
+                },
                 api: {
                     student_answers: '/exam-api/grading/%uuid/student-answers',
                     attachments_list: '/exam-api/exams/%uuid/attachments',
@@ -512,6 +516,13 @@ var APURI ={
                     }
                     return false;
                     //return (navigator.userAgent.indexOf("Firefox/57") > -1?true:false);                    
+                },
+                osBrowserDetect() {
+                    let pattern = /(Windows NT)|(X11\/Linux)/g;
+                    if (navigator.userAgent.search(pattern)>0) {
+                        // supported os
+                        APURI.settings.local.enableReviewKeyboardShortcuts = true;
+                    }                   
                 },
 
                 linkDetector(content) {
@@ -1353,6 +1364,7 @@ var APURI ={
                         });
                     },
                     init() {
+                        APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
                         APURI.exam.loadExam(uuid).then(exam => {
                                 let ids = APURI.exam.getQuestionIds(exam);
@@ -1433,9 +1445,9 @@ var APURI ={
                                                                 }
                                                                 return false;
                                                             };
-                                                            if (counter < 8) {
+                                                            if (APURI.settings.local.enableReviewKeyboardShortcuts && counter < 8) {
                                                                 $(inputNode).on("keydown", event => {
-                                                                   if (event.altKey === true && event.which === 49+num) {
+                                                                   if (event.altKey === true && event.shiftKey === false && event.ctrlKey ===false && event.which === 49+num) {
                                                                        handler();
                                                                    }
                                                                 });
