@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.4.1
+// @version     0.4.2
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -115,8 +115,8 @@ var APURI ={
                   search_exams_clear: "Töm sökningen",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en webbkälla i din uppgiftsanvisning</strong> <br/>"
                     + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>",
-                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
-                  lessthan_fix_button: "Korjaa vaihtoehto",
+                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Det värkar finnas en &lt;-tecke. Dom lätt söndrar provet. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
+                  lessthan_fix_button: "Fixa svaret",
                   lessthan_fix_done: "...",
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
                   attachments_startcopying: "Provet har bilagar. Kopierar...<br />Det tar en stund, vänligen vänta",
@@ -1032,7 +1032,7 @@ var APURI ={
                     APURI.grading.getCsvDataForCurrent()
                             .then((result)=>{
                         APURI.ui.downloadFile(result);
-                        console.log(result);
+                        //console.log(result);
                         });
                     return false;
                 }
@@ -1091,10 +1091,12 @@ var APURI ={
                             waitForUser = APURI.user.loadUserdata();
                         }
                         waitForUser.then(function() {
-                            let waitForUnheldExam = Promise.reject(1);
+                            let waitForUnheldExam = null; 
                             if (!heldExam) {
                                 // try fetching unheld exam
                                 waitForUnheldExam = APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`);
+                            } else {
+                                waitForUnheldExam = Promise.reject('Delibarate failure, no worries! (Abix)');
                             }
                             waitForUnheldExam.then(function(data) {
                                         APURI.exam.buffer = data;
@@ -1102,7 +1104,7 @@ var APURI ={
                             })
                                 .catch(function(result) {
                                     // Loading exam failed --> try held exam
-                                    // console.log("Failed loading exam "+examUuid+":",result);
+                                    //console.log("Failed loading exam "+examUuid+", trying a held-one:",result);
                                     APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/held-exam/${examUuid}/exam`)
                                             .then(function(data) {
                                                 APURI.exam.buffer = data;
@@ -1429,10 +1431,49 @@ var APURI ={
                                                         if  (commentSet.size > 6)  break;
                                                         commentSet.add(comm.message);
                                                     }
+          
                                                     let counter = 0;
+                                                    let activeHandler = function(e) {
+                                                        //console.log("DEBUG Keyact", e);
+                                                        let allComm = $(".APURI_comment_container .APURI_comment");
+                                                        let active = null;
+                                                        switch(e.which) {
+                                                                case 38: // up                                                                  
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
+                                                                            .prev(".APURI_comment"). addClass("APURI_comment_active");
+                                                                    if (active.size() == 0)
+                                                                        $(".APURI_comment_container .APURI_comment").last(). addClass("APURI_comment_active");
+                                                                break;
+
+                                                                case 40: // down
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
+                                                                            .next(".APURI_comment"). addClass("APURI_comment_active");
+                                                                    if (active.size() == 0)
+                                                                        $(".APURI_comment_container .APURI_comment").first(). addClass("APURI_comment_active");
+                                                                break;
+                                                                
+                                                                case 13: // enter
+                                                                active = $(".APURI_comment_active").trigger("mousedown").removeClass("APURI_comment_active");
+                                                                if (active.size() > 0)
+                                                                    e.stopImmediatePropagation();
+                                                                
+                                                                break;
+
+                                                                case 27: // esc
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active");
+                                                                    // e.preventDefault();
+                                                                    if (active.size() > 0)
+                                                                        e.stopImmediatePropagation();
+                                                                   
+                                                                break;
+
+                                                                default: return; // exit this handler for other keys
+                                                            }                                                    
+                                                    };
+                                                    $(inputNode).on("keyup", activeHandler);
                                                     for (let comm of commentSet) {
-                                                        (function(inputField, text, num) {
-                                                            let handler = function() {
+                                                        (function(inputField, text, num) {              
+                                                            let clickHandler = function() {
   //                                                              console.log("Click", inputField, text);
                                                                 if (inputNode.value === "") {
                                                                     inputNode.value = text;                                                                
@@ -1448,11 +1489,15 @@ var APURI ={
                                                             if (APURI.settings.local.enableReviewKeyboardShortcuts && counter < 8) {
                                                                 $(inputNode).on("keydown", event => {
                                                                    if (event.altKey === true && event.shiftKey === false && event.ctrlKey ===false && event.which === 49+num) {
-                                                                       handler();
+                                                                       clickHandler();
                                                                    }
                                                                 });
                                                             }
-                                                            $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',handler).appendTo(el);
+                                                            let commEl = $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',clickHandler).appendTo(el);
+                                                            if (comm.length > 50 || APURI.settings.local.enableReviewKeyboardShortcuts) {
+                                                                //commEl.append($('<span />').attr('class', 'APURI_comment_tooltip').html((comm.length > 50?comm+" ":"")+(APURI.settings.local.enableReviewKeyboardShortcuts && counter < 7?"(Alt-"+(counter+1)+")":"")));
+                                                                commEl.attr('title', (comm.length > 50?comm+" &#13;":"")+(APURI.settings.local.enableReviewKeyboardShortcuts && counter < 7?"(näppäinoikotie Alt-"+(counter+1)+")":""));
+                                                            }
                                                         })(inputNode, comm, counter);
                                                         counter++;
                                                     }
@@ -1463,7 +1508,7 @@ var APURI ={
                                                         child.style.top = (currTop+75)+"px";
                                                     }                                                                                                  
                                                 }).catch(err => {
-    //                                                console.log("ERROR",err)
+                                                    console.log("ERROR on loading comments",err)
                                                 });
 
                                             }
@@ -1586,7 +1631,7 @@ var APURI ={
                         );
                     },
                     multichoiceFieldTrigger(event) {
-                        console.log("Field change triggered on", event);
+                        //console.log("Field change triggered on", event);
                         let name = $(event.target).data('apuriName');
                         if (name !== null && APURI.util.detectLessGreater(event.target.value)) {
                             $(`div[data-apuri-warning-for="${name}"]`).show();
@@ -1600,7 +1645,7 @@ var APURI ={
                         APURI.views.examviewBoxes.multichoiceFieldSanitize(field[0]);
                     },
                     multichoiceFieldSanitize(field) {
-                        console.log("Sanitize request for FIELD", field);
+                        //console.log("Sanitize request for FIELD", field);
                         APURI.settings.lessthan_map.lastIndex = 0;
                         field.value = field.value.replace(APURI.settings.lessthan_map, "&lt;");
                         APURI.paivkentTrigger($(field));
@@ -1775,6 +1820,7 @@ APURI.text = APURI.lang.fi;
         APURI.text = APURI.lang.fi;
     }
 })();
+
 /**
  * Returns displaynumber of ID from exam object
  * @param {object} obj examObject

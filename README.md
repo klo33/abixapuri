@@ -37,6 +37,12 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.4.2 (2.1.2018)
+- Pikkuparannuksia näppäimistön käyttöön arviointimerkintöjä tehdessä:
+  * voi käyttää nuolinäppäimiä, Esc peruuttaa valinnan, Enter tekee valinnan
+  * Vinkataan pikanäppäimistä (Alt+nro)
+  * Pieniä tyylimuokkauksia
+
 #### v0.4.1 (30.12.2017)
 - Näppäimistöoikotiet arviontimerkintöjen tekemiseen Windowsilla ja Linuxilla (Alt + merkinnän sijainti [1-6])
 - Korjauksia

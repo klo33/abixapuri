@@ -307,8 +307,39 @@ border: 3px solid #3E7800;
     position:   relative;
     z-index:    50; 
     background: #F1FBE8;
+    margin-right: 0.2em;
+}
+.APURI_comment {
+    position:relative;
+    cursor: pointer;
 }
 
+.APURI_comment:hover {
+    background: #E1EBD8;
+}
+
+.APURI_comment_active {
+    background: #D1DBC8;
+    /*background: #F1FBE8;*/
+}
+
+.APURI_comment .APURI_comment_tooltip {
+    visibility:hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px; 
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 100;
+    top: -5px;
+    left: 105%; 
+}
+.APURI_comment:hover .APURI_comment_tooltip {
+    visibility: visible;
+}
 .APURI_comment_question {
     
 }
