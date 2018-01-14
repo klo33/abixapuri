@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.4.2
+// @version     0.4.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -71,6 +71,7 @@ var APURI ={
                   csv_email: "Sähköposti",
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana",
+                  csv_maxpoints: "Maksimipisteet",
                   loading_spinner: "latautuu...<br />odota hetkinen",
                   total_max_points: "maksimi yhteispistemäärä %d",
                   search_exams_info: "Hae kokeista...",
@@ -109,6 +110,7 @@ var APURI ={
                   csv_email: "Epost",
                   csv_sum: "Totalt",
                   csv_grade: "Vitsord",
+                  csv_maxpoints: "Max poäng",
                   loading_spinner: "laddar...<br />vänta en liten stund",
                   total_max_points: "totalt max poäng %d",
                   search_exams_info: "Sök i proven...",
@@ -142,7 +144,8 @@ var APURI ={
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
                 local: {
                     enableReviewKeyboardShortcuts: false,
-                    enableReviewShortcuts: true
+                    enableReviewShortcuts: true,
+                    enableTotalMaxScore: true // creates extra traffic by loading exam object on page load
                 },
                 api: {
                     student_answers: '/exam-api/grading/%uuid/student-answers',
@@ -940,7 +943,7 @@ var APURI ={
                         for (let q = 0; q < questions.length; q++) {
                             console.log(".");
                             template[questions[q].id]={id: questions[q].id,
-                                value: ""};
+                                value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
                         }
                     }
                     return template;
@@ -961,6 +964,25 @@ var APURI ={
                     return result.substring(0, result.length-1) + "\n";
                 },
                 /**
+                 * Creates a line with maxscores and their titles.
+                 * @param {type} examObj
+                 * @returns {APURI.grading.constructMaxScores.template|Array} - .totalMaxScore for totalAmount
+                 */
+                constructMaxScores(examObj) {
+                  //let retval = new Array();
+                  let template = APURI.grading.constructTemplateObject(examObj);
+                  let sumMax = 0;
+                  for (let val of template) {
+                      if (val) {
+                          val.value = ""+val.maxScore;
+                          sumMax += val.maxScore;
+                      }
+                  }
+                  template.unshift({value: APURI.text.csv_maxpoints}, {value: "" /* email */ });
+                  template.push({value: sumMax, totalMaxScore: sumMax});
+                  return template;
+                },
+                /**
                  * Extracts CSV from GradingObject
                  * @param {GradingObject} gradingObj grading
                  * @param {Object} examObj Exam object
@@ -973,6 +995,7 @@ var APURI ={
                     titlerow.unshift({value: APURI.text.csv_name}, {value: APURI.text.csv_email});
                     titlerow.push({value: APURI.text.csv_sum}, {value: APURI.text.csv_grade});
                     result += this.extractCsvRow(titlerow);
+                    result += this.extractCsvRow(this.constructMaxScores(examObj));
                     //template.unshift({id: null, value: ""}, {id: null, value: ""});
                     for (let i = 0; i < gradingObj.length; i++) {
                         let studentGrading = gradingObj[i];
@@ -1320,6 +1343,15 @@ var APURI ={
                 gradingSummary: {
                     initTimer: null,
                     counter: 0,
+                    currentExam: null,
+                    init: function() {
+                        if (!APURI.settings.local.enableTotalMaxScore)
+                            return;
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.exam.loadExam(uuid).then(exam => {
+                            this.currentExam = exam;
+                        });                     
+                    },
                     show: function () {
                         let gradingInfo = $('#gradingInfo');
                                                 this.counter++;
@@ -1328,6 +1360,14 @@ var APURI ={
 							link[0].onclick = APURI.grading.loadCsvTrigger;                        
 							$('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
 						}
+                                                let header = $('th.sumHeader');
+                                                
+                                                if (this.currentExam !== null && header.length > 0 && !header.attr('title')) {
+                                                    let last = APURI.grading.constructMaxScores(this.currentExam).pop();
+                                                    if (last) {
+                                                        header.attr('title', APURI.text.total_max_points.replace("%d", last.totalMaxScore));
+                                                    }
+                                                }
                                                 if (this.counter > 10) {
                                                     clearInterval(this.initTimer);
                                                 }
