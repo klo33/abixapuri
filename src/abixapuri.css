@@ -351,3 +351,60 @@ border: 3px solid #3E7800;
 .arpa #answers .student .answer .add-annotation-popup {
     z-index: 20 !important;
 }
+
+.APURI_autograding_trigger, .APURI_csvimport_trigger {
+    position: relative;
+}
+
+.APURI_autograding_trigger > a, .APURI_proposal, .APURI_csvimport_trigger > a {
+    background: #F1FBE8;
+    color: #3E7800;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup, #APURI_importcsv_popup {
+    border: solid 1px #3E7800;
+    background:   #F1FBE8;
+    position: relative;
+    border-bottom: -2em;
+    padding: 1em;
+    top: -1em;
+    color: #3E7800;
+    z-index: 5;
+}
+#APURI_autograding_popup {
+    max-width: 30em;
+}
+
+#APURI_importcsv_popup {
+    position: absolute;
+    top: -1em;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span, 
+.APURI_autograding_trigger #APURI_autograding_popup input {
+    float: left;
+    width: 6em;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span {
+    clear: left;
+    width: 12em;
+}
+
+.APURI_autograding_commit {
+    float: right;
+}
+
+
+#APURI_autograding_popup button {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color: #6dd200 !important;
+}
+
+#APURI_autograding_popup .APURI_popup_close {
+    padding: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
