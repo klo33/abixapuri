@@ -21,10 +21,11 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
 2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta. Tehtävän kopiointi huomioi myös liitteet.
 3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
 4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi. Kopiossa tulee myös liitteet mukana.
-5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa
+5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa. Lisäksi arvosanat voi tuoda taulukkolaskennasta takaisin Abittiin.
 6. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
 (Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
 7. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
+8. Arvosanataulukko sisällytetty Abittiin, jolloin Apuri ehdottaa suoraan arvosanaa.
 
 ## Asentaminen
 
@@ -37,6 +38,18 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.5.0 (18.1.2018)
+- Arvosteluavustin kokeen palautusnäkymässä
+    * Näyttää joko arvosanaehdotuksen tai suhteellisen arvosanan
+    * Mahdollisuus käyttää ehdotusta suoraan
+    * Kokeen arvosanajakauman näyttö sekä pisterajojen näyttö
+- CSV-taulukon tuonti arviointinäkymään, joka osaa tuoda arvosanat Abittiin
+- CSV-taulukkolaskentaan mukaan vastausID-numero, joka 
+
+#### v0.4.3 (18.1.2018)
+- Kokeen arvostelun maksimipisteet mukaan taulukkolaskentaan.
+- Maksimipisteet summamerkintään
+
 #### v0.4.2 (2.1.2018)
 - Pikkuparannuksia näppäimistön käyttöön arviointimerkintöjä tehdessä:
   * voi käyttää nuolinäppäimiä, Esc peruuttaa valinnan, Enter tekee valinnan
@@ -162,7 +175,7 @@ Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopu
 AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
 
     AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017 Joni Lehtola
+    Copyright (C) 2018 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
