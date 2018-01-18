@@ -351,3 +351,120 @@ border: 3px solid #3E7800;
 .arpa #answers .student .answer .add-annotation-popup {
     z-index: 20 !important;
 }
+
+.APURI_autograding_trigger, .APURI_importcsv_trigger {
+    position: relative;
+}
+
+.APURI_importcsv_trigger, .APURI_download {
+    display: inline-block; 
+    margin-right: 2em;
+}
+
+.APURI_autograding_trigger > a, .APURI_proposal, .APURI_importcsv_trigger > a {
+    background: #F1FBE8;
+    color: #3E7800;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup, #APURI_importcsv_popup {
+    border: solid 1px #3E7800;
+    background:   #F1FBE8;
+    position: relative;
+    border-bottom: -2em;
+    padding: 1em;
+    top: -1em;
+    color: #3E7800;
+    z-index: 5;
+}
+#APURI_autograding_popup {
+    max-width: 30em;
+}
+
+#APURI_importcsv_popup {
+    position: absolute;
+    top: -1em;
+    min-width: 25em;
+}
+
+#APURI_importcsv_error {
+    color: #ec6b01;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span, 
+.APURI_autograding_trigger #APURI_autograding_popup input {
+    float: left;
+    width: 6em;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span {
+    clear: left;
+    width: 12em;
+}
+
+.APURI_autograding_commit {
+    float: right;
+}
+
+
+#APURI_autograding_popup button {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color: #6dd200 !important;
+}
+
+#APURI_autograding_popup .APURI_popup_close, #APURI_importcsv_popup .APURI_popup_close {
+    padding: none;
+    position: absolute;
+    top: 0;
+    right: 0.3em;
+    /*background-color: #6dd2003f !important;*/
+    width: auto !important;
+}
+
+.APURIfielderror {
+    border-color: #ec6b01 !important;
+    border-width: 2px !important;
+    background-color: #ec6b0134 !important;
+}
+
+.APURIfieldminor {
+    border-color: #ec6b01 !important;
+    border-width: 2px !important;    
+}
+
+.APURI_import_conflictrow td {
+    border-bottom: 2px dotted #ec6b01;
+    background-color: #ec6b0134;
+}
+
+tr.APURI_importcsv_nochange td {
+    color: #AAA;
+}
+
+tr.APURI_importcsv_nochange td:first-child {
+    color: #AAA;
+    text-decoration: line-through;
+}
+
+td.APURI_gradedistblock {
+    border: none;
+    background: #C2FF81;
+    color: #C2FF81;
+    padding:0;
+    border-spacing: 0;
+    margin: 0;
+    width: 1em;
+    height: 0.5em;
+}
+
+.APURI_blur {
+    -webkit-filter: blur(8px);
+    -moz-filter: blur(8px);
+    -o-filter: blur(8px);
+    -ms-filter: blur(8px);
+    filter: blur(8px);
+}
+
+#APURI_modal_content table th  {
+    margin-right: 1em;
+}

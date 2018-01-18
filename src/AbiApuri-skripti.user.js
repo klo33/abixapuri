@@ -13,20 +13,20 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.4.2
+// @version     0.5.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
 // ==/UserScript==
 
-/* AUTHOR Joni Lehtola, 2017
+/* AUTHOR Joni Lehtola, 2017-2018
  * Lisätiedot https://klo33.github.io/abixapuri
  * Lisäosa on julkaistu GPLv3 lisenssillä. Lisänosan käyttö omalla vastuulla. 
  * Tällä lisäosalla tai sen kehittäjällä ei ole mitään tekemistä Ylioppilastutkintolautakunnan kanssa ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista tai vahingoista, kuten myöskään ei tekijä, vaikka lisäosa ei tarkoituksellisesti tee mitään vahingollista. 
  * 
  * AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017 Joni Lehtola
+    Copyright (C) 2018 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,6 +71,7 @@ var APURI ={
                   csv_email: "Sähköposti",
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana",
+                  csv_maxpoints: "Maksimipisteet",
                   loading_spinner: "latautuu...<br />odota hetkinen",
                   total_max_points: "maksimi yhteispistemäärä %d",
                   search_exams_info: "Hae kokeista...",
@@ -84,7 +85,39 @@ var APURI ={
                   attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>",
-                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' style='height:16px; width:16px;' />-työkalulla." 
+                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' style='height:16px; width:16px;' />-työkalulla.",
+                  autograding_open_popup: "Avaa arvosanatyökalu",
+                  autograding_maxscore_title: "Kokeen maksimipistemäärä",
+                  autograding_maxscore_placeholder: "max %s p",
+                  autograding_minscore_placeholder: "vakioarvo %s",
+                  autograding_minscore_title: "Läpipääsyraja",
+                  autograding_minscore_tooltip: "Voidaan antaa suhteellisena 50% tai absoluuttisena 30p",
+                  autograding_minscore_autofill: "Anna minipistemäärä",
+                  autograding_togglegrade: ["Näytä suhteellinen pistemäärä", "Näytä arvosanaehdotus"],
+                  autograding_scoretable_header: ["Ehdotus&nbsp;","Suht.pisteet&nbsp;"],
+                  autograding_minscorefield_negative: "Ei voi olla negatiivinen",
+                  autograding_minscorefield_parseerror: "Pistemäärää ei osattu tulkita",
+                  autograding_minscorefield_toolarge: "Läpipääsypistemäärä ei voi ylittää maksimia %d",
+                  autograding_maxscore_negative: "Ei voi olla negatiivinen",
+                  autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
+                  autograding_gradingtable_open: "(Näytä arviontitaulukko)",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
+                  autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
+                  autograding_commit: "Toimeenpane ehdotukset",
+                  autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta",
+                  importcsv_error_file: "Tiedostonlukuvirhe",
+                  importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
+                  importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
+                  importcsv_preview_commit: "Kirjoita arvostelut",
+                importcsv_open_popup: "Vie arviointitiedosto Abittiin",
+                importcsv_popup_fileinfo: "",
+                importcsv_popup_button: "Lataa"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -109,6 +142,7 @@ var APURI ={
                   csv_email: "Epost",
                   csv_sum: "Totalt",
                   csv_grade: "Vitsord",
+                  csv_maxpoints: "Max poäng",
                   loading_spinner: "laddar...<br />vänta en liten stund",
                   total_max_points: "totalt max poäng %d",
                   search_exams_info: "Sök i proven...",
@@ -124,7 +158,40 @@ var APURI ={
                   attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>",
-                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png'  style='height:16px; width:16px;' />-värktygen." 
+                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png'  style='height:16px; width:16px;' />-värktygen." ,
+                  autograding_open_popup: "Avaa arvosanatyökalu",
+                  autograding_maxscore_title: "Kokeen maksimipistemäärä",
+                  autograding_maxscore_placeholder: "max %s p",
+                  autograding_minscore_placeholder: "vakioarvo %s",                  
+                  autograding_minscore_title: "Läpipääsyraja",
+                  autograding_minscore_tooltip: "Voidaan antaa suhteellisena 50% tai absoluuttisena 30p",
+                  autograding_minscore_autofill: "Anna minipistemäärä",
+                  autograding_togglegrade: ["Näytä suhteellinen pistemäärä", "Näytä arvosanaehdotus"],
+                  autograding_scoretable_header: ["Ehdotus&nbsp;","Suht.pisteet&nbsp;"],
+                  autograding_minscorefield_negative: "Ei voi olla negatiivinen",
+                  autograding_minscorefield_parseerror: "Pistemäärää ei osattu tulkita",
+                  autograding_minscorefield_toolarge: "Läpipääsypistemäärä ei voi ylittää maksimia %d",
+                  autograding_maxscore_negative: "Ei voi olla negatiivinen",
+                  autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
+                  autograding_gradingtable_open: "(Näytä arviontitaulukko)",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
+                  autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
+                  autograding_commit: "Toimeenpane ehdotukset",
+                  autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta" ,
+                  importcsv_error_file: "Tiedostonlukuvirhe",
+                  importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
+                  importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
+                  importcsv_preview_commit: "Kirjoita arvostelut",
+                importcsv_open_popup: "Vie arviointitiedosto Abittiin",
+                importcsv_popup_fileinfo: "",
+                importcsv_popup_button: "Lataa"
+                  
               }  
             },
             text: null,
@@ -132,6 +199,7 @@ var APURI ={
                 fetchGetHeaders: {
                     'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 },
+                csv_idtitle: "ID",
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
@@ -140,15 +208,19 @@ var APURI ={
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
+                grades: ['4', '5-', '5', '5+', '5½', '6-', '6', '6+', '6½', '7-', '7', '7+', '7½', '8-', '8', '8+', '8½', '9-', '9', '9+', '9½', '10-', '10'],
                 local: {
                     enableReviewKeyboardShortcuts: false,
-                    enableReviewShortcuts: true
+                    enableReviewShortcuts: true,
+                    enableTotalMaxScore: true, // creates extra traffic by loading exam object on page load
+                    autograding_defaultMinGrade: "30%"
                 },
                 api: {
                     student_answers: '/exam-api/grading/%uuid/student-answers',
                     attachments_list: '/exam-api/exams/%uuid/attachments',
                     exam_data: '/exam-api/exams/%uuid/exam',
-                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam'
+                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam',
+                    papergrading: '/exam-api/grading/gradingTexts/%paperid' 
                 }
             },
             fetch: {
@@ -442,6 +514,9 @@ var APURI ={
                 closeModalWindow() {
                     $('#APURI_modal_back').remove();
                     $('#APURI_modal_content').remove();
+                    for (let bodyCh of document.body.children) {
+                        $(bodyCh).removeClass('APURI_blur');
+                    }                            
                     if (APURI.questionsort.changed)
                         location.reload();
                 },
@@ -453,17 +528,37 @@ var APURI ={
                  * @param {type} actionFkt
                  * @returns {undefined}
                  */
-                openModalWindow(renderFkt, buttonTitle, actionFkt = null) {
-                        if (typeof buttonTitle === 'undefined')
+                openModalWindow(renderFkt, buttonTitle, actionFkt = null, altOptions = null) {
+                    let _ = APURI.ui;
+                    var options = Object.assign({
+                        closeOnBlur: false,
+                        actionOnBlur: function() {},
+                        backgroundclass: 'APURImodal_back',
+                        diffuse: false,
+                        _blurHandler: function() {
+                            if (options.closeOnBlur) {
+                                _.closeModalWindow();
+                            }
+                            actionOnBlur();
+                        }
+                    }, altOptions);
+                    if (options.diffuse) {
+                        for (let bodyCh of document.body.children) {
+                            if (bodyCh.id !== 'APURI_modal_content') {
+                                $(bodyCh).addClass('APURI_blur');
+                            }
+                        }                            
+                    }
+                        if (typeof buttonTitle === 'undefined' || buttonTitle === null)
                             buttonTitle = APURI.text.close_button;
                         if (actionFkt === null)
                             actionFkt = APURI.ui.closeModalWindow;
-                        var outdiv = $('<div />');
-			outdiv.attr("class", "APURImodal_back");
-			outdiv.attr("id", "APURI_modal_back");
+                    let outdiv = $('<div />')
+			                        .attr("class", options.backgroundclass)
+                                    .attr("id", "APURI_modal_back")
+                                    .on('click', options._blurHandler);
 			//outdiv.attr("style", APURI.modal_background_style);
-			var div = $('<div />');
-			div.attr("id", "APURI_modal_content");
+			var div = $('<div />').attr("id", "APURI_modal_content");
                         div = renderFkt(div);
                         
                         
@@ -807,7 +902,23 @@ var APURI ={
             },
             grading: {
                 gradesBuffer: null,
-                
+                storeGradeElement(grade, $element) {
+                    let paperId = parseInt($element.attr('data-answer-paper-id'));
+                    let gradeObj = {gradingText: grade};
+                    $.ajax({
+                        type: "POST",
+                        url: (APURI.settings.api.papergrading.replace("%paperid",paperId)),
+                        data: JSON.stringify(gradeObj),
+                        accept: "application/json; text/javascript",
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: "json",
+                        success: function(data){
+                        },
+                        failure: function(errMsg) {
+                            console.log("Error storing grade", errMsg);
+                        }                        
+                    });
+                },
                 initGradingCount() {
                   let currentUuid = APURI.exam.getCurrentLocationUuid();
                   this.loadGradingObject(currentUuid)
@@ -940,7 +1051,7 @@ var APURI ={
                         for (let q = 0; q < questions.length; q++) {
                             console.log(".");
                             template[questions[q].id]={id: questions[q].id,
-                                value: ""};
+                                value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
                         }
                     }
                     return template;
@@ -961,6 +1072,25 @@ var APURI ={
                     return result.substring(0, result.length-1) + "\n";
                 },
                 /**
+                 * Creates a line with maxscores and their titles.
+                 * @param {type} examObj
+                 * @returns {APURI.grading.constructMaxScores.template|Array} - .totalMaxScore for totalAmount
+                 */
+                constructMaxScores(examObj) {
+                  //let retval = new Array();
+                  let template = APURI.grading.constructTemplateObject(examObj);
+                  let sumMax = 0;
+                  for (let val of template) {
+                      if (val) {
+                          val.value = ""+val.maxScore;
+                          sumMax += val.maxScore;
+                      }
+                  }
+                  template.unshift({value: ''/*vastausid*/},{value: APURI.text.csv_maxpoints}, {value: "" /* email */ });
+                  template.push({value: sumMax, totalMaxScore: sumMax});
+                  return template;
+                },
+                /**
                  * Extracts CSV from GradingObject
                  * @param {GradingObject} gradingObj grading
                  * @param {Object} examObj Exam object
@@ -970,9 +1100,10 @@ var APURI ={
                     let result = "";
                     let template = this.constructTemplateObject(examObj);
                     let titlerow = this.constructTitleObject(examObj);
-                    titlerow.unshift({value: APURI.text.csv_name}, {value: APURI.text.csv_email});
+                    titlerow.unshift({value: APURI.settings.csv_idtitle},{value: APURI.text.csv_name}, {value: APURI.text.csv_email});
                     titlerow.push({value: APURI.text.csv_sum}, {value: APURI.text.csv_grade});
                     result += this.extractCsvRow(titlerow);
+                    result += this.extractCsvRow(this.constructMaxScores(examObj));
                     //template.unshift({id: null, value: ""}, {id: null, value: ""});
                     for (let i = 0; i < gradingObj.length; i++) {
                         let studentGrading = gradingObj[i];
@@ -988,6 +1119,10 @@ var APURI ={
                             scoreSum += studentAnswer.scoreValue;
                         }
                         studentRow.unshift({
+                            id: null,
+                            value: studentGrading.answerPaperId
+                        },
+                        {
                             id: null,
                             value: studentGrading.lastName +" "+studentGrading.firstNames
                         }, {
@@ -1320,14 +1455,563 @@ var APURI ={
                 gradingSummary: {
                     initTimer: null,
                     counter: 0,
+                    currentExam: null,
+                    doNotClosePopup: false,
+                    doNotCloseImportPopup: false,
+                    showGrades: true,
+                    currentExamUuid: null,
+                    init: function() {
+                        if (!APURI.settings.local.enableTotalMaxScore)
+                            return;
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.exam.loadExam(uuid).then(exam => {
+                            this.currentExam = exam;
+                        });                     
+                    },
+                    getCurrentUuid() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.currentExamUuid == null) {
+                            _.currentExamUuid = APURI.exam.getCurrentLocationUuid();
+                        } 
+                        return _.currentExamUuid;
+                    },
+                    createScoringPopupHtml() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let currMaxScore = _.getTotalMaxScore()
+                        let calcMaxScore = _.getCalculativeTotalMaxscore();
+                        let currMinScore = _.getMinScore();
+                        let currMinScoreStr = _.minScoreStr;
+                        let el = $('<div />').attr('id','APURI_autograding_popup').attr('class','APURI-autograding APURI')
+                                .append($('<span />').html(_t.autograding_maxscore_title))
+                                .append($('<input />')
+                                    .attr('id','APURI_autograding_maxscore')
+                                    .attr('defaultValue',calcMaxScore)
+                                    .attr('placeholder', _t.autograding_maxscore_placeholder.replace("%s",calcMaxScore)).val(currMaxScore)
+                                    .on('change keyup',_.updateValuesAndView))
+                                .append($('<span />').html(_t.autograding_minscore_title).attr('title',_t.autograding_minscore_tooltip))
+                                .append($('<br />').attr('class','APURI_cr'))
+                                .append($('<input />')
+                                    .attr('id','APURI_autograding_minscore')
+                                    .attr('defaultValue',APURI.settings.local.autograding_defaultMinGrade).attr('placeholder',_t.autograding_minscore_placeholder.replace("%s",APURI.settings.local.autograding_defaultMinGrade)).val(currMinScoreStr)
+                                    .on('change keyup',_.updateValuesAndView))
+                                .append($('<br />').attr('class','APURI_cr'))
+                                .append($('<button />').attr('id','APURI_autograding_commit').attr('class','APURI APURI_autograding_commit').html(_t.autograding_commit).on('click', _.commitAutograding))
+                                .append($('<a />')
+                                    .attr('class', 'APURI_cr')
+                                    .attr('href', "#")
+                                    .attr('id', 'APURI_autograding_togglegrade')
+                                    .html(_t.autograding_togglegrade[_.showGrades?0:1])
+                                    .on('click', _.toggleGrade))
+                                .append($('<br />'))
+                                .append($('<a />')
+                                    .attr('href', "#")
+                                    .attr('id', 'APURI_autograding_opentable')
+                                    .html(_t.autograding_gradingtable_open)
+                                    .on('click', _.openGradingTableModal).hide())
+                                .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeScoringPopup))
+                                .on('click',_.preventPopupClose).hide();
+                        return el;
+                    },
+                    commitAutograding() {
+                        $('#scoreTable td.proposalGrade').each((index, el) => {
+                            let $el = $(el);
+                            let grade = $el.html();
+                            let inputField = $el.next().children('input.gradingText');
+                            if (inputField.val() !== '')
+                                return; // do not overwrite!
+                            inputField.val(grade);
+                            APURI.grading.storeGradeElement(grade, inputField);
+                            inputField.trigger('input'); // save
+                        });
+                    },
+                    toggleGrade() {
+                        let _ = APURI.views.gradingSummary;
+                        _.showGrades = !_.showGrades;
+                        $('#APURI_autograding_togglegrade').html(APURI.text.autograding_togglegrade[_.showGrades?0:1]);
+                        _.updateValuesAndView();
+                        return false;
+                    },
+                    updateValuesAndView() {
+                        let _ = APURI.views.gradingSummary;
+                        _.setTotalMaxScore($('#APURI_autograding_maxscore').val());
+                        _.setMinScore($('#APURI_autograding_minscore').val());
+
+                        if ($('.APURI_proposal').length == 0) {
+                            $('<th />').attr('class','APURI proposalHeader APURI_proposal').html(APURI.text.autograding_scoretable_header[_.showGrades?0:1])
+                            .insertAfter('#scoreTable tr th.sumHeader');
+                            $('#scoreTable tr td.totalScore').after($('<td />').attr('class','APURI proposalGrade APURI_proposal').html("-"));                            
+                        }
+                        $('.proposalHeader').html(APURI.text.autograding_scoretable_header[_.showGrades?0:1]);
+                        if (_.showGrades) {
+                            $('#APURI_autograding_opentable').show();
+                            $('#APURI_autograding_commit').show();
+                        } else {
+                            $('#APURI_autograding_opentable').hide();
+                            $('#APURI_autograding_commit').hide();
+                        }
+                        $('.proposalGrade').each((i,el) => {
+                            let $el = $(el);
+                            let score = parseInt($el.prev().html());
+                            if (_.showGrades) {
+                                $el.html(_.getGradeFromScore(score));
+                            } else {
+                                $el.html((score*100/_.totalMaxScore).toFixed(1)+" %");    
+                            }
+                        }); 
+                    },
+                    setTotalMaxScore(value) {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let maxFieldError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_maxscore").addClass("APURIfielderror").attr('title', syy);
+                        }
+                        let maxFieldMinorError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_maxscore").addClass("APURIfieldminor").attr('title', syy);
+                        }
+                        let maxFieldOk = function() {
+                            $("#APURI_autograding_maxscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
+                        }
+                        let maxScore = parseInt(value);
+                        if (maxScore < 1) {
+                            maxFieldError(_t.autograding_maxscore_negative);
+                            return;
+                        }
+                        if (typeof _.calcMaxScore !== 'undefined' && 
+                            _.calcMaxScore > 0 &&
+                            maxScore > _.calcMaxScore) {
+                            maxFieldMinorError(_t.autograding_maxscore_toolarge.replace("%d", _.calcMaxScore));
+                        }
+                        maxFieldOk();
+                        _.totalMaxScore = maxScore;
+                        Cookies.set(_.getCurrentUuid()+'APURI_autograding_maxScore', _.totalMaxScore);
+                    },
+                    setMinScore(value = null) {
+                        let _t = APURI.text;
+                        let minFieldError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_minscore").addClass("APURIfielderror").attr('title', syy);
+                        }
+                        let minFieldMinorError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_minscore").addClass("APURIfieldminor").attr('title', syy);
+                        }
+                        let minFieldOk = function() {
+                            $("#APURI_autograding_minscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
+                        }
+                        let _ = APURI.views.gradingSummary;
+                        if (value === '' || value === null)
+                            value = APURI.settings.local.autograding_defaultMinGrade;
+                        let minscore = 0;
+                        let minscoreStr = '';
+                        console.log("DEBUG set min to ", value, minscore);
+                        if (typeof value === 'string') {
+                            let percentStr = /^\s*(\d+(?:[,.]\d+)?)\s*%\s*/;
+                            let pointStr = /^\s*(\d+(?:[,.]\d+)?)\s*p?\s*/;
+                            let resultset = percentStr.exec(value);
+                            if (resultset !== null && typeof resultset[1] !== 'undefined') {
+                                // percent value
+                                minscore = parseFloat(resultset[1])/100*_.totalMaxScore;
+                                minscoreStr = resultset[1]+"%";
+                            } else {
+                                resultset = pointStr.exec(value);
+                              
+                                if (resultset !== null && typeof resultset[1] !== 'undefined') {
+                                    minscore = parseFloat(resultset[1]);
+                                    minscoreStr = minscore;
+                                } else {
+                                    minFieldError(_t.autograding_minscorefield_parseerror);
+                                    return;
+                                }
+                            }
+                        } else if (typeof value === 'number') {
+                            minscore = value;
+                        } else {
+                            minFieldError(_t.autograding_minscorefield_parseerror);                            
+                        }
+                        if (minscore > _.totalMaxScore) {
+                            minFieldError(_t.autograding_minscorefield_toolarge.replace("%d", _.totalMaxScore));
+                            return;
+                        }
+                        if (minscore < 0) {
+                            minFieldError(_t.autograding_minscorefield_negative);
+                            minscore = 0;
+                        }
+                        minFieldOk();
+                        _.minScore = minscore;
+                        _.minScoreStr = minscoreStr;
+                        Cookies.set(_.getCurrentUuid()+'APURI_autograding_minScore', _.minScoreStr);
+                    },
+                    openScoringPopup() {
+                        let _ = APURI.views.gradingSummary;
+                        $('body').on('click', _.closeScoringPopup);
+                        $('#APURI_autograding_popup').show();
+                        _.updateValuesAndView();
+                        return false;
+                    },
+                    closeScoringPopup() {
+                        let _ = APURI.views.gradingSummary;
+                        if (!_.doNotClosePopup) {
+                            $('#APURI_autograding_popup').hide();
+                            $('body').off('click', _.closeScoringPopup);
+                        }
+                    },
+                    preventPopupClose() {
+                        let _ = APURI.views.gradingSummary;
+                        _.doNotClosePopup = true;
+                        setTimeout(x => {
+                            _.doNotClosePopup = false;
+                        },0);                        
+                    },
+                    getCalculativeTotalMaxscore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.calcMaxScore) {
+                            return _.calcMaxScore;
+                        }                        
+                        if (APURI.views.gradingSummary.currentExam) {
+                            let last = APURI.grading.constructMaxScores(APURI.views.gradingSummary.currentExam).pop();
+                            if (last) {
+                                _.calcMaxScore = last.totalMaxScore;
+                                return last.totalMaxScore;
+                            } 
+                        } 
+                        return undefined;
+                    },
+                    getMinScore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.minScore) {
+                            return _.minScore;
+                        } else {
+                            _.setMinScore(Cookies.get(_.getCurrentUuid()+'APURI_autograding_minScore'));
+                            return _.minScore;
+                        }
+                    },
+                    getTotalMaxScore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.totalMaxScore) {
+                            return _.totalMaxScore;
+                        }
+                        let gradingMaxScore = Cookies.get(_.getCurrentUuid()+'APURI_autograding_maxScore');
+                        if (typeof gradingMaxScore !== 'undefined') {
+                            _.totalMaxScore = gradingMaxScore;
+                            return gradingMaxScore
+                        }  else {
+                            let calc = APURI.views.gradingSummary.getCalculativeTotalMaxscore();
+                            Cookies.set(_.getCurrentUuid()+'APURI_autograding_maxScore', calc);
+                            return _.totalMaxScore = parseInt(calc);
+                        }
+                    },
+                    getGradeFromScore(score) {
+                        let _ = APURI.views.gradingSummary;
+                        let grades = APURI.settings.grades;
+                        if (score < _.minScore)
+                            return grades[0];
+                        else if (score >= _.totalMaxScore)
+                            return grades[grades.length-1];
+                        // console.log("Testiarvosanaindeksi 1>", (score-_.minScore)/(_.totalMaxScore-_.minScore)*(grades.length-1)+1); 
+                        return grades[Math.floor((score-_.minScore)/(_.totalMaxScore-_.minScore)*(grades.length-1)+1)];
+                    },
+                    createGradeTableArray() {
+                        let _ = APURI.views.gradingSummary;
+                        let lastGrade = APURI.settings.grades[0]; // ei oteta hylättyä huomioon
+                        let result = new Array();
+                        result.push({limit: 0, grade: APURI.settings.grades[0]}); // lisätään hylätty - jakaumaa varten
+                        for (let i = Math.floor(_.minScore); i <= _.totalMaxScore; i++) {
+                            let currentGrade = _.getGradeFromScore(i);
+                            if (currentGrade !== lastGrade) {
+                                lastGrade = currentGrade;
+                                result.push({limit: i, grade: currentGrade});
+                            }
+                        }
+                        return result;
+                    },
+                    addDistributionToGradetable(values) {
+                        let elList = $('td.totalScore');
+                        let sum = 0;
+                        let count = elList.length;
+                        elList.each((index, el) => {
+                            let score = parseInt($(el).html()); 
+                            sum += score;
+                            let i=1;
+                            for (; i<values.length; i++) {
+                                if (score < values[i].limit) {
+                                    if (typeof values[i-1].count === 'number') {
+                                        values[i-1].count++;
+                                    } else {
+                                        values[i-1].count = 1;
+                                    }
+                                    break;
+                                }
+                            }
+                            if (i===values.length) { // tapaus 10
+                                if (typeof values[i-1].count === 'number') {
+                                    values[i-1].count++;
+                                } else {
+                                    values[i-1].count = 1;
+                                }
+                            }
+                        });
+                        let average = sum / count;
+                        return {
+                            gradetable: values,
+                            average: average
+                        }
+
+                    },
+                    createGradeTableElement(values) {
+                        let _ = APURI.views.gradingSummary;                        
+                        let {average, gradetable} = _.addDistributionToGradetable(values);
+                        let _t = APURI.text;
+                        let el = $('<table />')
+                                .append($('<tr />')
+                                    .append(
+                                        $('<th />').html(_t.autograding_gradingtable_grade), 
+                                        $('<th />').html(_t.autograding_gradingtable_limit),
+                                        $('<th />').html(_t.autograding_gradingtable_count)
+                                    ));
+                        for (let val of gradetable) {
+                            let trEl = $('<tr />')
+                            .append(
+                                $('<td />').html(val.grade),
+                                $('<td />').html(val.limit));
+                            if (typeof val.count === 'number') 
+                                trEl.append(
+                                    $('<td />').html(val.count).attr('class','APURI_gradedistcount'));
+                            val.count = val.count || 0;
+                            for (let i = 0; i<val.count; i++) {
+                                trEl.append($('<td />').attr('class', 'APURI_gradedistblock').html('x'));
+                            }
+                            el.append(trEl);                                
+                        }
+                        return $('<div />')
+                                .append(el)
+                                .append($('<div />').html(_t.autograding_gradingtable_average.replace('%average', average.toFixed(1)).replace('%grade', _.getGradeFromScore(average.toFixed(1)))));
+                    },
+                    openGradingTableModal() {
+                        let _ = APURI.views.gradingSummary;                        
+                        let grading = _.createGradeTableArray();
+                        APURI.ui.openModalWindow((div)=> {
+                            div.append(_.createGradeTableElement(grading));
+                            return div;
+                        }, null, null, {diffuse: true});
+                        return false;
+                    },
+                    createImportFilePopupElement() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let el = $('<div />').attr('id', 'APURI_importcsv_popup')
+                            .append($('<span />').html(_t.importcsv_popup_fileinfo))
+                            .append($('<input />').attr('type', 'file').attr('accept','.csv').attr('id','APURI_importcsv_selector'))
+                            .append($('<button />').attr('class', 'APURI APURI_sendcsv').html(_t.importcsv_popup_button).on('click', _.triggerImport))
+                            .append($('<div />').attr('id', 'APURI_importcsv_error').hide())
+                            .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeImportFilePopup))
+                            .on('click', _.preventImportFilePopupClose).hide();
+                        return el;
+                    },
+                    openImportFilePopup() {
+                        let _ = APURI.views.gradingSummary;
+                        $('#APURI_importcsv_popup').show();
+                        $('body').on('click', _.closeImportFilePopup);
+                        return false;
+                    },
+                    closeImportFilePopup() {
+                        let _ = APURI.views.gradingSummary;
+                        if (!_.doNotCloseImportPopup) {
+                            $('#APURI_importcsv_popup').hide();
+                            $('body').off('click', _.closeImportFilePopup);
+                        }
+                    },
+                    preventImportFilePopupClose() {
+                        let _ = APURI.views.gradingSummary;
+                        _.doNotCloseImportPopup = true;
+                        setTimeout(x => {
+                            _.doNotCloseImportPopup = false;
+                        }, 5);
+                    },
+                    csvLoadError(msg = '') {
+                        $('#APURI_importcsv_error').show().html(msg);
+                    },
+                    csvLoadOk() {
+                        $('#APURI_importcsv_error').hide().html('');
+                    },
+                    triggerImport() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let fileselector = document.getElementById('APURI_importcsv_selector');
+                        if (typeof fileselector === 'undefined' || fileselector === null || typeof fileselector.files === 'undefined')
+                            return; // some kind of error
+                        let file = fileselector.files[0];
+                        var reader = new FileReader();
+                        reader.readAsText(file);
+                        reader.onload = function(event){
+                            var csv = event.target.result;
+                            console.log("READ file ",csv);
+                            console.log("JQUERYCSV TEST", JqueryCsv.toArrays(csv, {separator:';'}));
+                            let data = _.parseCsvToData(csv);
+                            console.log("Parsed from CSV", data);
+                            if (data == null) {
+                                _.csvLoadError(_t.importcsv_error_format);
+                            } else {
+                                _.openImportPreviewModal(data);
+                            }
+                            _.csvLoadOk();
+                            _.doNotCloseImportPopup = false;
+                            _.closeImportFilePopup();
+                        }
+                        reader.onerror = function(){ _.csvLoadError(_t.importcsv_error_file); console.log('Unable to read ' + file.fileName); };
+                    },
+                    parseCsvToData(csv) {
+                        let data = JqueryCsv.toArrays(csv, {separator:';'})
+                        if (typeof data === 'undefined' || data === null) {
+                            return null;
+                        } else if (typeof data[0] === 'string') {
+                            // not right separator
+                            data = JqueryCsv.toArrays(csv, {separator:','})
+                            if (typeof data === 'undefined' || data === null) {
+                                return null;
+                            }
+                        }
+                        let result = new Array();
+                        const gradeCol = data[0].length-1;
+                        const slackRows = 2; /* otsikkorivien + maksimipisterivien määrä */ 
+                        const answerIdCol = 0;
+                        const nameCol = 1;
+                        const emailCol = 2;
+                        for (let i=slackRows; i<data.length; i++) {
+                            let row = data[i];
+                            if (typeof row !== 'object') {
+                                break; // something is very wrong
+                            }
+                            result.push({answerPaperId: parseInt(row[answerIdCol]),name: row[nameCol], email: row[emailCol], grade: row[gradeCol]});
+                        }
+                        return result;
+                    },
+                    generateImportData(data, reviewObj) {
+                        let result = new Array();
+                        for (let row of data) {
+                            for (let student of reviewObj) {
+                                let name = student.lastName + " "+student.firstNames;
+                                if (name === row.name && ((student.email || "") === (row.email || "")) &&
+                                    (row.answerPaperId != null?row.answerPaperId === student.answerPaperId:true)) {                                    
+                                    row.studentUuid = student.studentUuid;
+                                    row.answerPaperId = student.answerPaperId;
+                                    if ((student.gradingText||"") !== "" && student.gradingText !== row.grade) {
+                                        row.conflict = true;
+                                        row.oldValue = student.gradingText;
+                                    }
+                                    if (student.gradingText === row.grade) {
+                                        row.nochange = true;
+                                    }                                    
+                                    result.push(row)
+                                    break;
+                                } else {
+                                    console.log("DEBUG: non-matching ",name, row.name);
+                                }
+                            }
+                        }
+                        return result;
+                    },
+                    commitImport(data) {
+                        console.log("CoMMit");
+                        $('#scoreTable input.gradingText').each((index, el) => {
+                            let $inputField = $(el);
+                            let studentUuid = $inputField.attr('data-student-uuid');
+                            let answerId = parseInt($inputField.attr('data-answer-paper-id'));
+                            for (let row of data) {
+                                console.log("debug ", row.answerPaperId, row.studentUuid, studentUuid, answerId);
+                                if (row.answerPaperId === answerId && row.studentUuid === studentUuid) {
+                                    if ((row.conflict == null || row.conflict === false) 
+                                        && (row.nochange == null || row.nochange === false)) {// undefined tai FALSE 
+                                            // Muutos JA ei konfliktia
+                                            $inputField.val(row.grade);
+                                            APURI.grading.storeGradeElement(row.grade, $inputField);
+                                            $inputField.trigger('input');
+                                    }
+                                    
+                                    break;
+                                }                                
+                            }
+                        });
+                    },
+                    createCsvPreviewElement(importdata = null) {
+                        let el = $('<div />');
+                        let _t = APURI.text;
+                        if (importdata !== null && importdata.length > 0) {
+                            el = el.html(_t.importcsv_preview_info);
+                            let tableEl = $('<table />')
+                                            .append($('<tr />')
+                                                .append($('<th />').html(_t.importcsv_preview_name))
+                                                .append($('<th />').html(_t.importcsv_preview_grade))
+                                                .append($('<th />').html(_t.importcsv_preview_oldgrade)));
+                            for (let inputRow of importdata) {
+                                let rowEl = $('<tr />')
+                                    .append($('<td />').html(inputRow.name))
+                                    .append($('<td />').html(inputRow.grade));
+                                if (inputRow.conflict) {
+                                    rowEl.append($('<td />').html(inputRow.oldValue)).addClass('APURI_import_conflictrow');
+                                }
+                                if (inputRow.nochange) {
+                                    rowEl.addClass('APURI_importcsv_nochange');
+                                }
+                                tableEl.append(rowEl);    
+                            }
+                            el.append(tableEl);    
+                        } else {
+                            el = el.html(_t.importcsv_preview_nodata);
+                        }
+                        return el;
+                    },
+                    openImportPreviewModal(data) {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.grading.loadGradingObject(uuid)
+                            .then(function(grading) {
+                                let importdata = _.generateImportData(data, grading);
+                                console.log("Joined import data", importdata);
+                                APURI.ui.openModalWindow((div)=> {
+                                    div.append(_.createCsvPreviewElement(importdata));
+                                    return div;
+                                }, (importdata !== null && importdata.length > 0?_t.importcsv_preview_commit:'OK'),
+                                    function() {
+                                        console.log("Trying import with", importdata);
+                                        _.commitImport(importdata);
+                                        APURI.ui.closeModalWindow();
+                                    } 
+                                , {closeOnBlur: true});
+        
+                            });                        
+                        return false;
+                    },
                     show: function () {
+
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
                         let gradingInfo = $('#gradingInfo');
                                                 this.counter++;
 						if ($('#gradingInfo .APURI_download').length === 0) {
 							let link = $('<a />').attr('href', '#').html(APURI.text.load_csv_link);
 							link[0].onclick = APURI.grading.loadCsvTrigger;                        
-							$('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
+                            $('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
+                            $('<div />').attr('class', 'printLinkWrapper APURI  APURI_importcsv_trigger').append(
+                                $('<a />').attr('href', '#').html('<i class="fa fa-upload" aria-hidden="true"></i> '+ _t.importcsv_open_popup).on('click',_.openImportFilePopup),
+                                _.createImportFilePopupElement())
+                                .appendTo(gradingInfo);
+                            $('<div />').attr('class', 'printLinkWrapper APURI  APURI_autograding_trigger').append(
+                                $('<a />').attr('href', '#').html('<i class="fa fa-tachometer" aria-hidden="true"></i> '+APURI.text.autograding_open_popup).on('click',_.openScoringPopup),
+                                _.createScoringPopupHtml())
+                                .appendTo(gradingInfo);
 						}
+                                                let header = $('th.sumHeader');
+                                                
+                                                if (this.currentExam !== null && header.length > 0 && !header.attr('title')) {
+                                                    let last = APURI.grading.constructMaxScores(this.currentExam).pop();
+                                                    if (last) {
+                                                        header.attr('title', APURI.text.total_max_points.replace("%d", last.totalMaxScore));
+                                                    }
+                                                }
                                                 if (this.counter > 10) {
                                                     clearInterval(this.initTimer);
                                                 }
@@ -1342,6 +2026,7 @@ var APURI ={
                      * @type type
                      */
                     commentsByQuestion: new Map(),
+
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
                             let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2611,6 +3296,22 @@ APURI.testExamAttachmentCopyTrigger = function() {
         return;
     APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
     APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    requirejs.config({
+        paths: {
+            'Cookies': 'https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min',
+            'jquery': 'https://oma.abitti.fi/libs/jquery/dist/jquery.min',
+            'jquery-csv': 'https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.3/jquery.csv.min'
+        },
+        shim: {
+            'jquery-csv': ['jquery']
+        }
+    });
+    require(['Cookies', 'jquery', 'jquery-csv'], function (Cookies, $){
+                    window.Cookies = Cookies; // exports
+                    window.JqueryCsv = $.csv;
+            });
+
+
     APURI.initView(APURI.views.gradingSummary);
     APURI.initView(APURI.views.footer, 2000);
 })();
