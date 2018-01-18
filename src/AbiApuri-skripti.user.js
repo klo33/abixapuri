@@ -101,18 +101,18 @@ var APURI ={
                   autograding_maxscore_negative: "Ei voi olla negatiivinen",
                   autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
                   autograding_gradingtable_open: "(Näytä arviontitaulukko)",
-                  autograding_gradingtable_grade: "Arvosana",
-                  autograding_gradingtable_limit: "Alaraja",
-                  autograding_gradingtable_count: "Lukumäärä",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
                   autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
                   autograding_commit: "Toimeenpane ehdotukset",
                   autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta",
                   importcsv_error_file: "Tiedostonlukuvirhe",
                   importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
-                  importcsv_preview_info: 'Seuraavat arvostelutiedot ollaan tuomassa',
-                  importcsv_preview_name: "Oppilaan nimi",
-                  importcsv_preview_grade: "Tuotava arvosana",
-                  importcsv_preview_oldgrade: "Vanha arvosana, joka ylikirjoitetaan",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
                   importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
                   importcsv_preview_commit: "Kirjoita arvostelut",
                 importcsv_open_popup: "Vie arviointitiedosto Abittiin",
@@ -174,18 +174,18 @@ var APURI ={
                   autograding_maxscore_negative: "Ei voi olla negatiivinen",
                   autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
                   autograding_gradingtable_open: "(Näytä arviontitaulukko)",
-                  autograding_gradingtable_grade: "Arvosana",
-                  autograding_gradingtable_limit: "Alaraja",
-                  autograding_gradingtable_count: "Lukumäärä",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
                   autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
                   autograding_commit: "Toimeenpane ehdotukset",
                   autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta" ,
                   importcsv_error_file: "Tiedostonlukuvirhe",
                   importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
-                  importcsv_preview_info: 'Seuraavat arvostelutiedot ollaan tuomassa',
-                  importcsv_preview_name: "Oppilaan nimi",
-                  importcsv_preview_grade: "Tuotava arvosana",
-                  importcsv_preview_oldgrade: "Vanha arvosana, joka ylikirjoitetaan",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
                   importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
                   importcsv_preview_commit: "Kirjoita arvostelut",
                 importcsv_open_popup: "Vie arviointitiedosto Abittiin",
@@ -199,6 +199,7 @@ var APURI ={
                 fetchGetHeaders: {
                     'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 },
+                csv_idtitle: "ID",
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
@@ -218,7 +219,8 @@ var APURI ={
                     student_answers: '/exam-api/grading/%uuid/student-answers',
                     attachments_list: '/exam-api/exams/%uuid/attachments',
                     exam_data: '/exam-api/exams/%uuid/exam',
-                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam'
+                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam',
+                    papergrading: '/exam-api/grading/gradingTexts/%paperid' 
                 }
             },
             fetch: {
@@ -900,7 +902,23 @@ var APURI ={
             },
             grading: {
                 gradesBuffer: null,
-                
+                storeGradeElement(grade, $element) {
+                    let paperId = parseInt($element.attr('data-answer-paper-id'));
+                    let gradeObj = {gradingText: grade};
+                    $.ajax({
+                        type: "POST",
+                        url: (APURI.settings.api.papergrading.replace("%paperid",paperId)),
+                        data: JSON.stringify(gradeObj),
+                        accept: "application/json; text/javascript",
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: "json",
+                        success: function(data){
+                        },
+                        failure: function(errMsg) {
+                            console.log("Error storing grade", errMsg);
+                        }                        
+                    });
+                },
                 initGradingCount() {
                   let currentUuid = APURI.exam.getCurrentLocationUuid();
                   this.loadGradingObject(currentUuid)
@@ -1068,7 +1086,7 @@ var APURI ={
                           sumMax += val.maxScore;
                       }
                   }
-                  template.unshift({value: APURI.text.csv_maxpoints}, {value: "" /* email */ });
+                  template.unshift({value: ''/*vastausid*/},{value: APURI.text.csv_maxpoints}, {value: "" /* email */ });
                   template.push({value: sumMax, totalMaxScore: sumMax});
                   return template;
                 },
@@ -1082,7 +1100,7 @@ var APURI ={
                     let result = "";
                     let template = this.constructTemplateObject(examObj);
                     let titlerow = this.constructTitleObject(examObj);
-                    titlerow.unshift({value: APURI.text.csv_name}, {value: APURI.text.csv_email});
+                    titlerow.unshift({value: APURI.settings.csv_idtitle},{value: APURI.text.csv_name}, {value: APURI.text.csv_email});
                     titlerow.push({value: APURI.text.csv_sum}, {value: APURI.text.csv_grade});
                     result += this.extractCsvRow(titlerow);
                     result += this.extractCsvRow(this.constructMaxScores(examObj));
@@ -1101,6 +1119,10 @@ var APURI ={
                             scoreSum += studentAnswer.scoreValue;
                         }
                         studentRow.unshift({
+                            id: null,
+                            value: studentGrading.answerPaperId
+                        },
+                        {
                             id: null,
                             value: studentGrading.lastName +" "+studentGrading.firstNames
                         }, {
@@ -1499,6 +1521,7 @@ var APURI ={
                             if (inputField.val() !== '')
                                 return; // do not overwrite!
                             inputField.val(grade);
+                            APURI.grading.storeGradeElement(grade, inputField);
                             inputField.trigger('input'); // save
                         });
                     },
@@ -1713,7 +1736,7 @@ var APURI ={
                             sum += score;
                             let i=1;
                             for (; i<values.length; i++) {
-                                if (score <= values[i].limit) {
+                                if (score < values[i].limit) {
                                     if (typeof values[i-1].count === 'number') {
                                         values[i-1].count++;
                                     } else {
@@ -1852,14 +1875,16 @@ var APURI ={
                         }
                         let result = new Array();
                         const gradeCol = data[0].length-1;
-                        const nameCol = 0;
-                        const emailCol = 1;
-                        for (let i=2; i<data.length; i++) {
+                        const slackRows = 2; /* otsikkorivien + maksimipisterivien määrä */ 
+                        const answerIdCol = 0;
+                        const nameCol = 1;
+                        const emailCol = 2;
+                        for (let i=slackRows; i<data.length; i++) {
                             let row = data[i];
                             if (typeof row !== 'object') {
                                 break; // something is very wrong
                             }
-                            result.push({name: row[nameCol], email: row[emailCol], grade: row[gradeCol]});
+                            result.push({answerPaperId: parseInt(row[answerIdCol]),name: row[nameCol], email: row[emailCol], grade: row[gradeCol]});
                         }
                         return result;
                     },
@@ -1868,7 +1893,8 @@ var APURI ={
                         for (let row of data) {
                             for (let student of reviewObj) {
                                 let name = student.lastName + " "+student.firstNames;
-                                if (name === row.name && ((student.email || "") === (row.email || ""))) {                                    
+                                if (name === row.name && ((student.email || "") === (row.email || "")) &&
+                                    (row.answerPaperId != null?row.answerPaperId === student.answerPaperId:true)) {                                    
                                     row.studentUuid = student.studentUuid;
                                     row.answerPaperId = student.answerPaperId;
                                     if ((student.gradingText||"") !== "" && student.gradingText !== row.grade) {
@@ -1900,6 +1926,7 @@ var APURI ={
                                         && (row.nochange == null || row.nochange === false)) {// undefined tai FALSE 
                                             // Muutos JA ei konfliktia
                                             $inputField.val(row.grade);
+                                            APURI.grading.storeGradeElement(row.grade, $inputField);
                                             $inputField.trigger('input');
                                     }
                                     
@@ -1999,6 +2026,7 @@ var APURI ={
                      * @type type
                      */
                     commentsByQuestion: new Map(),
+
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
                             let uuid = APURI.exam.getCurrentLocationUuid();
