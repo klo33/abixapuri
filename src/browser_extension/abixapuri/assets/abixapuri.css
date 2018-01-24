@@ -1,0 +1,470 @@
+/*
+    For AbixApuri to alter oma.abitti.fi page functionality 
+    Created on : May 19, 2017, 11:31:07 AM
+    Author     : Joni Lehtola
+
+    Colors: text #6DD200 really dark #3E7800 really dim background #F1FBE8; 
+*/
+
+#APURI_modal_back {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 25; 
+    background: #AAA; 
+    opacity: .40; 
+    filter: Alpha(Opacity=40);
+}   
+
+#APURI_modal_content { 
+    position: fixed; 
+    overflow-y:auto; 
+    top: 60px; 
+    left: 20%; 
+    width: 60%; 
+    opacity: 1; 
+    height: 80%; 
+    z-index: 30; 
+    padding: 1em;
+    background: #FFF;
+    color: #3E7800;
+}
+
+#APURI_loading_spinner {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: 30;
+   background: #AAA;
+   opacity: .50; 
+}
+#APURI_loading_spinner h1 {
+    position: absolute;
+    text-align: center;
+    top: 20%;
+    width: 100%;
+}
+
+#APURI_loading_spinner .APURI_loading_overlay {
+    position: absolute;
+    text-align: center;
+    top: 40%;
+    width: 100%;
+}
+
+td.APURI .edit-exam {
+    margin-top: 4px;
+    border-color: #3E7800;
+    /*background-color: #C2FF81;*/
+
+}
+
+#available-exams td.APURI .edit-exam .edit-link {
+    background-color: #F1FBE8; 
+    color: #3E7800;
+}
+
+#footer .APURI_footer {
+    color: #6DD200;
+    margin-bottom: 1em;
+    
+}
+
+#footer .APURI_footer a {
+    color: #3E7800;
+}
+
+#footer .APURI_footer_contact {
+    margin-top:  0.5em;
+}
+
+#footer .APURI_footer_contact h5 a {
+    color: #3E7800;
+}
+#footer .APURI_footer_contact p a {
+    color: #6DD200;
+}
+
+.abiximage-info {
+    color: #3E7800;
+}
+
+button.APURI {
+    background-color: #6dd200 !important;
+}
+
+.lapa .content .questionButtons {
+    margin-bottom: 5px !important;
+}
+.lapa .content .questionButtons.APURI {
+    margin-top: 0 !important;
+    line-height: 10px !important;
+    padding-left: 140px;
+}
+
+button.APURI_modal_alaNappi {
+  position: fixed; 
+  bottom: -10px; 
+  right: 10%;  
+}
+
+button.APURI_modal_ylaX {
+    position: fixed; 
+    top: 60px; 
+    right: 16%; 
+    width: 30px !important;
+}
+
+div.banner-left::after {
+    font-weight: bold;
+    content: " + Apuri" !important;
+}
+
+#pagebanner {
+    background-color: #6dd200 !important;
+}
+
+.APURI_examlist li {
+    border: 1px appworkspace outset;
+    list-style: none;
+    padding: 0.2em;
+    margin: 0.2em;
+    padding-left: 1em;
+   
+}
+
+.APURI_examlist li.even {
+    background-color: #F1FBE8;
+}
+
+.APURI_examlist li.odd {
+    background-color: #DAEFC8;
+}
+
+
+li.APURI_import_exam a.unloaded::before {
+    content: "\f101";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .loaded::before {
+    content: "\f103";
+    font-family: FontAwesome;
+    left:-10px;
+    position:relative;
+    top:0;
+    
+} 
+li.APURI_import_exam .date::before {
+    content:"(";
+}
+li.APURI_import_exam .date::after {
+    content:") ";
+}
+
+#APURI_sort_section {
+    list-style:none;
+}
+
+#APURI_sort_question li.APURI_sortable_question {
+	  list-style:none;
+	  display: box;
+    border: 1px black outset;
+    padding: 0.1em;
+	  padding-left: 1.5em;
+    margin: 0.2em;
+    background-color: #F1FBE8;
+}
+#APURI_sort_question li.APURI_sortable_question:before {
+    content: "\f047";
+    font-family: FontAwesome;
+    left:-20px;
+    position:relative;
+    top:0;
+    
+}
+
+#APURI_delayd, #APURI_bittiniilo {
+    height: 4em;
+    background-color: #C2FF81;
+    /*background-color: #C2FF81E6;*/
+    color: #3E7800;
+border: 3px solid #3E7800;
+    z-index: 20;
+    position: fixed;
+    width: 400px;
+    max-width: 90%;
+    min-width: 70%;
+    left: 15%;
+    margin: auto;
+    
+}
+#APURI_delayd div.APURI_message, #APURI_bittiniilo div.APURI_message {
+    padding: 1em;
+}
+
+#APURI_delayd button, #APURI_bittiniilo button {
+    right: 5%;
+    top: 0.7em;
+    position: absolute;
+    background-color: #3E7800 !important;
+}
+
+@keyframes movedown {
+    0% {
+        top:-100px;
+    }
+    100% {
+        top:0px;
+    }
+}
+
+@keyframes moveup {
+    0% {
+        top:0px;
+    }
+    100% {
+        top:-100px;
+    }
+}
+#APURI_delayd.comedown, #APURI_bittiniilo.comedown{
+  animation: movedown 1s ease-out forwards;
+}
+#APURI_delayd.clearup, #APURI_delayd.clearup {
+  animation: moveup 1s ease-in forwards;
+}
+
+#footer div.content {
+    margin-bottom: 0 !important;
+}
+
+#APURI_footer {
+    color: #3E7800;
+}
+#APURI_footer a {
+    text-decoration: underline;
+}
+
+.APURI_wordcount {
+    text-align: right;
+    color: #3E7800;
+    font-size: small;
+    margin-bottom: -1em;
+}
+
+.APURI_download a {
+    background: #F1FBE8;
+    color: #3E7800;
+}
+
+.APURI_filter {
+    background-color: #F1FBE880 !important;
+    border-color: #3E7800 !important;
+}
+
+.APURI_filter_wrapper {
+        display: inline;
+    position: static;
+    float: right;
+}
+
+.APURI_filter_clear {
+        position: relative;
+    right: 1.5em;
+    border: none;
+    background-color: transparent !important;
+    box-shadow: none;
+    overflow: hidden;
+    color: #3E7800;
+}
+
+.http-link-warning {
+    border: 1px solid;
+    background-color: #C2FF81 !important;
+    border-color: #3E7800 !important;    
+    color: #3E7800;
+    padding: 0.2em;
+    padding-left: 1em;
+}
+
+#APURI_extwarning {
+    background-color: #F8FDF3;
+    color: #3E7800;
+    border: 2px solid #3E7800;
+    padding: 0.2em;
+    margin-top: 0;
+    padding-bottom: 0;
+}
+
+.APURI_comment_container {
+    position:   relative;
+    z-index:    50; 
+    background: #F1FBE8;
+    margin-right: 0.2em;
+}
+.APURI_comment {
+    position:relative;
+    cursor: pointer;
+}
+
+.APURI_comment:hover {
+    background: #E1EBD8;
+}
+
+.APURI_comment_active {
+    background: #D1DBC8;
+    /*background: #F1FBE8;*/
+}
+
+.APURI_comment .APURI_comment_tooltip {
+    visibility:hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px; 
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 100;
+    top: -5px;
+    left: 105%; 
+}
+.APURI_comment:hover .APURI_comment_tooltip {
+    visibility: visible;
+}
+.APURI_comment_question {
+    
+}
+
+.APURI_comment_common {
+    
+}
+
+.arpa #answers .student .answer .add-annotation-popup {
+    z-index: 20 !important;
+}
+
+.APURI_autograding_trigger, .APURI_importcsv_trigger {
+    position: relative;
+}
+
+.APURI_importcsv_trigger, .APURI_download {
+    display: inline-block; 
+    margin-right: 2em;
+}
+
+.APURI_autograding_trigger > a, .APURI_proposal, .APURI_importcsv_trigger > a {
+    background: #F1FBE8;
+    color: #3E7800;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup, #APURI_importcsv_popup {
+    border: solid 1px #3E7800;
+    background:   #F1FBE8;
+    position: relative;
+    border-bottom: -2em;
+    padding: 1em;
+    top: -1em;
+    color: #3E7800;
+    z-index: 5;
+}
+#APURI_autograding_popup {
+    max-width: 30em;
+}
+
+#APURI_importcsv_popup {
+    position: absolute;
+    top: -1em;
+    min-width: 25em;
+}
+
+#APURI_importcsv_error {
+    color: #ec6b01;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span, 
+.APURI_autograding_trigger #APURI_autograding_popup input {
+    float: left;
+    width: 6em;
+}
+
+.APURI_autograding_trigger #APURI_autograding_popup span {
+    clear: left;
+    width: 12em;
+}
+
+.APURI_autograding_commit {
+    float: right;
+}
+
+
+#APURI_autograding_popup button {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color: #6dd200 !important;
+}
+
+#APURI_autograding_popup .APURI_popup_close, #APURI_importcsv_popup .APURI_popup_close {
+    padding: none;
+    position: absolute;
+    top: 0;
+    right: 0.3em;
+    /*background-color: #6dd2003f !important;*/
+    width: auto !important;
+}
+
+.APURIfielderror {
+    border-color: #ec6b01 !important;
+    border-width: 2px !important;
+    background-color: #ec6b0134 !important;
+}
+
+.APURIfieldminor {
+    border-color: #ec6b01 !important;
+    border-width: 2px !important;    
+}
+
+.APURI_import_conflictrow td {
+    border-bottom: 2px dotted #ec6b01;
+    background-color: #ec6b0134;
+}
+
+tr.APURI_importcsv_nochange td {
+    color: #AAA;
+}
+
+tr.APURI_importcsv_nochange td:first-child {
+    color: #AAA;
+    text-decoration: line-through;
+}
+
+td.APURI_gradedistblock {
+    border: none;
+    background: #C2FF81;
+    color: #C2FF81;
+    padding:0;
+    border-spacing: 0;
+    margin: 0;
+    width: 1em;
+    height: 0.5em;
+}
+
+.APURI_blur {
+    -webkit-filter: blur(8px);
+    -moz-filter: blur(8px);
+    -o-filter: blur(8px);
+    -ms-filter: blur(8px);
+    filter: blur(8px);
+}
+
+#APURI_modal_content table th  {
+    margin-right: 1em;
+}

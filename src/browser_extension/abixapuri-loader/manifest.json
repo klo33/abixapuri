@@ -10,6 +10,7 @@
 	"content_scripts": [
 		{
 			"matches": [
+                
 			"*://oma.abitti.fi/school/exam/*","*://oma.abitti.fi/school/exams","*://oma.abitti.fi/school/grading", "*://oma.abitti.fi/", "*://oma.abitti.fi/school/review/*", "*://oma.abitti.fi/school/grading/*"
 			],
 			"js": ["loader.js"]

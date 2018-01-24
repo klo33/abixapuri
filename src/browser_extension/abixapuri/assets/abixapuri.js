@@ -13,20 +13,20 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.3.2
+// @version     0.5.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
 // ==/UserScript==
 
-/* AUTHOR Joni Lehtola, 2017
+/* AUTHOR Joni Lehtola, 2017-2018
  * Lisätiedot https://klo33.github.io/abixapuri
  * Lisäosa on julkaistu GPLv3 lisenssillä. Lisänosan käyttö omalla vastuulla. 
  * Tällä lisäosalla tai sen kehittäjällä ei ole mitään tekemistä Ylioppilastutkintolautakunnan kanssa ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista tai vahingoista, kuten myöskään ei tekijä, vaikka lisäosa ei tarkoituksellisesti tee mitään vahingollista. 
  * 
  * AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017 Joni Lehtola
+    Copyright (C) 2018 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,19 @@
 
 
 'use strict';
+
+if (typeof APURILoader === 'undefined') {
+    var APURILoader = {
+
+            css: "https://klo33.github.io/abixapuri/src/abixapuri.css",
+            ckeditor: "https://klo33.github.io/javascript/ckeditor/ckeditor.js",
+            sortableR: "https://rubaxa.github.io/Sortable/Sortable",
+            jqueryR: "https://oma.abitti.fi/libs/jquery/dist/jquery.min",
+            jquerycsvR: "https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.3/jquery.csv.min",
+            cookiesR: "https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min",
+            fontawesome: "https://use.fontawesome.com/d06b9eb6a7.js"  
+    };
+}
 var APURI ={
             lang: {
               fi: {
@@ -71,6 +84,7 @@ var APURI ={
                   csv_email: "Sähköposti",
                   csv_sum: "Yhteensä",
                   csv_grade: "Arvosana",
+                  csv_maxpoints: "Maksimipisteet",
                   loading_spinner: "latautuu...<br />odota hetkinen",
                   total_max_points: "maksimi yhteispistemäärä %d",
                   search_exams_info: "Hae kokeista...",
@@ -84,7 +98,39 @@ var APURI ={
                   attachments_upload_status: "Kopioidaan %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Kopioinnissa tapahtui verkkovirhe. <a href='/school/exam/%uuid'>Mene uuteen kokeeseen ja lataa liitteet manuaalisesti.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Tehtävänannossasi vaikuttaa olevan linkki liitteeseen, jota ei löydy</strong>",
-                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-työkalulla." 
+                  cke_abiximg_info: " koodinäkymässä. Liitetiedoston, kuten kuvan, videon tai äänen, saat tehtävään helpommin <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' style='height:16px; width:16px;' />-työkalulla.",
+                  autograding_open_popup: "Avaa arvosanatyökalu",
+                  autograding_maxscore_title: "Kokeen maksimipistemäärä",
+                  autograding_maxscore_placeholder: "max %s p",
+                  autograding_minscore_placeholder: "vakioarvo %s",
+                  autograding_minscore_title: "Läpipääsyraja",
+                  autograding_minscore_tooltip: "Voidaan antaa suhteellisena 50% tai absoluuttisena 30p",
+                  autograding_minscore_autofill: "Anna minipistemäärä",
+                  autograding_togglegrade: ["Näytä suhteellinen pistemäärä", "Näytä arvosanaehdotus"],
+                  autograding_scoretable_header: ["Ehdotus&nbsp;","Suht.pisteet&nbsp;"],
+                  autograding_minscorefield_negative: "Ei voi olla negatiivinen",
+                  autograding_minscorefield_parseerror: "Pistemäärää ei osattu tulkita",
+                  autograding_minscorefield_toolarge: "Läpipääsypistemäärä ei voi ylittää maksimia %d",
+                  autograding_maxscore_negative: "Ei voi olla negatiivinen",
+                  autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
+                  autograding_gradingtable_open: "(Näytä arviontitaulukko)",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
+                  autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
+                  autograding_commit: "Toimeenpane ehdotukset",
+                  autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta",
+                  importcsv_error_file: "Tiedostonlukuvirhe",
+                  importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
+                  importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
+                  importcsv_preview_commit: "Kirjoita arvostelut",
+                importcsv_open_popup: "Vie arviointitiedosto Abittiin",
+                importcsv_popup_fileinfo: "",
+                importcsv_popup_button: "Lataa"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -109,14 +155,15 @@ var APURI ={
                   csv_email: "Epost",
                   csv_sum: "Totalt",
                   csv_grade: "Vitsord",
+                  csv_maxpoints: "Max poäng",
                   loading_spinner: "laddar...<br />vänta en liten stund",
                   total_max_points: "totalt max poäng %d",
                   search_exams_info: "Sök i proven...",
                   search_exams_clear: "Töm sökningen",
                   http_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en webbkälla i din uppgiftsanvisning</strong> <br/>"
                     + "Webbreferenser (t.ex. till bilder på nätet) funkar inte i det slutna Abittiprovet. <a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Linkit-verkkomateriaaliin'>Läs mera &gt;&gt;</a>",
-                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Kentässä vaikuttaa olevan &lt;-merkki. Ne rikkovat helposti kokeen. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
-                  lessthan_fix_button: "Korjaa vaihtoehto",
+                  lessthan_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i>Det värkar finnas en &lt;-tecke. Dom lätt söndrar provet. (<a target='_blank' href='https://github.com/klo33/abixapuri/wiki/Pienempi-kuin--merkki-teht%C3%A4v%C3%A4nannossa'>Lue lisää &gt;&gt;</a>) <br />Varmista tekstin toiminta esikatselusta.",
+                  lessthan_fix_button: "Fixa svaret",
                   lessthan_fix_done: "...",
                   firefox_greasemonkey_warning: "<strong>HUOM! AbixApurin Firefox-selainlaajennuksen tuki on muuttunut!</strong><p>Jos haluat AbixApurin toimivan Firefoxin uusimmassa versiossa 57 sinun on asennettava <a href='https://addons.mozilla.org/fi/firefox/addon/tampermonkey/' target='_blank'>TamperMonkey</a>-laajennus. <br/><a href='https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa' target='_blank'>Tarkemmat ohjeet &gt;&gt;</a>",
                   attachments_startcopying: "Provet har bilagar. Kopierar...<br />Det tar en stund, vänligen vänta",
@@ -124,7 +171,40 @@ var APURI ={
                   attachments_upload_status: "Kopierar %n <span class='progress'>0</span> %",
                   attachments_error: "<strong>Det var ett fel med kopiering. <a href='/school/exam/%uuid'>Gå till nya provet och ladda upp bilagar manuellt.</a></strong>",
                   attachment_link_warning: "<i class='fa fa-exclamation-triangle' aria-hidden='true'></i><strong>Det verkar finnas en länk till en bilaga som inte finns i din uppgiftsanvisning</strong>",
-                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png' />-värktygen." 
+                  cke_abiximg_info: ". Du kan använda bilagan lätt i uppgiftanvisning med <img src='https://klo33.github.io/javascript/ckeditor/plugins/abittiimage/icons/abittiimg.png'  style='height:16px; width:16px;' />-värktygen." ,
+                  autograding_open_popup: "Avaa arvosanatyökalu",
+                  autograding_maxscore_title: "Kokeen maksimipistemäärä",
+                  autograding_maxscore_placeholder: "max %s p",
+                  autograding_minscore_placeholder: "vakioarvo %s",                  
+                  autograding_minscore_title: "Läpipääsyraja",
+                  autograding_minscore_tooltip: "Voidaan antaa suhteellisena 50% tai absoluuttisena 30p",
+                  autograding_minscore_autofill: "Anna minipistemäärä",
+                  autograding_togglegrade: ["Näytä suhteellinen pistemäärä", "Näytä arvosanaehdotus"],
+                  autograding_scoretable_header: ["Ehdotus&nbsp;","Suht.pisteet&nbsp;"],
+                  autograding_minscorefield_negative: "Ei voi olla negatiivinen",
+                  autograding_minscorefield_parseerror: "Pistemäärää ei osattu tulkita",
+                  autograding_minscorefield_toolarge: "Läpipääsypistemäärä ei voi ylittää maksimia %d",
+                  autograding_maxscore_negative: "Ei voi olla negatiivinen",
+                  autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
+                  autograding_gradingtable_open: "(Näytä arviontitaulukko)",
+                  autograding_gradingtable_grade: "Arvosana&nbsp;",
+                  autograding_gradingtable_limit: "Alaraja&nbsp;",
+                  autograding_gradingtable_count: "Lukumäärä&nbsp;",
+                  autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
+                  autograding_commit: "Toimeenpane ehdotukset",
+                  autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta" ,
+                  importcsv_error_file: "Tiedostonlukuvirhe",
+                  importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
+                  importcsv_preview_info: '<p>Seuraavat arvostelutiedot ollaan tuomassa. </p><p>Punaisella merkatuilla riveillä on vanha arviointitieto, <strong>jota ei ylikirjoiteta</strong></p><p>Yliviivatuilla riveillä arviointitieto tyhjä tai ei ole muuttunut.</p>',
+                  importcsv_preview_name: "Oppilaan nimi&nbsp;",
+                  importcsv_preview_grade: "Tuotava arvosana&nbsp;",
+                  importcsv_preview_oldgrade: "Vanha arvosana, joka jää voimaan&nbsp;",
+                  importcsv_preview_nodata: "<p><strong>Ei tuotavia tietoja.</strong></p><p>Varmista, että yrität tuoda oikean kurssin arviointitiedoston</p>",
+                  importcsv_preview_commit: "Kirjoita arvostelut",
+                importcsv_open_popup: "Vie arviointitiedosto Abittiin",
+                importcsv_popup_fileinfo: "",
+                importcsv_popup_button: "Lataa"
+                  
               }  
             },
             text: null,
@@ -132,14 +212,29 @@ var APURI ={
                 fetchGetHeaders: {
                     'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 },
+                csv_idtitle: "ID",
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
-                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\/?attachments\/([^"']+))/i,
+                attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\.?\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\.\/?attachments\/([^"']+))/ig,
                 attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
-                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g
+                lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
+                grades: ['4', '5-', '5', '5+', '5½', '6-', '6', '6+', '6½', '7-', '7', '7+', '7½', '8-', '8', '8+', '8½', '9-', '9', '9+', '9½', '10-', '10'],
+                local: {
+                    enableReviewKeyboardShortcuts: false,
+                    enableReviewShortcuts: true,
+                    enableTotalMaxScore: true, // creates extra traffic by loading exam object on page load
+                    autograding_defaultMinGrade: "30%"
+                },
+                api: {
+                    student_answers: '/exam-api/grading/%uuid/student-answers',
+                    attachments_list: '/exam-api/exams/%uuid/attachments',
+                    exam_data: '/exam-api/exams/%uuid/exam',
+                    heldexam_data: '/exam-api/exams/held-exam/%uuid/exam',
+                    papergrading: '/exam-api/grading/gradingTexts/%paperid' 
+                }
             },
             fetch: {
                 /**
@@ -180,7 +275,9 @@ var APURI ={
 			},
             ytle: {  // YTL:n kokeen vakioita
                 savedIndicator: "div.savedIndicator",
-                emptyQuestionWarning: 'div.empty-question-warning'
+                emptyQuestionWarning: 'div.empty-question-warning',
+                grading_answertext: '#answers answer-text-container answerText',
+                grading_popup: 'answerText add-annotation-popup'
             },
 
             questionsort: { 
@@ -430,6 +527,9 @@ var APURI ={
                 closeModalWindow() {
                     $('#APURI_modal_back').remove();
                     $('#APURI_modal_content').remove();
+                    for (let bodyCh of document.body.children) {
+                        $(bodyCh).removeClass('APURI_blur');
+                    }                            
                     if (APURI.questionsort.changed)
                         location.reload();
                 },
@@ -441,17 +541,37 @@ var APURI ={
                  * @param {type} actionFkt
                  * @returns {undefined}
                  */
-                openModalWindow(renderFkt, buttonTitle, actionFkt = null) {
-                        if (typeof buttonTitle === 'undefined')
+                openModalWindow(renderFkt, buttonTitle, actionFkt = null, altOptions = null) {
+                    let _ = APURI.ui;
+                    var options = Object.assign({
+                        closeOnBlur: false,
+                        actionOnBlur: function() {},
+                        backgroundclass: 'APURImodal_back',
+                        diffuse: false,
+                        _blurHandler: function() {
+                            if (options.closeOnBlur) {
+                                _.closeModalWindow();
+                            }
+                            actionOnBlur();
+                        }
+                    }, altOptions);
+                    if (options.diffuse) {
+                        for (let bodyCh of document.body.children) {
+                            if (bodyCh.id !== 'APURI_modal_content') {
+                                $(bodyCh).addClass('APURI_blur');
+                            }
+                        }                            
+                    }
+                        if (typeof buttonTitle === 'undefined' || buttonTitle === null)
                             buttonTitle = APURI.text.close_button;
                         if (actionFkt === null)
                             actionFkt = APURI.ui.closeModalWindow;
-                        var outdiv = $('<div />');
-			outdiv.attr("class", "APURImodal_back");
-			outdiv.attr("id", "APURI_modal_back");
+                    let outdiv = $('<div />')
+			                        .attr("class", options.backgroundclass)
+                                    .attr("id", "APURI_modal_back")
+                                    .on('click', options._blurHandler);
 			//outdiv.attr("style", APURI.modal_background_style);
-			var div = $('<div />');
-			div.attr("id", "APURI_modal_content");
+			var div = $('<div />').attr("id", "APURI_modal_content");
                         div = renderFkt(div);
                         
                         
@@ -494,6 +614,340 @@ var APURI ={
                 }
             },
             util: {
+                checksum(param) {
+                    // source: https://asecuritysite.com/sha1.js
+                    /*
+                    * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
+                    * in FIPS 180-1
+                    * Version 2.2 Copyright Paul Johnston 2000 - 2009.
+                    * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+                    * Distributed under the BSD License
+                    * See http://pajhome.org.uk/crypt/md5 for details.
+                    */
+
+                   /*
+                    * Configurable variables. You may need to tweak these to be compatible with
+                    * the server-side, but the defaults work in most cases.
+                    */
+                   var hexcase = 0;  /* hex output format. 0 - lowercase; 1 - uppercase        */
+                   var b64pad  = ""; /* base-64 pad character. "=" for strict RFC compliance   */
+
+                   /*
+                    * These are the functions you'll usually want to call
+                    * They take string arguments and return either hex or base-64 encoded strings
+                    */
+                   function hex_sha1(s)    { return rstr2hex(rstr_sha1(str2rstr_utf8(s))); }
+                   function b64_sha1(s)    { return rstr2b64(rstr_sha1(str2rstr_utf8(s))); }
+                   function any_sha1(s, e) { return rstr2any(rstr_sha1(str2rstr_utf8(s)), e); }
+                   function hex_hmac_sha1(k, d)
+                     { return rstr2hex(rstr_hmac_sha1(str2rstr_utf8(k), str2rstr_utf8(d))); }
+                   function b64_hmac_sha1(k, d)
+                     { return rstr2b64(rstr_hmac_sha1(str2rstr_utf8(k), str2rstr_utf8(d))); }
+                   function any_hmac_sha1(k, d, e)
+                     { return rstr2any(rstr_hmac_sha1(str2rstr_utf8(k), str2rstr_utf8(d)), e); }
+
+                   /*
+                    * Perform a simple self-test to see if the VM is working
+                    */
+                   function sha1_vm_test()
+                   {
+                     return hex_sha1("abc").toLowerCase() == "a9993e364706816aba3e25717850c26c9cd0d89d";
+                   }
+
+                   /*
+                    * Calculate the SHA1 of a raw string
+                    */
+                   function rstr_sha1(s)
+                   {
+                     return binb2rstr(binb_sha1(rstr2binb(s), s.length * 8));
+                   }
+
+                   /*
+                    * Calculate the HMAC-SHA1 of a key and some data (raw strings)
+                    */
+                   function rstr_hmac_sha1(key, data)
+                   {
+                     var bkey = rstr2binb(key);
+                     if(bkey.length > 16) bkey = binb_sha1(bkey, key.length * 8);
+
+                     var ipad = Array(16), opad = Array(16);
+                     for(var i = 0; i < 16; i++)
+                     {
+                       ipad[i] = bkey[i] ^ 0x36363636;
+                       opad[i] = bkey[i] ^ 0x5C5C5C5C;
+                     }
+
+                     var hash = binb_sha1(ipad.concat(rstr2binb(data)), 512 + data.length * 8);
+                     return binb2rstr(binb_sha1(opad.concat(hash), 512 + 160));
+                   }
+
+                   /*
+                    * Convert a raw string to a hex string
+                    */
+                   function rstr2hex(input)
+                   {
+                     try { hexcase } catch(e) { hexcase=0; }
+                     var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+                     var output = "";
+                     var x;
+                     for(var i = 0; i < input.length; i++)
+                     {
+                       x = input.charCodeAt(i);
+                       output += hex_tab.charAt((x >>> 4) & 0x0F)
+                              +  hex_tab.charAt( x        & 0x0F);
+                     }
+                     return output;
+                   }
+
+                   /*
+                    * Convert a raw string to a base-64 string
+                    */
+                   function rstr2b64(input)
+                   {
+                     try { b64pad } catch(e) { b64pad=''; }
+                     var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+                     var output = "";
+                     var len = input.length;
+                     for(var i = 0; i < len; i += 3)
+                     {
+                       var triplet = (input.charCodeAt(i) << 16)
+                                   | (i + 1 < len ? input.charCodeAt(i+1) << 8 : 0)
+                                   | (i + 2 < len ? input.charCodeAt(i+2)      : 0);
+                       for(var j = 0; j < 4; j++)
+                       {
+                         if(i * 8 + j * 6 > input.length * 8) output += b64pad;
+                         else output += tab.charAt((triplet >>> 6*(3-j)) & 0x3F);
+                       }
+                     }
+                     return output;
+                   }
+
+                   /*
+                    * Convert a raw string to an arbitrary string encoding
+                    */
+                   function rstr2any(input, encoding)
+                   {
+                     var divisor = encoding.length;
+                     var remainders = Array();
+                     var i, q, x, quotient;
+
+                     /* Convert to an array of 16-bit big-endian values, forming the dividend */
+                     var dividend = Array(Math.ceil(input.length / 2));
+                     for(i = 0; i < dividend.length; i++)
+                     {
+                       dividend[i] = (input.charCodeAt(i * 2) << 8) | input.charCodeAt(i * 2 + 1);
+                     }
+
+                     /*
+                      * Repeatedly perform a long division. The binary array forms the dividend,
+                      * the length of the encoding is the divisor. Once computed, the quotient
+                      * forms the dividend for the next step. We stop when the dividend is zero.
+                      * All remainders are stored for later use.
+                      */
+                     while(dividend.length > 0)
+                     {
+                       quotient = Array();
+                       x = 0;
+                       for(i = 0; i < dividend.length; i++)
+                       {
+                         x = (x << 16) + dividend[i];
+                         q = Math.floor(x / divisor);
+                         x -= q * divisor;
+                         if(quotient.length > 0 || q > 0)
+                           quotient[quotient.length] = q;
+                       }
+                       remainders[remainders.length] = x;
+                       dividend = quotient;
+                     }
+
+                     /* Convert the remainders to the output string */
+                     var output = "";
+                     for(i = remainders.length - 1; i >= 0; i--)
+                       output += encoding.charAt(remainders[i]);
+
+                     /* Append leading zero equivalents */
+                     var full_length = Math.ceil(input.length * 8 /
+                                                       (Math.log(encoding.length) / Math.log(2)))
+                     for(i = output.length; i < full_length; i++)
+                       output = encoding[0] + output;
+
+                     return output;
+                   }
+
+                   /*
+                    * Encode a string as utf-8.
+                    * For efficiency, this assumes the input is valid utf-16.
+                    */
+                   function str2rstr_utf8(input)
+                   {
+                     var output = "";
+                     var i = -1;
+                     var x, y;
+
+                     while(++i < input.length)
+                     {
+                       /* Decode utf-16 surrogate pairs */
+                       x = input.charCodeAt(i);
+                       y = i + 1 < input.length ? input.charCodeAt(i + 1) : 0;
+                       if(0xD800 <= x && x <= 0xDBFF && 0xDC00 <= y && y <= 0xDFFF)
+                       {
+                         x = 0x10000 + ((x & 0x03FF) << 10) + (y & 0x03FF);
+                         i++;
+                       }
+
+                       /* Encode output as utf-8 */
+                       if(x <= 0x7F)
+                         output += String.fromCharCode(x);
+                       else if(x <= 0x7FF)
+                         output += String.fromCharCode(0xC0 | ((x >>> 6 ) & 0x1F),
+                                                       0x80 | ( x         & 0x3F));
+                       else if(x <= 0xFFFF)
+                         output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
+                                                       0x80 | ((x >>> 6 ) & 0x3F),
+                                                       0x80 | ( x         & 0x3F));
+                       else if(x <= 0x1FFFFF)
+                         output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
+                                                       0x80 | ((x >>> 12) & 0x3F),
+                                                       0x80 | ((x >>> 6 ) & 0x3F),
+                                                       0x80 | ( x         & 0x3F));
+                     }
+                     return output;
+                   }
+
+                   /*
+                    * Encode a string as utf-16
+                    */
+                   function str2rstr_utf16le(input)
+                   {
+                     var output = "";
+                     for(var i = 0; i < input.length; i++)
+                       output += String.fromCharCode( input.charCodeAt(i)        & 0xFF,
+                                                     (input.charCodeAt(i) >>> 8) & 0xFF);
+                     return output;
+                   }
+
+                   function str2rstr_utf16be(input)
+                   {
+                     var output = "";
+                     for(var i = 0; i < input.length; i++)
+                       output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
+                                                      input.charCodeAt(i)        & 0xFF);
+                     return output;
+                   }
+
+                   /*
+                    * Convert a raw string to an array of big-endian words
+                    * Characters >255 have their high-byte silently ignored.
+                    */
+                   function rstr2binb(input)
+                   {
+                     var output = Array(input.length >> 2);
+                     for(var i = 0; i < output.length; i++)
+                       output[i] = 0;
+                     for(var i = 0; i < input.length * 8; i += 8)
+                       output[i>>5] |= (input.charCodeAt(i / 8) & 0xFF) << (24 - i % 32);
+                     return output;
+                   }
+
+                   /*
+                    * Convert an array of big-endian words to a string
+                    */
+                   function binb2rstr(input)
+                   {
+                     var output = "";
+                     for(var i = 0; i < input.length * 32; i += 8)
+                       output += String.fromCharCode((input[i>>5] >>> (24 - i % 32)) & 0xFF);
+                     return output;
+                   }
+
+                   /*
+                    * Calculate the SHA-1 of an array of big-endian words, and a bit length
+                    */
+                   function binb_sha1(x, len)
+                   {
+                     /* append padding */
+                     x[len >> 5] |= 0x80 << (24 - len % 32);
+                     x[((len + 64 >> 9) << 4) + 15] = len;
+
+                     var w = Array(80);
+                     var a =  1732584193;
+                     var b = -271733879;
+                     var c = -1732584194;
+                     var d =  271733878;
+                     var e = -1009589776;
+
+                     for(var i = 0; i < x.length; i += 16)
+                     {
+                       var olda = a;
+                       var oldb = b;
+                       var oldc = c;
+                       var oldd = d;
+                       var olde = e;
+
+                       for(var j = 0; j < 80; j++)
+                       {
+                         if(j < 16) w[j] = x[i + j];
+                         else w[j] = bit_rol(w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16], 1);
+                         var t = safe_add(safe_add(bit_rol(a, 5), sha1_ft(j, b, c, d)),
+                                          safe_add(safe_add(e, w[j]), sha1_kt(j)));
+                         e = d;
+                         d = c;
+                         c = bit_rol(b, 30);
+                         b = a;
+                         a = t;
+                       }
+
+                       a = safe_add(a, olda);
+                       b = safe_add(b, oldb);
+                       c = safe_add(c, oldc);
+                       d = safe_add(d, oldd);
+                       e = safe_add(e, olde);
+                     }
+                     return Array(a, b, c, d, e);
+
+                   }
+
+                   /*
+                    * Perform the appropriate triplet combination function for the current
+                    * iteration
+                    */
+                   function sha1_ft(t, b, c, d)
+                   {
+                     if(t < 20) return (b & c) | ((~b) & d);
+                     if(t < 40) return b ^ c ^ d;
+                     if(t < 60) return (b & c) | (b & d) | (c & d);
+                     return b ^ c ^ d;
+                   }
+
+                   /*
+                    * Determine the appropriate additive constant for the current iteration
+                    */
+                   function sha1_kt(t)
+                   {
+                     return (t < 20) ?  1518500249 : (t < 40) ?  1859775393 :
+                            (t < 60) ? -1894007588 : -899497514;
+                   }
+
+                   /*
+                    * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+                    * to work around bugs in some JS interpreters.
+                    */
+                   function safe_add(x, y)
+                   {
+                     var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+                     var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+                     return (msw << 16) | (lsw & 0xFFFF);
+                   }
+
+                   /*
+                    * Bitwise rotate a 32-bit number to the left.
+                    */
+                   function bit_rol(num, cnt)
+                   {
+                     return (num << cnt) | (num >>> (32 - cnt));
+                   }
+                   return b64_sha1(param);
+                },
                 browserFirefoxDetect() {
                     
                     let pattern = /Firefox\/(\d\d)./g;
@@ -504,6 +958,13 @@ var APURI ={
                     }
                     return false;
                     //return (navigator.userAgent.indexOf("Firefox/57") > -1?true:false);                    
+                },
+                osBrowserDetect() {
+                    let pattern = /(Windows NT)|(X11\/Linux)/g;
+                    if (navigator.userAgent.search(pattern)>0) {
+                        // supported os
+                        APURI.settings.local.enableReviewKeyboardShortcuts = true;
+                    }                   
                 },
 
                 linkDetector(content) {
@@ -554,6 +1015,25 @@ var APURI ={
                 },
                 wordCount(text) {
                     return text.trim().split(/\s+/).length;
+                },
+                /*
+                 * Returns all links to attachments in text
+                 * @param {type} text
+                 * @returns {Array|APURI.util.getLinksToAttachments.resultset}
+                 */
+                getLinksToAttachments(text) {
+                    let resultset = [];
+                    for (let res = APURI.settings.attachment_map.exec(text); 
+                        res !== null; res = APURI.settings.attachment_map.exec(text)) {
+                        
+                        resultset.push(res[1]||res[2]);
+                    }
+                    APURI.settings.attachment_map.lastIndex = 0;
+                    if (resultset.length > 0) {
+                        return resultset;
+                    } else {
+                        return null;
+                    }
                 },
                 xhr : {
                     makeRequest(opt) {
@@ -645,6 +1125,35 @@ var APURI ={
             },
             attachments: {
                 currentList: null,
+                /**
+                 * 
+                 * @param {type} listFiles
+                 * @param {type} listAttachments
+                 * @returns {APURI.attachments.matchLists.result} {matched - list of matched files, nonmatched - list of nonmatched files}
+                 */
+                matchLists(listFiles, listAttachments) {
+                    let result = {
+                        matched: [],
+                        nonmatched: []
+                    };
+                    let attachmentsMap = new Map();
+                    for (let attachment of listAttachments) {
+                        if (typeof attachment == 'string')
+                            attachmentsMap.set(attachment, {displayName: attachment});
+                        if (typeof attachment == 'object' && typeof attachment.displayName == 'string') {
+                            attachmentsMap.set(attachment.displayName, attachment);
+                        }
+                    }
+                    for (let file of listFiles) {
+                        if (attachmentsMap.has(file)) {
+                            result.matched.push(file);
+                        } else {
+                            result.nonmatched.push(file);
+                        }
+                    }
+                    return result;
+                    
+                },
                 loadAttachmentList() {
                     let uuid = APURI.exam.getCurrentLocationUuid();
                     return new Promise((resolve, reject) => {
@@ -664,10 +1173,23 @@ var APURI ={
                  * @param {string} targerId
                  * @returns {Promise}
                  */
-                copyAttachments(sourceId, targetId) {
+                copyAttachments(sourceId, targetId, listFiles = null) {
+                    console.log("Copy attachments called source=%s, target=%s, list=%o",sourceId, targetId, listFiles);
                     return new Promise((resolve, reject) => {
                         let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
-                        APURI.fetch.getJson(sourceAttachmentUri)
+                        var fetchList = {};
+                        if (listFiles === null)
+                            fetchList = APURI.fetch.getJson(sourceAttachmentUri);
+                        else {
+                            fetchList = new Promise((resolve, reject) => {
+                                let fetched = [];
+                                for (let file of listFiles) {
+                                    fetched.push({displayName: file});
+                                }
+                                resolve(fetched);
+                            });
+                        }
+                        fetchList
                                 .then(function(attachments) {
                                     let promiseStack = [];
                                     for (let attachment of attachments) {
@@ -689,7 +1211,7 @@ var APURI ={
                  * 
                  * @param {type} sourceExamId
                  * @param {type} targetExamId
-                 * @param {type} attachment
+                 * @param {type} attachment, pitää olla ominaisuudest displayName ja mimeType
                  * @returns {Promise}
                  */
                 copyAttachment(sourceExamId, targetExamId, attachment) {
@@ -705,6 +1227,9 @@ var APURI ={
                                     APURI.ui.hideDownloadStatus(attachment.displayName);
                                     APURI.ui.showUploadStatus(attachment.displayName);
                                     let targetUri = `/exam-api/exams/${targetExamId}/attachments/add`;
+                                    if (typeof attachment.mimeType === 'undefined') {
+                                        attachment.mimeType = blob.type;
+                                    }
                                     APURI.util.uploadBlob(targetUri, blob, {filename: attachment.displayName, filetype: attachment.mimeType}, function(e) {
                                         if (e.lengthComputable) {
                                             APURI.ui.updateCurrentUpload(attachment.displayName, (e.loaded/e.total)*100);
@@ -724,7 +1249,23 @@ var APURI ={
             },
             grading: {
                 gradesBuffer: null,
-                
+                storeGradeElement(grade, $element) {
+                    let paperId = parseInt($element.attr('data-answer-paper-id'));
+                    let gradeObj = {gradingText: grade};
+                    $.ajax({
+                        type: "POST",
+                        url: (APURI.settings.api.papergrading.replace("%paperid",paperId)),
+                        data: JSON.stringify(gradeObj),
+                        accept: "application/json; text/javascript",
+                        contentType: "application/json; charset=UTF-8",
+                        dataType: "json",
+                        success: function(data){
+                        },
+                        failure: function(errMsg) {
+                            console.log("Error storing grade", errMsg);
+                        }                        
+                    });
+                },
                 initGradingCount() {
                   let currentUuid = APURI.exam.getCurrentLocationUuid();
                   this.loadGradingObject(currentUuid)
@@ -733,12 +1274,60 @@ var APURI ={
                               APURI.initView(APURI.views.grading);
                   });
                 },
+                
+                getQuestionByAnswer(answerPapers, answerId) {
+                    if (answerPapers === null)
+                        return null;
+                    for (let answerPaper of answerPapers) {
+                        for (let answer of answerPaper.answers) {
+                            if (answer.id == answerId)
+                                return answer.questionId;
+                        }
+                    }
+                    return null;
+                },
+                /**
+                 * 
+                 * @param {type} data
+                 * @param {type} questionId
+                 * @returns {comments} Map questionText -> count
+                 */
+                getAllComments(data, questionId = null) {
+                    let comments = new Map();
+                    for (let pupil of data) {
+                        for (let answer of pupil.answers) {
+                            if (answer.metadata !== null && (questionId === null || answer.questionId === questionId))
+                                for (let annotation of answer.metadata.annotations) {
+                                    let subannos = annotation.message.split(" / ");
+                                    for (let subanno of subannos) {
+                                        if (comments.has(subanno)) {
+                                            let obj = comments.get(subanno);
+                                            obj++;
+                                            comments.set(subanno, obj);
+                                        } else {
+                                            comments.set(subanno, 1);
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                    let retval = Array.from(comments, ([k, v]) => {
+                        return {message: k, count:v};});
+                    retval.sort((a, b) => {
+                        if (a.count > b.count)
+                            return -1;
+                        else
+                            return 1;
+                    });
+                    //let retval = Array.from(comments, [key, val] => {return {message: key, count: val}});
+                    return retval;
+                },
                  /**
                  * Loads grading object
                  * @param {string} examId UUID for exam
                  * @returns {Promise} Promise which resolves for GradingObject  
                  */
-                loadGradingObject(examId) {
+                loadGradingObject(examId, sortByName = true) {
                     return new Promise((resolve, reject) => {
                         let waitForUser = Promise.resolve(1);
                     
@@ -746,9 +1335,13 @@ var APURI ={
                             waitForUser = APURI.user.loadUserdata();
                         }
                         waitForUser.then(function() {
-                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`)
+                            APURI.fetch.getJson(APURI.settings.api.student_answers.replace("%uuid",examId)) //    `https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`
                                     .then(function(data) {
-                                        resolve(APURI.grading.sortGradingObject(data));
+                                        console.log("Loaded grading object", data);
+                                        if (sortByName)
+                                            resolve(APURI.grading.sortGradingObject(data));
+                                        else
+                                            resolve(data);
                             })
                                 .catch(reject);                              
                         }).catch(()=> {
@@ -805,7 +1398,7 @@ var APURI ={
                         for (let q = 0; q < questions.length; q++) {
                             console.log(".");
                             template[questions[q].id]={id: questions[q].id,
-                                value: ""};
+                                value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
                         }
                     }
                     return template;
@@ -826,6 +1419,25 @@ var APURI ={
                     return result.substring(0, result.length-1) + "\n";
                 },
                 /**
+                 * Creates a line with maxscores and their titles.
+                 * @param {type} examObj
+                 * @returns {APURI.grading.constructMaxScores.template|Array} - .totalMaxScore for totalAmount
+                 */
+                constructMaxScores(examObj) {
+                  //let retval = new Array();
+                  let template = APURI.grading.constructTemplateObject(examObj);
+                  let sumMax = 0;
+                  for (let val of template) {
+                      if (val) {
+                          val.value = ""+val.maxScore;
+                          sumMax += val.maxScore;
+                      }
+                  }
+                  template.unshift({value: ''/*vastausid*/},{value: APURI.text.csv_maxpoints}, {value: "" /* email */ });
+                  template.push({value: sumMax, totalMaxScore: sumMax});
+                  return template;
+                },
+                /**
                  * Extracts CSV from GradingObject
                  * @param {GradingObject} gradingObj grading
                  * @param {Object} examObj Exam object
@@ -835,9 +1447,10 @@ var APURI ={
                     let result = "";
                     let template = this.constructTemplateObject(examObj);
                     let titlerow = this.constructTitleObject(examObj);
-                    titlerow.unshift({value: APURI.text.csv_name}, {value: APURI.text.csv_email});
+                    titlerow.unshift({value: APURI.settings.csv_idtitle},{value: APURI.text.csv_name}, {value: APURI.text.csv_email});
                     titlerow.push({value: APURI.text.csv_sum}, {value: APURI.text.csv_grade});
                     result += this.extractCsvRow(titlerow);
+                    result += this.extractCsvRow(this.constructMaxScores(examObj));
                     //template.unshift({id: null, value: ""}, {id: null, value: ""});
                     for (let i = 0; i < gradingObj.length; i++) {
                         let studentGrading = gradingObj[i];
@@ -853,6 +1466,10 @@ var APURI ={
                             scoreSum += studentAnswer.scoreValue;
                         }
                         studentRow.unshift({
+                            id: null,
+                            value: studentGrading.answerPaperId
+                        },
+                        {
                             id: null,
                             value: studentGrading.lastName +" "+studentGrading.firstNames
                         }, {
@@ -897,7 +1514,7 @@ var APURI ={
                     APURI.grading.getCsvDataForCurrent()
                             .then((result)=>{
                         APURI.ui.downloadFile(result);
-                        console.log(result);
+                        //console.log(result);
                         });
                     return false;
                 }
@@ -947,7 +1564,7 @@ var APURI ={
                  * @param {string} examUuid UUID for exam
                  * @returns {Promise} Promise which resolves for ExamObject  
                  */
-                loadExam(examUuid) {
+                loadExam(examUuid, heldExam = false) {
                     return new Promise((resolve, reject) => {
                         // TODO varmista että onko tämä turha odottaa käyttäjää??
                         let waitForUser = Promise.resolve(1);
@@ -956,15 +1573,44 @@ var APURI ={
                             waitForUser = APURI.user.loadUserdata();
                         }
                         waitForUser.then(function() {
-                            APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`)
-                                    .then(function(data) {
+                            let waitForUnheldExam = null; 
+                            if (!heldExam) {
+                                // try fetching unheld exam
+                                waitForUnheldExam = APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${examUuid}/exam`);
+                            } else {
+                                waitForUnheldExam = Promise.reject('Delibarate failure, no worries! (Abix)');
+                            }
+                            waitForUnheldExam.then(function(data) {
                                         APURI.exam.buffer = data;
                                         resolve(data);
                             })
-                                .catch(reject);                              
+                                .catch(function(result) {
+                                    // Loading exam failed --> try held exam
+                                    //console.log("Failed loading exam "+examUuid+", trying a held-one:",result);
+                                    APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/held-exam/${examUuid}/exam`)
+                                            .then(function(data) {
+                                                APURI.exam.buffer = data;
+                                                resolve(data);
+                                            })
+                                            .catch(reject);
+                            });                              
                         }).catch(reject);
                     
                     });
+                },
+                getQuestionIds(examObj) {
+                    let result = [];
+                    for (let i=0; i<examObj.content.sections.length; i++) {
+                            // sectionloop
+                            let section = examObj.content.sections[i];
+                            if (typeof section.questions !== 'undefined') {
+                                    for(let j=0; j<section.questions.length; j++) {
+                                            result.push(section.questions[j].id);
+                                    }
+                            }
+                    }
+                    return result;
+                    
                 },
                 /**
                  * Searches questionObject from examObject
@@ -1003,6 +1649,84 @@ var APURI ={
                             }
                     }
                     return maxScore;
+                },
+                saveExam(exam, reload = true) {
+                    $.ajax({
+                            type: "POST",
+                            url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
+                            data: JSON.stringify(exam.content),
+                            accept: "application/json; text/javascript",
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: "json",
+                            success: function(data){
+                                //console.log("Saved successfully"); 
+                                if (reload)
+                                    window.location.reload(true);
+                            },
+                            failure: function(errMsg) {
+                                    console.log("ERROR: "+errMsg);
+
+                            },
+                            complete: function(data){
+                                //console.log("Save complited successfully");
+                            }
+                    });
+                },
+                traverseSetId(obj, initval = 0) {
+                    var counter = 0;
+                    if (typeof initval === 'number' && initval > 0) 
+                            counter = initval;
+                    if (obj !== null && typeof obj === 'object') {
+                            for (var key in obj) {
+                                    if (key === 'id') {
+                                            obj[key] = counter++;
+                                            //console.log("id set to "+(counter-1));
+                                    }
+                                    if (typeof obj[key] === 'object') {
+                                            counter = APURI.exam.traverseSetId(obj[key], counter);
+                                    }
+                            }
+                    }
+                    return counter;
+        	},
+                traverseDisplayNumber(obj, curr, clevel = 1) {
+                    var count = {level1: 0,
+                                             level2: 0,
+                                             level3: 0};
+                    if (typeof curr === 'number' && curr > 1) { 
+                            count.level1 = curr-1;
+                    } else if (typeof curr === 'object') {
+                            count = curr;
+                    }
+
+                    var countup = false;
+
+                    if (obj !== null && typeof obj === 'object') {
+                            if (typeof obj.displayNumber !== 'undefined') {
+                                    if (typeof obj.level !== 'undefined')
+                                        clevel = obj.level;
+                                    var debug = "";
+                                    countup = true;
+                                    if (clevel === 1) {
+                                            debug = obj.displayNumber = ""+(++count.level1);
+                                            count.level2 = 0;
+                                            count.level3 = 0;
+                                    } else if (clevel === 2) {
+                                            debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
+                                            count.level3 = 0;
+                                    } else if (clevel === 3) {
+                                            debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
+                                    }
+                                    //console.log("Set Display:"+debug);
+                                    clevel++;
+                            }
+                            for (var key in obj) {
+                                    if (typeof obj[key] === 'object') {
+                                            count = APURI.exam.traverseDisplayNumber(obj[key], count, clevel);
+                                    }
+                            }
+                    }
+                    return count;
                 }
             },
             examList : {
@@ -1031,7 +1755,7 @@ var APURI ={
                 ckeAbiximageInfo: {
                     initTimer: null,
                     show: function () {
-                        let instructionElement = $('.attachment-instructions');
+                        let instructionElement = $('p.attachment-instructions');
                         let ckeinfo = document.getElementById('abiximage-info');
                         if (instructionElement.length > 0 && ckeinfo ===null) {
                             instructionElement.append($('<span />').attr('id','abiximage-info').attr('class', 'APURI abiximage-info').html(APURI.text.cke_abiximg_info));
@@ -1078,14 +1802,563 @@ var APURI ={
                 gradingSummary: {
                     initTimer: null,
                     counter: 0,
+                    currentExam: null,
+                    doNotClosePopup: false,
+                    doNotCloseImportPopup: false,
+                    showGrades: true,
+                    currentExamUuid: null,
+                    init: function() {
+                        if (!APURI.settings.local.enableTotalMaxScore)
+                            return;
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.exam.loadExam(uuid).then(exam => {
+                            this.currentExam = exam;
+                        });                     
+                    },
+                    getCurrentUuid() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.currentExamUuid == null) {
+                            _.currentExamUuid = APURI.exam.getCurrentLocationUuid();
+                        } 
+                        return _.currentExamUuid;
+                    },
+                    createScoringPopupHtml() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let currMaxScore = _.getTotalMaxScore()
+                        let calcMaxScore = _.getCalculativeTotalMaxscore();
+                        let currMinScore = _.getMinScore();
+                        let currMinScoreStr = _.minScoreStr;
+                        let el = $('<div />').attr('id','APURI_autograding_popup').attr('class','APURI-autograding APURI')
+                                .append($('<span />').html(_t.autograding_maxscore_title))
+                                .append($('<input />')
+                                    .attr('id','APURI_autograding_maxscore')
+                                    .attr('defaultValue',calcMaxScore)
+                                    .attr('placeholder', _t.autograding_maxscore_placeholder.replace("%s",calcMaxScore)).val(currMaxScore)
+                                    .on('change keyup',_.updateValuesAndView))
+                                .append($('<span />').html(_t.autograding_minscore_title).attr('title',_t.autograding_minscore_tooltip))
+                                .append($('<br />').attr('class','APURI_cr'))
+                                .append($('<input />')
+                                    .attr('id','APURI_autograding_minscore')
+                                    .attr('defaultValue',APURI.settings.local.autograding_defaultMinGrade).attr('placeholder',_t.autograding_minscore_placeholder.replace("%s",APURI.settings.local.autograding_defaultMinGrade)).val(currMinScoreStr)
+                                    .on('change keyup',_.updateValuesAndView))
+                                .append($('<br />').attr('class','APURI_cr'))
+                                .append($('<button />').attr('id','APURI_autograding_commit').attr('class','APURI APURI_autograding_commit').html(_t.autograding_commit).on('click', _.commitAutograding))
+                                .append($('<a />')
+                                    .attr('class', 'APURI_cr')
+                                    .attr('href', "#")
+                                    .attr('id', 'APURI_autograding_togglegrade')
+                                    .html(_t.autograding_togglegrade[_.showGrades?0:1])
+                                    .on('click', _.toggleGrade))
+                                .append($('<br />'))
+                                .append($('<a />')
+                                    .attr('href', "#")
+                                    .attr('id', 'APURI_autograding_opentable')
+                                    .html(_t.autograding_gradingtable_open)
+                                    .on('click', _.openGradingTableModal).hide())
+                                .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeScoringPopup))
+                                .on('click',_.preventPopupClose).hide();
+                        return el;
+                    },
+                    commitAutograding() {
+                        $('#scoreTable td.proposalGrade').each((index, el) => {
+                            let $el = $(el);
+                            let grade = $el.html();
+                            let inputField = $el.next().children('input.gradingText');
+                            if (inputField.val() !== '')
+                                return; // do not overwrite!
+                            inputField.val(grade);
+                            APURI.grading.storeGradeElement(grade, inputField);
+                            inputField.trigger('input'); // save
+                        });
+                    },
+                    toggleGrade() {
+                        let _ = APURI.views.gradingSummary;
+                        _.showGrades = !_.showGrades;
+                        $('#APURI_autograding_togglegrade').html(APURI.text.autograding_togglegrade[_.showGrades?0:1]);
+                        _.updateValuesAndView();
+                        return false;
+                    },
+                    updateValuesAndView() {
+                        let _ = APURI.views.gradingSummary;
+                        _.setTotalMaxScore($('#APURI_autograding_maxscore').val());
+                        _.setMinScore($('#APURI_autograding_minscore').val());
+
+                        if ($('.APURI_proposal').length == 0) {
+                            $('<th />').attr('class','APURI proposalHeader APURI_proposal').html(APURI.text.autograding_scoretable_header[_.showGrades?0:1])
+                            .insertAfter('#scoreTable tr th.sumHeader');
+                            $('#scoreTable tr td.totalScore').after($('<td />').attr('class','APURI proposalGrade APURI_proposal').html("-"));                            
+                        }
+                        $('.proposalHeader').html(APURI.text.autograding_scoretable_header[_.showGrades?0:1]);
+                        if (_.showGrades) {
+                            $('#APURI_autograding_opentable').show();
+                            $('#APURI_autograding_commit').show();
+                        } else {
+                            $('#APURI_autograding_opentable').hide();
+                            $('#APURI_autograding_commit').hide();
+                        }
+                        $('.proposalGrade').each((i,el) => {
+                            let $el = $(el);
+                            let score = parseInt($el.prev().html());
+                            if (_.showGrades) {
+                                $el.html(_.getGradeFromScore(score));
+                            } else {
+                                $el.html((score*100/_.totalMaxScore).toFixed(1)+" %");    
+                            }
+                        }); 
+                    },
+                    setTotalMaxScore(value) {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let maxFieldError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_maxscore").addClass("APURIfielderror").attr('title', syy);
+                        }
+                        let maxFieldMinorError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_maxscore").addClass("APURIfieldminor").attr('title', syy);
+                        }
+                        let maxFieldOk = function() {
+                            $("#APURI_autograding_maxscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
+                        }
+                        let maxScore = parseInt(value);
+                        if (maxScore < 1) {
+                            maxFieldError(_t.autograding_maxscore_negative);
+                            return;
+                        }
+                        if (typeof _.calcMaxScore !== 'undefined' && 
+                            _.calcMaxScore > 0 &&
+                            maxScore > _.calcMaxScore) {
+                            maxFieldMinorError(_t.autograding_maxscore_toolarge.replace("%d", _.calcMaxScore));
+                        }
+                        maxFieldOk();
+                        _.totalMaxScore = maxScore;
+                        Cookies.set(_.getCurrentUuid()+'APURI_autograding_maxScore', _.totalMaxScore);
+                    },
+                    setMinScore(value = null) {
+                        let _t = APURI.text;
+                        let minFieldError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_minscore").addClass("APURIfielderror").attr('title', syy);
+                        }
+                        let minFieldMinorError = function(syy) {
+                            syy = syy || "";
+                            $("#APURI_autograding_minscore").addClass("APURIfieldminor").attr('title', syy);
+                        }
+                        let minFieldOk = function() {
+                            $("#APURI_autograding_minscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
+                        }
+                        let _ = APURI.views.gradingSummary;
+                        if (value === '' || value === null)
+                            value = APURI.settings.local.autograding_defaultMinGrade;
+                        let minscore = 0;
+                        let minscoreStr = '';
+                        console.log("DEBUG set min to ", value, minscore);
+                        if (typeof value === 'string') {
+                            let percentStr = /^\s*(\d+(?:[,.]\d+)?)\s*%\s*/;
+                            let pointStr = /^\s*(\d+(?:[,.]\d+)?)\s*p?\s*/;
+                            let resultset = percentStr.exec(value);
+                            if (resultset !== null && typeof resultset[1] !== 'undefined') {
+                                // percent value
+                                minscore = parseFloat(resultset[1])/100*_.totalMaxScore;
+                                minscoreStr = resultset[1]+"%";
+                            } else {
+                                resultset = pointStr.exec(value);
+                              
+                                if (resultset !== null && typeof resultset[1] !== 'undefined') {
+                                    minscore = parseFloat(resultset[1]);
+                                    minscoreStr = minscore;
+                                } else {
+                                    minFieldError(_t.autograding_minscorefield_parseerror);
+                                    return;
+                                }
+                            }
+                        } else if (typeof value === 'number') {
+                            minscore = value;
+                        } else {
+                            minFieldError(_t.autograding_minscorefield_parseerror);                            
+                        }
+                        if (minscore > _.totalMaxScore) {
+                            minFieldError(_t.autograding_minscorefield_toolarge.replace("%d", _.totalMaxScore));
+                            return;
+                        }
+                        if (minscore < 0) {
+                            minFieldError(_t.autograding_minscorefield_negative);
+                            minscore = 0;
+                        }
+                        minFieldOk();
+                        _.minScore = minscore;
+                        _.minScoreStr = minscoreStr;
+                        Cookies.set(_.getCurrentUuid()+'APURI_autograding_minScore', _.minScoreStr);
+                    },
+                    openScoringPopup() {
+                        let _ = APURI.views.gradingSummary;
+                        $('body').on('click', _.closeScoringPopup);
+                        $('#APURI_autograding_popup').show();
+                        _.updateValuesAndView();
+                        return false;
+                    },
+                    closeScoringPopup() {
+                        let _ = APURI.views.gradingSummary;
+                        if (!_.doNotClosePopup) {
+                            $('#APURI_autograding_popup').hide();
+                            $('body').off('click', _.closeScoringPopup);
+                        }
+                    },
+                    preventPopupClose() {
+                        let _ = APURI.views.gradingSummary;
+                        _.doNotClosePopup = true;
+                        setTimeout(x => {
+                            _.doNotClosePopup = false;
+                        },0);                        
+                    },
+                    getCalculativeTotalMaxscore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.calcMaxScore) {
+                            return _.calcMaxScore;
+                        }                        
+                        if (APURI.views.gradingSummary.currentExam) {
+                            let last = APURI.grading.constructMaxScores(APURI.views.gradingSummary.currentExam).pop();
+                            if (last) {
+                                _.calcMaxScore = last.totalMaxScore;
+                                return last.totalMaxScore;
+                            } 
+                        } 
+                        return undefined;
+                    },
+                    getMinScore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.minScore) {
+                            return _.minScore;
+                        } else {
+                            _.setMinScore(Cookies.get(_.getCurrentUuid()+'APURI_autograding_minScore'));
+                            return _.minScore;
+                        }
+                    },
+                    getTotalMaxScore() {
+                        let _ = APURI.views.gradingSummary;
+                        if (_.totalMaxScore) {
+                            return _.totalMaxScore;
+                        }
+                        let gradingMaxScore = Cookies.get(_.getCurrentUuid()+'APURI_autograding_maxScore');
+                        if (typeof gradingMaxScore !== 'undefined') {
+                            _.totalMaxScore = gradingMaxScore;
+                            return gradingMaxScore
+                        }  else {
+                            let calc = APURI.views.gradingSummary.getCalculativeTotalMaxscore();
+                            Cookies.set(_.getCurrentUuid()+'APURI_autograding_maxScore', calc);
+                            return _.totalMaxScore = parseInt(calc);
+                        }
+                    },
+                    getGradeFromScore(score) {
+                        let _ = APURI.views.gradingSummary;
+                        let grades = APURI.settings.grades;
+                        if (score < _.minScore)
+                            return grades[0];
+                        else if (score >= _.totalMaxScore)
+                            return grades[grades.length-1];
+                        // console.log("Testiarvosanaindeksi 1>", (score-_.minScore)/(_.totalMaxScore-_.minScore)*(grades.length-1)+1); 
+                        return grades[Math.floor((score-_.minScore)/(_.totalMaxScore-_.minScore)*(grades.length-1)+1)];
+                    },
+                    createGradeTableArray() {
+                        let _ = APURI.views.gradingSummary;
+                        let lastGrade = APURI.settings.grades[0]; // ei oteta hylättyä huomioon
+                        let result = new Array();
+                        result.push({limit: 0, grade: APURI.settings.grades[0]}); // lisätään hylätty - jakaumaa varten
+                        for (let i = Math.floor(_.minScore); i <= _.totalMaxScore; i++) {
+                            let currentGrade = _.getGradeFromScore(i);
+                            if (currentGrade !== lastGrade) {
+                                lastGrade = currentGrade;
+                                result.push({limit: i, grade: currentGrade});
+                            }
+                        }
+                        return result;
+                    },
+                    addDistributionToGradetable(values) {
+                        let elList = $('td.totalScore');
+                        let sum = 0;
+                        let count = elList.length;
+                        elList.each((index, el) => {
+                            let score = parseInt($(el).html()); 
+                            sum += score;
+                            let i=1;
+                            for (; i<values.length; i++) {
+                                if (score < values[i].limit) {
+                                    if (typeof values[i-1].count === 'number') {
+                                        values[i-1].count++;
+                                    } else {
+                                        values[i-1].count = 1;
+                                    }
+                                    break;
+                                }
+                            }
+                            if (i===values.length) { // tapaus 10
+                                if (typeof values[i-1].count === 'number') {
+                                    values[i-1].count++;
+                                } else {
+                                    values[i-1].count = 1;
+                                }
+                            }
+                        });
+                        let average = sum / count;
+                        return {
+                            gradetable: values,
+                            average: average
+                        }
+
+                    },
+                    createGradeTableElement(values) {
+                        let _ = APURI.views.gradingSummary;                        
+                        let {average, gradetable} = _.addDistributionToGradetable(values);
+                        let _t = APURI.text;
+                        let el = $('<table />')
+                                .append($('<tr />')
+                                    .append(
+                                        $('<th />').html(_t.autograding_gradingtable_grade), 
+                                        $('<th />').html(_t.autograding_gradingtable_limit),
+                                        $('<th />').html(_t.autograding_gradingtable_count)
+                                    ));
+                        for (let val of gradetable) {
+                            let trEl = $('<tr />')
+                            .append(
+                                $('<td />').html(val.grade),
+                                $('<td />').html(val.limit));
+                            if (typeof val.count === 'number') 
+                                trEl.append(
+                                    $('<td />').html(val.count).attr('class','APURI_gradedistcount'));
+                            val.count = val.count || 0;
+                            for (let i = 0; i<val.count; i++) {
+                                trEl.append($('<td />').attr('class', 'APURI_gradedistblock').html('x'));
+                            }
+                            el.append(trEl);                                
+                        }
+                        return $('<div />')
+                                .append(el)
+                                .append($('<div />').html(_t.autograding_gradingtable_average.replace('%average', average.toFixed(1)).replace('%grade', _.getGradeFromScore(average.toFixed(1)))));
+                    },
+                    openGradingTableModal() {
+                        let _ = APURI.views.gradingSummary;                        
+                        let grading = _.createGradeTableArray();
+                        APURI.ui.openModalWindow((div)=> {
+                            div.append(_.createGradeTableElement(grading));
+                            return div;
+                        }, null, null, {diffuse: true});
+                        return false;
+                    },
+                    createImportFilePopupElement() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let el = $('<div />').attr('id', 'APURI_importcsv_popup')
+                            .append($('<span />').html(_t.importcsv_popup_fileinfo))
+                            .append($('<input />').attr('type', 'file').attr('accept','.csv').attr('id','APURI_importcsv_selector'))
+                            .append($('<button />').attr('class', 'APURI APURI_sendcsv').html(_t.importcsv_popup_button).on('click', _.triggerImport))
+                            .append($('<div />').attr('id', 'APURI_importcsv_error').hide())
+                            .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeImportFilePopup))
+                            .on('click', _.preventImportFilePopupClose).hide();
+                        return el;
+                    },
+                    openImportFilePopup() {
+                        let _ = APURI.views.gradingSummary;
+                        $('#APURI_importcsv_popup').show();
+                        $('body').on('click', _.closeImportFilePopup);
+                        return false;
+                    },
+                    closeImportFilePopup() {
+                        let _ = APURI.views.gradingSummary;
+                        if (!_.doNotCloseImportPopup) {
+                            $('#APURI_importcsv_popup').hide();
+                            $('body').off('click', _.closeImportFilePopup);
+                        }
+                    },
+                    preventImportFilePopupClose() {
+                        let _ = APURI.views.gradingSummary;
+                        _.doNotCloseImportPopup = true;
+                        setTimeout(x => {
+                            _.doNotCloseImportPopup = false;
+                        }, 5);
+                    },
+                    csvLoadError(msg = '') {
+                        $('#APURI_importcsv_error').show().html(msg);
+                    },
+                    csvLoadOk() {
+                        $('#APURI_importcsv_error').hide().html('');
+                    },
+                    triggerImport() {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let fileselector = document.getElementById('APURI_importcsv_selector');
+                        if (typeof fileselector === 'undefined' || fileselector === null || typeof fileselector.files === 'undefined')
+                            return; // some kind of error
+                        let file = fileselector.files[0];
+                        var reader = new FileReader();
+                        reader.readAsText(file);
+                        reader.onload = function(event){
+                            var csv = event.target.result;
+                            console.log("READ file ",csv);
+                            console.log("JQUERYCSV TEST", JqueryCsv.toArrays(csv, {separator:';'}));
+                            let data = _.parseCsvToData(csv);
+                            console.log("Parsed from CSV", data);
+                            if (data == null) {
+                                _.csvLoadError(_t.importcsv_error_format);
+                            } else {
+                                _.openImportPreviewModal(data);
+                            }
+                            _.csvLoadOk();
+                            _.doNotCloseImportPopup = false;
+                            _.closeImportFilePopup();
+                        }
+                        reader.onerror = function(){ _.csvLoadError(_t.importcsv_error_file); console.log('Unable to read ' + file.fileName); };
+                    },
+                    parseCsvToData(csv) {
+                        let data = JqueryCsv.toArrays(csv, {separator:';'})
+                        if (typeof data === 'undefined' || data === null) {
+                            return null;
+                        } else if (typeof data[0] === 'string') {
+                            // not right separator
+                            data = JqueryCsv.toArrays(csv, {separator:','})
+                            if (typeof data === 'undefined' || data === null) {
+                                return null;
+                            }
+                        }
+                        let result = new Array();
+                        const gradeCol = data[0].length-1;
+                        const slackRows = 2; /* otsikkorivien + maksimipisterivien määrä */ 
+                        const answerIdCol = 0;
+                        const nameCol = 1;
+                        const emailCol = 2;
+                        for (let i=slackRows; i<data.length; i++) {
+                            let row = data[i];
+                            if (typeof row !== 'object') {
+                                break; // something is very wrong
+                            }
+                            result.push({answerPaperId: parseInt(row[answerIdCol]),name: row[nameCol], email: row[emailCol], grade: row[gradeCol]});
+                        }
+                        return result;
+                    },
+                    generateImportData(data, reviewObj) {
+                        let result = new Array();
+                        for (let row of data) {
+                            for (let student of reviewObj) {
+                                let name = student.lastName + " "+student.firstNames;
+                                if (name === row.name && ((student.email || "") === (row.email || "")) &&
+                                    (row.answerPaperId != null?row.answerPaperId === student.answerPaperId:true)) {                                    
+                                    row.studentUuid = student.studentUuid;
+                                    row.answerPaperId = student.answerPaperId;
+                                    if ((student.gradingText||"") !== "" && student.gradingText !== row.grade) {
+                                        row.conflict = true;
+                                        row.oldValue = student.gradingText;
+                                    }
+                                    if (student.gradingText === row.grade) {
+                                        row.nochange = true;
+                                    }                                    
+                                    result.push(row)
+                                    break;
+                                } else {
+                                    console.log("DEBUG: non-matching ",name, row.name);
+                                }
+                            }
+                        }
+                        return result;
+                    },
+                    commitImport(data) {
+                        console.log("CoMMit");
+                        $('#scoreTable input.gradingText').each((index, el) => {
+                            let $inputField = $(el);
+                            let studentUuid = $inputField.attr('data-student-uuid');
+                            let answerId = parseInt($inputField.attr('data-answer-paper-id'));
+                            for (let row of data) {
+                                console.log("debug ", row.answerPaperId, row.studentUuid, studentUuid, answerId);
+                                if (row.answerPaperId === answerId && row.studentUuid === studentUuid) {
+                                    if ((row.conflict == null || row.conflict === false) 
+                                        && (row.nochange == null || row.nochange === false)) {// undefined tai FALSE 
+                                            // Muutos JA ei konfliktia
+                                            $inputField.val(row.grade);
+                                            APURI.grading.storeGradeElement(row.grade, $inputField);
+                                            $inputField.trigger('input');
+                                    }
+                                    
+                                    break;
+                                }                                
+                            }
+                        });
+                    },
+                    createCsvPreviewElement(importdata = null) {
+                        let el = $('<div />');
+                        let _t = APURI.text;
+                        if (importdata !== null && importdata.length > 0) {
+                            el = el.html(_t.importcsv_preview_info);
+                            let tableEl = $('<table />')
+                                            .append($('<tr />')
+                                                .append($('<th />').html(_t.importcsv_preview_name))
+                                                .append($('<th />').html(_t.importcsv_preview_grade))
+                                                .append($('<th />').html(_t.importcsv_preview_oldgrade)));
+                            for (let inputRow of importdata) {
+                                let rowEl = $('<tr />')
+                                    .append($('<td />').html(inputRow.name))
+                                    .append($('<td />').html(inputRow.grade));
+                                if (inputRow.conflict) {
+                                    rowEl.append($('<td />').html(inputRow.oldValue)).addClass('APURI_import_conflictrow');
+                                }
+                                if (inputRow.nochange) {
+                                    rowEl.addClass('APURI_importcsv_nochange');
+                                }
+                                tableEl.append(rowEl);    
+                            }
+                            el.append(tableEl);    
+                        } else {
+                            el = el.html(_t.importcsv_preview_nodata);
+                        }
+                        return el;
+                    },
+                    openImportPreviewModal(data) {
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.grading.loadGradingObject(uuid)
+                            .then(function(grading) {
+                                let importdata = _.generateImportData(data, grading);
+                                console.log("Joined import data", importdata);
+                                APURI.ui.openModalWindow((div)=> {
+                                    div.append(_.createCsvPreviewElement(importdata));
+                                    return div;
+                                }, (importdata !== null && importdata.length > 0?_t.importcsv_preview_commit:'OK'),
+                                    function() {
+                                        console.log("Trying import with", importdata);
+                                        _.commitImport(importdata);
+                                        APURI.ui.closeModalWindow();
+                                    } 
+                                , {closeOnBlur: true});
+        
+                            });                        
+                        return false;
+                    },
                     show: function () {
+
+                        let _ = APURI.views.gradingSummary;
+                        let _t = APURI.text;
                         let gradingInfo = $('#gradingInfo');
                                                 this.counter++;
 						if ($('#gradingInfo .APURI_download').length === 0) {
 							let link = $('<a />').attr('href', '#').html(APURI.text.load_csv_link);
 							link[0].onclick = APURI.grading.loadCsvTrigger;                        
-							$('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
+                            $('<div />').attr('class','printLinkWrapper APURI APURI_download').append(link).appendTo(gradingInfo);
+                            $('<div />').attr('class', 'printLinkWrapper APURI  APURI_importcsv_trigger').append(
+                                $('<a />').attr('href', '#').html('<i class="fa fa-upload" aria-hidden="true"></i> '+ _t.importcsv_open_popup).on('click',_.openImportFilePopup),
+                                _.createImportFilePopupElement())
+                                .appendTo(gradingInfo);
+                            $('<div />').attr('class', 'printLinkWrapper APURI  APURI_autograding_trigger').append(
+                                $('<a />').attr('href', '#').html('<i class="fa fa-tachometer" aria-hidden="true"></i> '+APURI.text.autograding_open_popup).on('click',_.openScoringPopup),
+                                _.createScoringPopupHtml())
+                                .appendTo(gradingInfo);
 						}
+                                                let header = $('th.sumHeader');
+                                                
+                                                if (this.currentExam !== null && header.length > 0 && !header.attr('title')) {
+                                                    let last = APURI.grading.constructMaxScores(this.currentExam).pop();
+                                                    if (last) {
+                                                        header.attr('title', APURI.text.total_max_points.replace("%d", last.totalMaxScore));
+                                                    }
+                                                }
                                                 if (this.counter > 10) {
                                                     clearInterval(this.initTimer);
                                                 }
@@ -1093,8 +2366,204 @@ var APURI ={
                 },
                 grading:{
                     initTimer: null,
+                    answers: null,
+                    commentsAll: null,
+                    /**
+                     * Rakenne tälle Map[id] = {questionId, comments: []}
+                     * @type type
+                     */
+                    commentsByQuestion: new Map(),
+
+                    loadComments(questionId = null) {
+                        return new Promise((resolve, reject) => {
+                            let uuid = APURI.exam.getCurrentLocationUuid();
+                            APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                            APURI.views.grading.answers = answers;
+                                            let comments = APURI.grading.getAllComments(answers);
+                                            APURI.views.grading.commentsAll = comments;
+                                            if (questionId !== null) {
+                                                let qComments = APURI.grading.getAllComments(answers, id);
+                                                APURI.views.grading.commentsByQuestion.set(questionId, {
+                                                    questionId: questionId,
+                                                    comments: qComments
+                                                });
+                                            }
+                                            resolve(comments);
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });
+                            
+                        });
+                    },
+                    init() {
+                        APURI.util.osBrowserDetect();
+                        let uuid = APURI.exam.getCurrentLocationUuid();
+                        APURI.exam.loadExam(uuid).then(exam => {
+                                let ids = APURI.exam.getQuestionIds(exam);
+                                APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                    APURI.views.grading.answers = answers;
+                                    for (let id of ids) {
+                                        let comments = APURI.grading.getAllComments(answers, id);
+                                        APURI.views.grading.commentsByQuestion.set(id, {
+                                                    questionId: id,
+                                                    comments: comments
+                                                });
+                                    }
+                                })
+                                .catch((err)=>{
+                                    console.log("ERROR", err);
+                                    reject(err);
+                                });                                
+                        });
+                        APURI.views.grading.loadComments().then(x => {
+                            
+                        });                        
+   
+                        // TODO kesken
+                    },
                     show: function () {
-                        clearInterval(this.initTimer);
+//                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
+                        let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
+                        if (answerBoxes !== null && answerBoxes.length > 0) {
+                            let config = {attributes: false, childList: true};
+                            let callback = function(mutationList) {
+                                for (let mutation of mutationList) {
+                                    if (mutation.type == 'childList') {
+                                        for (let child of mutation.addedNodes) {
+                                            if (child.className === "add-annotation-popup") {
+                                                //$(child).attr('style','top: 98.5px !important;');
+                                                // search for input field
+                                                let inputNode = null;
+                                                for (let subchild of child.children) {
+                                                    if (subchild.className === 'add-annotation-text') {
+                                                        inputNode = subchild;
+                                                        break;
+                                                    }
+                                                }
+                                                let questionId = $(child).closest('.answer').attr('data-question-id');
+                                                questionId = parseInt(questionId);
+                                                let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
+                                                APURI.views.grading.loadComments().then(x => {
+
+                                                    // set of showed comments
+                                                    let commentSet = new Set();
+                                                    let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
+//                                                    console.log("Question comm", questionComments);
+                                                    if (questionComments !== null && typeof questionComments !== 'undefined') {
+                                                        for (let comm of questionComments.comments) {
+                                                            if (commentSet.size > 6) break;
+                                                            commentSet.add(comm.message);
+                                                        }
+                                                    }
+
+                                                    // jos tilaa, niin lisää globaaleja
+                                                    for (let comm of APURI.views.grading.commentsAll) {
+                                                        if  (commentSet.size > 6)  break;
+                                                        commentSet.add(comm.message);
+                                                    }
+          
+                                                    let counter = 0;
+                                                    let activeHandler = function(e) {
+                                                        //console.log("DEBUG Keyact", e);
+                                                        let allComm = $(".APURI_comment_container .APURI_comment");
+                                                        let active = null;
+                                                        switch(e.which) {
+                                                                case 38: // up                                                                  
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
+                                                                            .prev(".APURI_comment"). addClass("APURI_comment_active");
+                                                                    if (active.size() == 0)
+                                                                        $(".APURI_comment_container .APURI_comment").last(). addClass("APURI_comment_active");
+                                                                break;
+
+                                                                case 40: // down
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
+                                                                            .next(".APURI_comment"). addClass("APURI_comment_active");
+                                                                    if (active.size() == 0)
+                                                                        $(".APURI_comment_container .APURI_comment").first(). addClass("APURI_comment_active");
+                                                                break;
+                                                                
+                                                                case 13: // enter
+                                                                active = $(".APURI_comment_active").trigger("mousedown").removeClass("APURI_comment_active");
+                                                                if (active.size() > 0)
+                                                                    e.stopImmediatePropagation();
+                                                                
+                                                                break;
+
+                                                                case 27: // esc
+                                                                    active = $(".APURI_comment_active").removeClass("APURI_comment_active");
+                                                                    // e.preventDefault();
+                                                                    if (active.size() > 0)
+                                                                        e.stopImmediatePropagation();
+                                                                   
+                                                                break;
+
+                                                                default: return; // exit this handler for other keys
+                                                            }                                                    
+                                                    };
+                                                    $(inputNode).on("keyup", activeHandler);
+                                                    for (let comm of commentSet) {
+                                                        (function(inputField, text, num) {              
+                                                            let clickHandler = function() {
+  //                                                              console.log("Click", inputField, text);
+                                                                if (inputNode.value === "") {
+                                                                    inputNode.value = text;                                                                
+                                                                } else {
+                                                                    if (inputNode.value.endsWith(" / ")) {
+                                                                        inputNode.value += text;
+                                                                    } else {
+                                                                        inputNode.value += ' / '+text;
+                                                                    }
+                                                                }
+                                                                return false;
+                                                            };
+                                                            if (APURI.settings.local.enableReviewKeyboardShortcuts && counter < 8) {
+                                                                $(inputNode).on("keydown", event => {
+                                                                   if (event.altKey === true && event.shiftKey === false && event.ctrlKey ===false && event.which === 49+num) {
+                                                                       clickHandler();
+                                                                   }
+                                                                });
+                                                            }
+                                                            let commEl = $('<div/>').attr('class','APURI_comment').html(APURI.shortenText(comm,50)).on('mousedown',clickHandler).appendTo(el);
+                                                            if (comm.length > 50 || APURI.settings.local.enableReviewKeyboardShortcuts) {
+                                                                //commEl.append($('<span />').attr('class', 'APURI_comment_tooltip').html((comm.length > 50?comm+" ":"")+(APURI.settings.local.enableReviewKeyboardShortcuts && counter < 7?"(Alt-"+(counter+1)+")":"")));
+                                                                commEl.attr('title', (comm.length > 50?comm+" &#13;":"")+(APURI.settings.local.enableReviewKeyboardShortcuts && counter < 7?"(näppäinoikotie Alt-"+(counter+1)+")":""));
+                                                            }
+                                                        })(inputNode, comm, counter);
+                                                        counter++;
+                                                    }
+                                                    let currTop = parseInt(child.style.top);
+                                                    if (currTop-(25*commentSet.size) < -120) {
+                                                        child.style.top = (currTop-(25*commentSet.size))+"px";
+                                                    } else {
+                                                        child.style.top = (currTop+75)+"px";
+                                                    }                                                                                                  
+                                                }).catch(err => {
+                                                    console.log("ERROR on loading comments",err)
+                                                });
+
+                                            }
+                                        }
+                                    }
+                                    //console.log("MUTATION", mutation);
+                                }
+                            }
+                                                 
+                            for (let box of answerBoxes) {
+                                let wholeAnswer = $(box).closest('.answer');
+                                let answerId = wholeAnswer.attr('data-answer-id');
+                                let questionId = APURI.grading.getQuestionByAnswer(APURI.views.grading.answers ,answerId);
+                                wholeAnswer.attr('data-question-id', questionId);
+                                let obs = new MutationObserver(callback);
+                                obs.observe(box, config);
+                            }
+                            
+                         clearInterval(this.initTimer);
+      //                   console.log("DEBUG Trigger clear");
+                        }
+                            
+
 
                         /*
                         let answerElement = $('#answers');
@@ -1194,7 +2663,7 @@ var APURI ={
                         );
                     },
                     multichoiceFieldTrigger(event) {
-                        console.log("Field change triggered on", event);
+                        //console.log("Field change triggered on", event);
                         let name = $(event.target).data('apuriName');
                         if (name !== null && APURI.util.detectLessGreater(event.target.value)) {
                             $(`div[data-apuri-warning-for="${name}"]`).show();
@@ -1208,7 +2677,7 @@ var APURI ={
                         APURI.views.examviewBoxes.multichoiceFieldSanitize(field[0]);
                     },
                     multichoiceFieldSanitize(field) {
-                        console.log("Sanitize request for FIELD", field);
+                        //console.log("Sanitize request for FIELD", field);
                         APURI.settings.lessthan_map.lastIndex = 0;
                         field.value = field.value.replace(APURI.settings.lessthan_map, "&lt;");
                         APURI.paivkentTrigger($(field));
@@ -1383,6 +2852,7 @@ APURI.text = APURI.lang.fi;
         APURI.text = APURI.lang.fi;
     }
 })();
+
 /**
  * Returns displaynumber of ID from exam object
  * @param {object} obj examObject
@@ -1580,70 +3050,31 @@ if (typeof APURI.findLargestId !== 'function') {
 	};
 }
 
-if (typeof APURI.traverseSetId !== 'function') {
-	APURI.traverseSetId = function(obj, initval) {
-		var counter = 0;
-		if (typeof initval === 'number' && initval > 0) 
-			counter = initval;
-		if (obj !== null && typeof obj === 'object') {
-			for (var key in obj) {
-				if (key === 'id') {
-					obj[key] = counter++;
-					//console.log("id set to "+(counter-1));
-				}
-				if (typeof obj[key] === 'object') {
-					counter = APURI.traverseSetId(obj[key], counter);
-				}
-			}
-		}
-		return counter;
-	};
-}
-
-if (typeof APURI.traverseDisplayNumber !== 'function') {
-	APURI.traverseDisplayNumber = function(obj, curr, clevel = 1) {
-		var count = {level1: 0,
-					 level2: 0,
-					 level3: 0};
-		if (typeof curr === 'number' && curr > 1) { 
-			count.level1 = curr-1;
-		} else if (typeof curr === 'object') {
-			count = curr;
-		}
-                
-                var countup = false;
-				
-		if (obj !== null && typeof obj === 'object') {
-			if (typeof obj.displayNumber !== 'undefined') {
-                                if (typeof obj.level !== 'undefined')
-                                    clevel = obj.level;
-				var debug = "";
-                                countup = true;
-				if (clevel === 1) {
-					debug = obj.displayNumber = ""+(++count.level1);
-					count.level2 = 0;
-					count.level3 = 0;
-				} else if (clevel === 2) {
-					debug = obj.displayNumber = ""+count.level1+"."+(++count.level2);
-					count.level3 = 0;
-				} else if (clevel === 3) {
-					debug = obj.displayNumber = ""+ count.level1+"."+count.level2+"."+(++count.level3);
-				}
-				//console.log("Set Display:"+debug);
-                                clevel++;
-			}
-			for (var key in obj) {
-				if (typeof obj[key] === 'object') {
-					count = APURI.traverseDisplayNumber(obj[key], count, clevel);
-				}
-			}
-		}
-		return count;
-	};	
-}
 
 
 	APURI.examImportQuestion = function(event) {
+                var doImport = function(current, question) {
+                    if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
+                        //console.log('Loaded successfully current');
+                        // Prepare question
+                        var largestId = APURI.findLargestId(current);
+                        //console.log("Largest id "+ largestId+" Next: set ids");
+                        APURI.exam.traverseSetId(question, largestId+1);
+                        //TODO luottaa, että sections[0] olemassa
+                        if (typeof current.content.sections[0] === 'undefined') {
+                            current.content.sections[0] = {
+                                questions: []
+                            };
+                        }
+                        current.content.sections[0].questions.push(question);
+                        // reorganize displaynumbers
+                        //console.log('DisplayNumber setting');
+                        APURI.exam.traverseDisplayNumber(current, 1);
+                        //console.log('Trying saving');
+                        APURI.examSaveCurrent(current);
+                        //console.log('...');
+                    }
+                };
 		var questiontag = $(event.target);
 		var examUuid = questiontag.attr('uuid');
 		var questionId = parseInt(questiontag.attr('quid'));
@@ -1651,40 +3082,54 @@ if (typeof APURI.traverseDisplayNumber !== 'function') {
 		var question = {};
 		var latestDisplay = "";
                 APURI.ui.showLoadingSpinner();
-		
+                console.log("DEBUG Import begin");
 		if (typeof examObj !== 'undefined') {
 
                     question = APURI.exam.getQuestionObject(examObj, questionId);
+                    if (typeof question.id !== 'undefined') {
+                        console.log("DEBUG Import questions found", question);
+                        // Load current examObject
+                        //console.log("Trying loading current");
+                        console.log("DEBUG question as text", JSON.stringify(question));
+                        console.log("DEBUG question as text-replaced ", JSON.stringify(question).replace('\\"', '"').replace("\\'", "'"));
+                        let links = APURI.util.getLinksToAttachments(JSON.stringify(question).replace(/\\"/g,'"').replace(/\\'/g, "'"));
+                        console.log("DEBUG Import links to att", links, examObj);
+                        if (typeof examObj.attachments !== 'undefined' && examObj.attachments.length > 0 
+                                && typeof links === 'object' && links !== null && links.length > 0) {
+                            let attachmentsProposed = APURI.attachments.matchLists(links, examObj.attachments);
+                            console.log("DEBUG Import links >> copyprocess: to proposed", attachmentsProposed);
+                            APURI.examImportCurrent(function (currentExam) {
 
-			if (typeof question.id !== 'undefined') {
-				// Load current examObject
-				//console.log("Trying loading current");
-				APURI.examImportCurrent(function(current){
-					if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
-						//console.log('Loaded successfully current');
-						// Prepare question
-						var largestId = APURI.findLargestId(current);
-						//console.log("Largest id "+ largestId+" Next: set ids");
-						APURI.traverseSetId(question, largestId+1);
-                                                //TODO luottaa, että sections[0] olemassa
-                                                if (typeof current.content.sections[0] === 'undefined') {
-                                                    current.content.sections[0] = {
-                                                        questions: []
-                                                    };
-                                                }
-						current.content.sections[0].questions.push(question);
-						// reorganize displaynumbers
-						//console.log('DisplayNumber setting');
-						APURI.traverseDisplayNumber(current, 1);
-						//console.log('Trying saving');
-						APURI.examSaveCurrent(current);
-						//console.log('...');
-					}
-				});
-				
-			} else {
-				console.log("Failed to find question");
-			}
+                                let attachmentsToImport = APURI.attachments.matchLists(attachmentsProposed.matched, currentExam.attachments);
+                                console.log("DEBUG Import current exam loaded", attachmentsToImport);
+                                // import ONLY the attachments NOT currently found
+                                attachmentsToImport = attachmentsToImport.nonmatched;
+                                console.log("DEBUG Import links to import", attachmentsToImport);
+                                console.log("Attachments to import", attachmentsToImport);
+                                APURI.attachments.copyAttachments(examObj.examUuid, currentExam.examUuid, attachmentsToImport)
+                                        .then(function() {
+                                            console.log("Question attachments imported successfully");
+                                            doImport(currentExam, question);
+                                })
+                                        .catch(function(err) {
+                                            console.log("Failed to import attachments", err);
+                                            console.log("Question import proceed anyway");
+                                            doImport(currentExam, question);
+                                });
+                                
+                                // TODO DO the actual import
+                                // TODO do we need if check - and do the import only if list is non-empty??
+                                // in other words does the Promise of empty resolve immediatly?
+                            });
+                        } else {
+                            // No nothing to import
+                            APURI.examImportCurrent(function(current){
+                                doImport(current, question);
+                            });
+                        }
+                    } else {
+                            console.log("Failed to find question");
+                    }
 		}
 		return false;
 		
@@ -1840,8 +3285,8 @@ if (typeof APURI.showSortDialog !== 'function') {
                             //TODO luottaa, että sections[0] olemassa
                             // reorganize displaynumbers
                             //console.log('DisplayNumber setting');
-                            APURI.traverseSetId(APURI.questionsort.bufferSaved, 0);
-                            APURI.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                            APURI.exam.traverseSetId(APURI.questionsort.bufferSaved, 0);
+                            APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             //console.log('Trying saving');
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false);
                             //console.log('...');
@@ -1979,7 +3424,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,base64audio,htmlwriter,abittiimage',
+					extraPlugins: 'base64image,mathjax,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -1990,7 +3435,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
 		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'base64audio','abittiimg' ] },
+		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
@@ -2066,24 +3511,25 @@ APURI.ui.appendCSS = function(cssaddr) {
 	document.head.appendChild(linkcss);
 
 };
+APURI.settings.uris = APURILoader;
 /**
  * Koetehtäväeditorinäkymä
  */
 (function() {
                 if (document.body.getAttribute("class")!=='lapa') // varmista, että ollaan YTL:n kokeessa
                     return;
-        APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
-       	APURI.loadScriptDirect('https://klo33.github.io/javascript/ckeditor/ckeditor.js',
+        APURI.ui.appendCSS(APURI.settings.uris.css);
+       	APURI.loadScriptDirect(APURI.settings.uris.ckeditor,
 //       	APURI.loadScriptDirect('https://localhost/cke/ckeditor.js',
             function() {
                 
             }
         );
-        APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
         APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
-                'Sortable': 'https://rubaxa.github.io/Sortable/Sortable'
+                'Sortable': APURI.settings.uris.sortableR
             }
         });
         require(['Sortable'], function (Sortable){
@@ -2181,9 +3627,10 @@ APURI.testExamAttachmentCopyTrigger = function() {
     var accept_addresses = /^https:\/\/oma.abitti.fi\/school\/grading\/......*$/;
     if (window.location.href.match(accept_addresses) === null)
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
-    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.ui.appendCSS(APURI.settings.uris.css);
+    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
 //    APURI.grading.initGradingCount();
+    APURI.initView(APURI.views.grading);
     APURI.initView(APURI.views.footer, 2000);
 })();
 /*
@@ -2195,8 +3642,24 @@ APURI.testExamAttachmentCopyTrigger = function() {
         return;
     if (document.body.getAttribute("class")!=='arpa') 
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
-    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.ui.appendCSS(APURI.settings.uris.css);
+    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+    requirejs.config({
+        paths: {
+            'Cookies': APURI.settings.uris.cookiesR,
+            'jquery': APURI.settings.uris.jqueryR,
+            'jquery-csv': APURI.settings.uris.jquerycsvR
+        },
+        shim: {
+            'jquery-csv': ['jquery']
+        }
+    });
+    require(['Cookies', 'jquery', 'jquery-csv'], function (Cookies, $){
+                    window.Cookies = Cookies; // exports
+                    window.JqueryCsv = $.csv;
+            });
+
+
     APURI.initView(APURI.views.gradingSummary);
     APURI.initView(APURI.views.footer, 2000);
 })();
@@ -2207,8 +3670,8 @@ APURI.testExamAttachmentCopyTrigger = function() {
     var accept_addresses = /^https:\/\/oma.abitti.fi(?:\/?|\/school\/exams\/?|\/school\/grading\/?)$/;
     if (window.location.href.match(accept_addresses) === null)
         return;
-    APURI.ui.appendCSS("https://klo33.github.io/abixapuri/src/abixapuri.css");
-    APURI.loadScriptDirect('https://use.fontawesome.com/d06b9eb6a7.js');
+    APURI.ui.appendCSS(APURI.settings.uris.css);
+    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
     APURI.initView(APURI.views.extensionWarning);
     APURI.initView(APURI.views.examlist);
     APURI.initView(APURI.views.footer, 2000);
