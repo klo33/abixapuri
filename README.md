@@ -1,14 +1,24 @@
 # AbixApuri
 
 **AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
-[oma.abitti.fi]-koepalveluun. **AbixApuri** toimii Firefox- ja Chrome-selaimissa erillisen ladattavan laajennoksen ([TamperMonkey Firefoxille][6]/[TamperMonkey Chromelle][2]) avulla. 
+[oma.abitti.fi]-koepalveluun. **AbixApuri** toimii [Firefox][4]- ja [Chrome][8]-selaimissa erillisen ladattavalla lisäosalla.
 
-**AbixApuria** voi myös käyttää natiivin selainlaajennuksen avulla, josta tietoa alempana.
+Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]/[TamperMonkey Chromelle][2]) avulla. 
+
+## Asentaminen selaimen lisäosana
+### Firefoxille
+1. Tallenna [Firefox-laajennus (.XPI-tiedosto)][4] koneellesi ja 
+2. raahaa se Firefoxin ikkunaan.
+3. Hyväksy asennus.
+
+### Chromelle
+1. Mene [Chrome-selaimen kauppaan ja etsi AbixApuri][8]
+2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
 
 ## [HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa][7]
 **Päivitetty 16.11.2017**
 
-Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa Firefoxille [TamperMonkey][6]-lisäosa ja [asenna skripti uudelleen][3], jolloin saat AbixApurin toimimaan
+Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa mieluiten [selainlisäosa][4]. Voit ladata Firefoxille [TamperMonkey][6]-lisäosan ja [asentaa skriptin uudelleen][3], jolloin saat AbixApurin toimimaan
 **[Tarkemmat ohjeet >>][7]**
 
 ## Ominaisuudet
@@ -27,7 +37,18 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
 7. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
 8. Arvosanataulukko sisällytetty Abittiin, jolloin Apuri ehdottaa suoraan arvosanaa.
 
-## Asentaminen
+## Asentaminen selaimen lisäosana
+### Firefoxille
+1. Tallenna [Firefox-laajennus (.XPI-tiedosto)][4] koneellesi ja 
+2. raahaa se Firefoxin ikkunaan.
+3. Hyväksy asennus.
+
+### Chromelle
+1. Mene [Chrome-selaimen kauppaan ja etsi AbixApuri][8]
+2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
+
+
+## Asentaminen Tampermonkeyn avulla
 
 1. Firefox-selaimessa lataa [TamperMonkey Firefoxille][6]-lisäosa. Chrome-selaimessa lataa [TamperMonkey Chromelle][2]-lisäosa.
 2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
@@ -38,6 +59,11 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+
+#### v0.5.1 (25.1.2018)
+- Pieniä korjauksia
+- Tuki selainlaajannuksille parantunut, jolloin ei lataa mitään skriptejä netin yli
+
 #### v0.5.0 (18.1.2018)
 - Arvosteluavustin kokeen palautusnäkymässä
     * Näyttää joko arvosanaehdotuksen tai suhteellisen arvosanan
@@ -131,15 +157,13 @@ Tallenna laajennus koneellesi ja sen jälkeen raahaa ladattu XPI-tiedosto Firefo
 Chromessa ilmeisesti asennus onnistuu ainoastaan kehittäjätilassa (chrome://extensions -> kehittäjätila)
 
 #### Miksi haluaisin käyttää erillisiä selainlaajennoksia?
-Tietooni on tullut, että AbixAjurin juridisesta asemasta on heitetty epäilyksiä, viitaten siihen, että GreaseMonkey ja TamperMonkey eivät olisi luotettavia. Molemmat lisäosat ovat vakiintuneita ja hyvämaineisia, erityisesti viimeaikoina kun niiden skriptien asetuksia on pystynyt rajaamaan tarkemmin.
+Tietooni on tullut, että AbixAjurin käyttäjien juridisesta asemasta on heitetty epäilyksiä, viitaten siihen, että GreaseMonkey ja TamperMonkey eivät olisi luotettavia. Molemmat lisäosat ovat vakiintuneita ja hyvämaineisia, erityisesti viimeaikoina kun niiden skriptien asetuksia on pystynyt rajaamaan tarkemmin. Lisäksi AbixApuri ei tallenna mitään tietoja kyseisiin lisäosiin.
 
-Erillisen laajennuksen käyttö poistaa kuitenkin nämä epäilyt.
+Erillisen laajennuksen käyttö poistaa kuitenkin nämä epäilyt. Erillinen lisäosa ei myöskään lataa verkosta mitään sisältöä tai skriptejä, vaan kaikki toiminnallisuus on toteuttu paikallisesti.
 
-#### Miksi selainlaajennokset eivät ole selaimien laajennoksien omissa kaupoissa?
+#### Miksi selainlaajennos ei ole Firefoxin kaupassa?
 
-Laajennoksen lataavat YTL:n ulkopuolista koodia (CKEditor ja jäsennyksen käyttöliittymäkoodi sekä erikoisfontin renderöintikoodi), joka ei ole selainlaajennoksissa sallittua. Kaikki muu toiminnallisuus olisi erittäin helppo ja nopeaa saada toimimaan myös laajennoksen sisällä, mutta CKEditor vaatisi jonkin verran työtä, jotta sen pystyisi toiminnallisesti saamaan siihen asuun joka ei lataa mitään ohjelmakoodia YTL:n verkkosivujen ulkopuolelta.
-
-Juuri nyt tähän en itse ryhtymässä, joten laajennoksia ei tule selainkauppoihin ihan lähiaikoina.
+Laajennos käyttää CKEditoria, joka on Firefoxin selainkaupan kooditarkistuksen mielestä osin heikkolaatuista. En ole heti parantelemassa sen ongelmia.
 
 ### Tuki ja ongelmatilanteet
 Uusista huomatuista virheistä ja ongelmista kannattaa raportoida ensisijaisesti [GitHubin projektin virheseurantaan](https://github.com/klo33/abixapuri/issues).
@@ -196,9 +220,10 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.1.2-an+fx.xpi?raw=true
-[5]:https://github.com/klo33/abixapuri/blob/master/dist/AbixApuri-loader-0.1.2.crx?raw=true
+[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.5.0.0-an+fx.xpi?raw=true
+[5]:https://github.com/klo33/abixapuri/blob/master/dist/abixapurichrome-0.5.0.0.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
+[8]:https://chrome.google.com/webstore/detail/abixapuri/jjeikocnggeifbldpibadabeidjaphom
 [GPLv3]:https://www.gnu.org/licenses/gpl-3.0.en.html
 [oma.abitti.fi]:https://oma.abitti.fi
