@@ -14,13 +14,13 @@ var	APURI = {
         injectScriptHeadInline: function(code) {
             	var script = document.createElement("script");
                 script.type = "text/javascript";
-                script.innerHTML = code;
+                script.textContent = code;
                 document.head.appendChild(script);
         }
 };
 
-  console.log("url", browser.extension.getURL("assets/abixapuri.js"));
-        APURI.injectScriptHeadInline(`APURILoader = { css: "${chrome.extension.getURL("assets/abixapuri.css")}",
+ // console.log("url", browser.extension.getURL("assets/abixapuri.js"));
+APURI.injectScriptHeadInline(`APURILoader = { check: "xxx", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
     ckeditor: "${chrome.extension.getURL("assets/ckeditor/ckeditor.js")}",
     sortableR: "${chrome.extension.getURL("assets/")}Sortable.min",
     jqueryR: "${chrome.extension.getURL("assets/")}jquery-3.2.1.min",
@@ -28,10 +28,8 @@ var	APURI = {
     jquerycsvR: "${chrome.extension.getURL("assets/")}jquery.csv.min",
     cookiesR: "${chrome.extension.getURL("assets/")}js.cookie.min" };`);
 
-
-  console.log("After inline-insertion");
-	APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/abixapuri.js"));
-        
+APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/abixapuri.js"));
+/*        
 APURILoader =  {
     css: chrome.extension.getURL("assets/abixapuri.css"),
     ckeditor: chrome.extension.getURL("assets/ckeditor/"),
@@ -46,4 +44,4 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
   chrome.tabs.sendMessage(tabs[0].id, APURILoader, function(response) {
     console.log(response.farewell);
   });
-});
+});*/
