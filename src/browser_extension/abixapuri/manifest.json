@@ -1,21 +1,30 @@
 ﻿{
 	"manifest_version": 2,
 	"name": "AbixApuri",
-	"version": "0.1.2",
+	"short_name": "AbixApuri",
+	"version": "0.5.0.0",
 	"description": "AbixApuri tuo lisätoiminnallisuutta oma.abitti.fi-palveluun",
 	"icons" : {
-		"96": "icons/abix-96.png"
+		"96": "icons/abix-96.png",
+		"128": "icons/abix-128a.png"
 	},
 	"web_accessible_resources": [
 		"assets/*", "assets/ckeditor/*"
 	],
 	"content_scripts": [
 		{
-			"matches": ["*://oma.abitti.fi/*"],
-			"js": ["settings.js","assets/jquery-3.2.1.min.js", "assets/Sortable.js", "assets/ckeditor/ckeditor.js", "abixapuri.js"]
+			"matches": ["*://oma.abitti.fi/school/exam/*","*://oma.abitti.fi/school/exams","*://oma.abitti.fi/school/grading", "*://oma.abitti.fi/", "*://oma.abitti.fi/school/review/*", "*://oma.abitti.fi/school/grading/*"],
+			"js": ["loader.js"]
 		}
 	],
 	"permissions": [
 		"*://oma.abitti.fi/*"
-	]
+	],
+        "applications": {
+
+             "gecko": {
+			    "id":"{d0499b76-d502-4568-bc19-fbbf5f9a0e51}",
+                "update_url": "https://klo33.github.io/abixapuri/dist/updates.json"
+            }
+        }
 }

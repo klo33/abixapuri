@@ -1,0 +1,17 @@
+{
+  "addons": {
+    "{d0499b76-d502-4568-bc19-fbbf5f9a0e51}": {
+      "updates": [
+        { "version": "0.1.2",
+          "update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.1.2-an+fx.xpi" },
+        { "version": "0.2.0",
+          "update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.2.0-an+fx.xpi",
+          },
+		{ "version": "0.4.10",
+			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.4.10-an+fx.xpi"},
+		{ "version": "0.5.0.0",
+			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.5.0.0-an+fx.xpi"}
+      ]
+    }
+  }
+}
