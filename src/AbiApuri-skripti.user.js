@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.5.0
+// @version     0.5.1
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -45,23 +45,7 @@
 
 'use strict';
 
-if (typeof APURILoader === 'undefined') {
-    var APURILoader = {
 
-            css: "https://klo33.github.io/abixapuri/src/abixapuri.css",
-            ckeditor: "https://klo33.github.io/javascript/ckeditor/ckeditor.js",
-            sortableR: "https://rubaxa.github.io/Sortable/Sortable",
-            jqueryR: "https://oma.abitti.fi/libs/jquery/dist/jquery.min",
-            jquerycsvR: "https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.3/jquery.csv.min",
-            cookiesR: "https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min",
-            fontawesome: "https://use.fontawesome.com/d06b9eb6a7.js"  
-    };
-} else {
-    if (typeof APURILoader.check !== 'string' 
-            || APURI.util.checksum(APURILoader.check)!=='cIFxnbWbRfbDzwwjKmwZOIpXe+SaTq64q2wEHEgXVVU') {
-        APURILoader = {};
-    }
-}
 var APURI ={
             lang: {
               fi: {
@@ -1848,7 +1832,7 @@ var APURI ={
                                     .attr('id','APURI_autograding_maxscore')
                                     .attr('defaultValue',calcMaxScore)
                                     .attr('placeholder', _t.autograding_maxscore_placeholder.replace("%s",calcMaxScore)).val(currMaxScore)
-                                    .on('change keyup',_.updateValuesAndView))
+                                    .on('change keyup',_.updateValuesAndView).val(currMaxScore?currMaxScore:""))
                                 .append($('<span />').html(_t.autograding_minscore_title).attr('title',_t.autograding_minscore_tooltip))
                                 .append($('<br />').attr('class','APURI_cr'))
                                 .append($('<input />')
@@ -1869,7 +1853,7 @@ var APURI ={
                                     .attr('id', 'APURI_autograding_opentable')
                                     .html(_t.autograding_gradingtable_open)
                                     .on('click', _.openGradingTableModal).hide())
-                                .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeScoringPopup))
+                                .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-times-circle" aria-hidden="true"></i>').on('click', _.closeScoringPopup))
                                 .on('click',_.preventPopupClose).hide();
                         return el;
                     },
@@ -2054,7 +2038,7 @@ var APURI ={
                             return _.totalMaxScore;
                         }
                         let gradingMaxScore = Cookies.get(_.getCurrentUuid()+'APURI_autograding_maxScore');
-                        if (typeof gradingMaxScore !== 'undefined') {
+                        if (typeof gradingMaxScore !== 'undefined' || gradingMaxScore !== null) {
                             _.totalMaxScore = gradingMaxScore;
                             return gradingMaxScore
                         }  else {
@@ -2166,7 +2150,7 @@ var APURI ={
                             .append($('<input />').attr('type', 'file').attr('accept','.csv').attr('id','APURI_importcsv_selector'))
                             .append($('<button />').attr('class', 'APURI APURI_sendcsv').html(_t.importcsv_popup_button).on('click', _.triggerImport))
                             .append($('<div />').attr('id', 'APURI_importcsv_error').hide())
-                            .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-window-close" aria-hidden="true"></i>').on('click', _.closeImportFilePopup))
+                            .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-times-circle" aria-hidden="true"></i>').on('click', _.closeImportFilePopup))
                             .on('click', _.preventImportFilePopupClose).hide();
                         return el;
                     },
@@ -2726,7 +2710,7 @@ var APURI ={
                                 })(tableid, inputid);
                             let clearElem = (function(inner_inputid) {
                                 return $('<span />')
-                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .html('<i class="fa fa-times-circle" aria-hidden="true"></i>')
                                     .attr('id', inner_inputid+'_clear')
                                     .attr('class', 'APURI APURI_filter_clear')
                                     .attr('title', APURI.text.search_exams_clear)
@@ -2765,7 +2749,7 @@ var APURI ={
                                         jo.show();
                                     });
                             let clearElem = $('<span />')
-                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .html('<i class="fa fa-times-circle" aria-hidden="true"></i>')
                                     .attr('id', 'APURI_heldfilter_clear')
                                     .attr('class', 'APURI APURI_filter_clear')
                                     .attr('title', APURI.text.search_exams_clear)
@@ -2802,7 +2786,7 @@ var APURI ={
                                         jo.next().show();
                                     });
                             let clearElem = $('<span />')
-                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .html('<i class="fa fa-times-circle" aria-hidden="true"></i>')
                                     .attr('id', 'APURI_examfilter_clear')
                                     .attr('class', 'APURI APURI_filter_clear')
                                     .attr('title', APURI.text.search_exams_clear)
@@ -2866,6 +2850,22 @@ APURI.text = APURI.lang.fi;
     }
 })();
 
+if (typeof APURILoader === 'undefined') {
+    var APURILoader = {
+
+            css: "https://klo33.github.io/abixapuri/src/abixapuri.css",
+            ckeditor: "https://klo33.github.io/javascript/ckeditor/ckeditor.js",
+            sortableR: "https://klo33.github.io/javascript/Sortable",
+            jqueryR: "https://oma.abitti.fi/libs/jquery/dist/jquery.min",
+            jquerycsvR: "https://klo33.github.io/javascript/jquery.csv.min",
+            cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
+        };
+} else {
+    if (typeof APURILoader.check !== 'string' 
+            || APURI.util.checksum(APURILoader.check)!=='cIFxnbWbRfbDzwwjKmwZOIpXe+SaTq64q2wEHEgXVVU') {
+        APURILoader = {};
+    }
+}
 /**
  * Returns displaynumber of ID from exam object
  * @param {object} obj examObject
@@ -3348,7 +3348,7 @@ if (typeof APURI.showImportDialog !== 'function') {
                                         jo.show();
                                     });
                             let clearElem = $('<span />')
-                                    .html('<i class="fa fa-window-close" aria-hidden="true"></i>')
+                                    .html('<i class="fa fa-times-circle" aria-hidden="true"></i>')
                                     .attr('id', 'APURI_importfilter_clear')
                                     .attr('class', 'APURI APURI_filter_clear')
                                     .attr('title', APURI.text.search_exams_clear)
@@ -3538,7 +3538,7 @@ APURI.settings.uris = APURILoader;
                 
             }
         );
-        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+//        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
         APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
@@ -3641,7 +3641,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
     if (window.location.href.match(accept_addresses) === null)
         return;
     APURI.ui.appendCSS(APURI.settings.uris.css);
-    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+//    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
 //    APURI.grading.initGradingCount();
     APURI.initView(APURI.views.grading);
     APURI.initView(APURI.views.footer, 2000);
@@ -3656,7 +3656,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
     if (document.body.getAttribute("class")!=='arpa') 
         return;
     APURI.ui.appendCSS(APURI.settings.uris.css);
-    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+//    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
     requirejs.config({
         paths: {
             'Cookies': APURI.settings.uris.cookiesR,
@@ -3684,7 +3684,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
     if (window.location.href.match(accept_addresses) === null)
         return;
     APURI.ui.appendCSS(APURI.settings.uris.css);
-    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+//    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
     APURI.initView(APURI.views.extensionWarning);
     APURI.initView(APURI.views.examlist);
     APURI.initView(APURI.views.footer, 2000);

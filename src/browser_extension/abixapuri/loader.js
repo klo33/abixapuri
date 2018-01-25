@@ -20,11 +20,10 @@ var	APURI = {
 };
 
  // console.log("url", browser.extension.getURL("assets/abixapuri.js"));
-APURI.injectScriptHeadInline(`APURILoader = { check: "xxx", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
+APURI.injectScriptHeadInline(`APURILoader = { check: "xx", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
     ckeditor: "${chrome.extension.getURL("assets/ckeditor/ckeditor.js")}",
     sortableR: "${chrome.extension.getURL("assets/")}Sortable.min",
     jqueryR: "${chrome.extension.getURL("assets/")}jquery-3.2.1.min",
-    fontawesome: "https://use.fontawesome.com/d06b9eb6a7.js",
     jquerycsvR: "${chrome.extension.getURL("assets/")}jquery.csv.min",
     cookiesR: "${chrome.extension.getURL("assets/")}js.cookie.min" };`);
 
