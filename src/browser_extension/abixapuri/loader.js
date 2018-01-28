@@ -4,7 +4,6 @@ var	APURI = {
             	var script = document.createElement("script");
                 script.type = "text/javascript";
                 script.src = url;
-                console.log("Loading url "+url);
                 if (typeof onload !== 'undefined') {
                     //console.log("For "+url+" found handler");
                     script.onload=onload;
@@ -13,6 +12,7 @@ var	APURI = {
         },
         injectScriptHeadInline: function(code) {
             	var script = document.createElement("script");
+//                console.log("AbixApuri loading local resources");
                 script.type = "text/javascript";
                 script.textContent = code;
                 document.head.appendChild(script);

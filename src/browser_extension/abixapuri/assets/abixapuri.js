@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.5.1
+// @version     0.5.2
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -1171,7 +1171,6 @@ var APURI ={
                  * @returns {Promise}
                  */
                 copyAttachments(sourceId, targetId, listFiles = null) {
-                    console.log("Copy attachments called source=%s, target=%s, list=%o",sourceId, targetId, listFiles);
                     return new Promise((resolve, reject) => {
                         let sourceAttachmentUri = `/exam-api/exams/${sourceId}/attachments`;
                         var fetchList = {};
@@ -1334,7 +1333,6 @@ var APURI ={
                         waitForUser.then(function() {
                             APURI.fetch.getJson(APURI.settings.api.student_answers.replace("%uuid",examId)) //    `https://oma.abitti.fi/exam-api/grading/${examId}/student-answers`
                                     .then(function(data) {
-                                        console.log("Loaded grading object", data);
                                         if (sortByName)
                                             resolve(APURI.grading.sortGradingObject(data));
                                         else
@@ -1393,7 +1391,6 @@ var APURI ={
                     for (let s = 0; s < sections.length; s++) {
                         let questions = sections[s].questions;
                         for (let q = 0; q < questions.length; q++) {
-                            console.log(".");
                             template[questions[q].id]={id: questions[q].id,
                                 value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
                         }
@@ -1950,7 +1947,6 @@ var APURI ={
                             value = APURI.settings.local.autograding_defaultMinGrade;
                         let minscore = 0;
                         let minscoreStr = '';
-                        console.log("DEBUG set min to ", value, minscore);
                         if (typeof value === 'string') {
                             let percentStr = /^\s*(\d+(?:[,.]\d+)?)\s*%\s*/;
                             let pointStr = /^\s*(\d+(?:[,.]\d+)?)\s*p?\s*/;
@@ -2191,10 +2187,7 @@ var APURI ={
                         reader.readAsText(file);
                         reader.onload = function(event){
                             var csv = event.target.result;
-                            console.log("READ file ",csv);
-                            console.log("JQUERYCSV TEST", JqueryCsv.toArrays(csv, {separator:';'}));
                             let data = _.parseCsvToData(csv);
-                            console.log("Parsed from CSV", data);
                             if (data == null) {
                                 _.csvLoadError(_t.importcsv_error_format);
                             } else {
@@ -2251,20 +2244,18 @@ var APURI ={
                                     result.push(row)
                                     break;
                                 } else {
-                                    console.log("DEBUG: non-matching ",name, row.name);
                                 }
                             }
                         }
                         return result;
                     },
                     commitImport(data) {
-                        console.log("CoMMit");
                         $('#scoreTable input.gradingText').each((index, el) => {
                             let $inputField = $(el);
                             let studentUuid = $inputField.attr('data-student-uuid');
                             let answerId = parseInt($inputField.attr('data-answer-paper-id'));
                             for (let row of data) {
-                                console.log("debug ", row.answerPaperId, row.studentUuid, studentUuid, answerId);
+
                                 if (row.answerPaperId === answerId && row.studentUuid === studentUuid) {
                                     if ((row.conflict == null || row.conflict === false) 
                                         && (row.nochange == null || row.nochange === false)) {// undefined tai FALSE 
@@ -2314,13 +2305,11 @@ var APURI ={
                         APURI.grading.loadGradingObject(uuid)
                             .then(function(grading) {
                                 let importdata = _.generateImportData(data, grading);
-                                console.log("Joined import data", importdata);
                                 APURI.ui.openModalWindow((div)=> {
                                     div.append(_.createCsvPreviewElement(importdata));
                                     return div;
                                 }, (importdata !== null && importdata.length > 0?_t.importcsv_preview_commit:'OK'),
                                     function() {
-                                        console.log("Trying import with", importdata);
                                         _.commitImport(importdata);
                                         APURI.ui.closeModalWindow();
                                     } 
@@ -3095,38 +3084,28 @@ if (typeof APURI.findLargestId !== 'function') {
 		var question = {};
 		var latestDisplay = "";
                 APURI.ui.showLoadingSpinner();
-                console.log("DEBUG Import begin");
 		if (typeof examObj !== 'undefined') {
 
                     question = APURI.exam.getQuestionObject(examObj, questionId);
                     if (typeof question.id !== 'undefined') {
-                        console.log("DEBUG Import questions found", question);
                         // Load current examObject
                         //console.log("Trying loading current");
-                        console.log("DEBUG question as text", JSON.stringify(question));
-                        console.log("DEBUG question as text-replaced ", JSON.stringify(question).replace('\\"', '"').replace("\\'", "'"));
                         let links = APURI.util.getLinksToAttachments(JSON.stringify(question).replace(/\\"/g,'"').replace(/\\'/g, "'"));
-                        console.log("DEBUG Import links to att", links, examObj);
                         if (typeof examObj.attachments !== 'undefined' && examObj.attachments.length > 0 
                                 && typeof links === 'object' && links !== null && links.length > 0) {
                             let attachmentsProposed = APURI.attachments.matchLists(links, examObj.attachments);
-                            console.log("DEBUG Import links >> copyprocess: to proposed", attachmentsProposed);
                             APURI.examImportCurrent(function (currentExam) {
 
                                 let attachmentsToImport = APURI.attachments.matchLists(attachmentsProposed.matched, currentExam.attachments);
-                                console.log("DEBUG Import current exam loaded", attachmentsToImport);
                                 // import ONLY the attachments NOT currently found
                                 attachmentsToImport = attachmentsToImport.nonmatched;
-                                console.log("DEBUG Import links to import", attachmentsToImport);
-                                console.log("Attachments to import", attachmentsToImport);
                                 APURI.attachments.copyAttachments(examObj.examUuid, currentExam.examUuid, attachmentsToImport)
                                         .then(function() {
-                                            console.log("Question attachments imported successfully");
                                             doImport(currentExam, question);
                                 })
                                         .catch(function(err) {
-                                            console.log("Failed to import attachments", err);
-                                            console.log("Question import proceed anyway");
+//                                            console.log("Failed to import attachments", err);
+//                                            console.log("Question import proceed anyway");
                                             doImport(currentExam, question);
                                 });
                                 
@@ -3141,7 +3120,7 @@ if (typeof APURI.findLargestId !== 'function') {
                             });
                         }
                     } else {
-                            console.log("Failed to find question");
+//                            console.log("Failed to find question");
                     }
 		}
 		return false;
@@ -3195,7 +3174,7 @@ if (typeof APURI.examImportExpand !== 'function') {
 					sisul.appendTo(li);
 				});
 		} else {
-			console.log("Not loading "+upper_a.class);
+//			console.log("Not loading "+upper_a.class);
 			// only hidden
 		}
 		
@@ -3507,7 +3486,6 @@ if (typeof APURI.loadScriptDirect !== 'function') {
             	var script = document.createElement("script");
                 script.type = "text/javascript";
                 script.src = url;
-                console.log("Loading url "+url);
                 if (typeof onload !== 'undefined') {
                     //console.log("For "+url+" found handler");
                     script.onload=onload;
@@ -3580,14 +3558,12 @@ APURI.makeCopyOfExam = function(origUuid) {
 								contentType: "application/json; charset=UTF-8",
 								dataType: "json",
 								success: function(data){
-									console.log("Kopio tehty onnistuneesti"); 
 									// Kopioidaan liitteet
                                                                         if (origData.attachments.length > 0) {
-                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
+//                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
                                                                             APURI.ui.showAttachmentCopy();
                                                                             APURI.attachments.copyAttachments(origUuid, uudenUuid)
                                                                                     .then(filenames => {
-                                                                                console.log("Attachments copied", filenames);
                                                                                 APURI.ui.clearAttachmentCopy();                                                                                        
                                                                                 window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
                                                                             });
