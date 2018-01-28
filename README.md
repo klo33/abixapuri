@@ -5,7 +5,7 @@
 
 Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]/[TamperMonkey Chromelle][2]) avulla. 
 
-## Asentaminen selaimen lisäosana
+## Asennusohjeet (lisäosana)
 ### Firefoxille
 1. Tallenna [Firefox-laajennus (.XPI-tiedosto)][4] koneellesi ja 
 2. raahaa se Firefoxin ikkunaan.
@@ -14,6 +14,8 @@ Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]
 ### Chromelle
 1. Mene [Chrome-selaimen kauppaan ja etsi AbixApuri][8]
 2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
+
+AbixApuria voi edelleen käyttää TamperMonkeyn avulla. Asennusohjeet tähän alempana.
 
 ## [HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa][7]
 **Päivitetty 16.11.2017**
@@ -59,6 +61,9 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+
+#### v0.5.2 (28.1.2018)
+- Ruotsinkäännöstäydennyksiä
 
 #### v0.5.1 (25.1.2018)
 - Pieniä korjauksia
