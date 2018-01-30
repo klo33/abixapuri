@@ -376,8 +376,9 @@ border: 3px solid #3E7800;
     color: #3E7800;
     z-index: 5;
 }
-#APURI_autograding_popup {
+.APURI_autograding_trigger #APURI_autograding_popup {
     max-width: 30em;
+    padding-bottom: 2em;
 }
 
 #APURI_importcsv_popup {
@@ -396,20 +397,37 @@ border: 3px solid #3E7800;
     width: 6em;
 }
 
+.APURI_autograding_trigger #APURI_autograding_popup .APURI_autograding_commitcheck_container input {
+    float: none;
+    width: 2em;
+}
+
 .APURI_autograding_trigger #APURI_autograding_popup span {
     clear: left;
     width: 12em;
 }
 
 .APURI_autograding_commit {
+    clear: right;
     float: right;
 }
+
 
 
 #APURI_autograding_popup button {
     padding-top: 1px;
     padding-bottom: 1px;
     background-color: #6dd200 !important;
+}
+
+#APURI_autograding_popup button.disabled {
+
+    background-color: #c7dbb1 !important;
+}
+
+#APURI_autograding_popup .APURI_autograding_commitcheck_container {
+    display: block;
+    float: right;
 }
 
 #APURI_autograding_popup .APURI_popup_close, #APURI_importcsv_popup .APURI_popup_close {

@@ -62,6 +62,9 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 
 ### Muutokset
 
+#### v0.5.3 (30.1.2018)
+- Lisätty varmistus arvosanatyökaluun
+
 #### v0.5.2 (28.1.2018)
 - Ruotsinkäännöstäydennyksiä
 

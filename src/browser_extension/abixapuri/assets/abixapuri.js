@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.5.2
+// @version     0.5.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -99,6 +99,7 @@ var APURI ={
                   autograding_scoretable_header: ["Ehdotus&nbsp;","Suht.pisteet&nbsp;"],
                   autograding_minscorefield_negative: "Ei voi olla negatiivinen",
                   autograding_minscorefield_parseerror: "Pistemäärää ei osattu tulkita",
+                  autograding_maxscorefield_parseerror: "Pistemäärää ei osattu tulkita",
                   autograding_minscorefield_toolarge: "Läpipääsypistemäärä ei voi ylittää maksimia %d",
                   autograding_maxscore_negative: "Ei voi olla negatiivinen",
                   autograding_maxscore_toolarge: "Ei voi olla yli teoreettisen maksimin %d",
@@ -108,6 +109,7 @@ var APURI ={
                   autograding_gradingtable_count: "Lukumäärä&nbsp;",
                   autograding_gradingtable_average: "Kokeen keskiarvo %average p (<span class='APURI_average_grade'>%grade</span>)",
                   autograding_commit: "Toimeenpane ehdotukset",
+                  autograding_commit_checkbox: "Hyväksyn ehdotukset arvosanoiksi",
                   autograding_commit_warningexists: "Arvosanoja jo olemassa - niitä ei ylikirjoiteta",
                   importcsv_error_file: "Tiedostonlukuvirhe",
                   importcsv_error_format: "Tiedoston muotovirhe - ei osata tulkita",
@@ -171,6 +173,7 @@ var APURI ={
                   autograding_togglegrade: ["Visa resultatet i procent", "Visa vitsordsförslag"],
                   autograding_scoretable_header: ["Förslag vo.&nbsp;","Rel.vo.&nbsp;"],
                   autograding_minscorefield_negative: "Kan inte vara negativt",
+                  autograding_maxscorefield_parseerror: "Ogiltigt värde",
                   autograding_minscorefield_parseerror: "Ogiltigt värde",
                   autograding_minscorefield_toolarge: "Gräns för godkänt kan inte vara högre än maxpoäng %d",
                   autograding_maxscore_negative: "Kan inte vara negativt",
@@ -181,6 +184,7 @@ var APURI ={
                   autograding_gradingtable_count: "Antal&nbsp;",
                   autograding_gradingtable_average: "Provets medeltal %average p (<span class='APURI_average_grade'>%grade</span>)",
                   autograding_commit: "Spara förslaget som vitsord",
+                  autograding_commit_checkbox: "Jag accepterar förslaget",
                   autograding_commit_warningexists: "Vitsord har redan angetts - dom ej överskrivs" ,
                   importcsv_error_file: "Problem med filläsningen",
                   importcsv_error_format: "Filen har fel format - kan inte öppnas",
@@ -207,7 +211,7 @@ var APURI ={
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 link_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s(?:[^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,
                 attachment_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["']\.?\/?attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["']\.\/?attachments\/([^"']+))/ig,
-                attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
+                attachmenterror_map: /(?:<(?:(?:img)|(?:audio)|(?:video)|(?:source))\s(?:[^>\/]+\s)??src=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\/[\/"']+\/attachments\/([^"']+))|(?:<a\s(?:[^>]+\s)??href=["'](?:(?:http[s]?:)?\/\/[^\/"']+)?\/exam-api\/exams\[\/"']+\/attachments\/([^"']+))/i,
 //              lessgreater_map: /(?:<\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>)|(<[<xyz\d])|(>)|(<)/g,
                 lessthan_map: /(<(?!\/?[a-wA-W](?:(?:=\s?"[^"]*")|(?:=\s?'[^']*')|[^>])*>))/g,
                 grades: ['4', '5-', '5', '5+', '5½', '6-', '6', '6+', '6½', '7-', '7', '7+', '7½', '8-', '8', '8+', '8½', '9-', '9', '9+', '9½', '10-', '10'],
@@ -1837,7 +1841,7 @@ var APURI ={
                                     .attr('defaultValue',APURI.settings.local.autograding_defaultMinGrade).attr('placeholder',_t.autograding_minscore_placeholder.replace("%s",APURI.settings.local.autograding_defaultMinGrade)).val(currMinScoreStr)
                                     .on('change keyup',_.updateValuesAndView))
                                 .append($('<br />').attr('class','APURI_cr'))
-                                .append($('<button />').attr('id','APURI_autograding_commit').attr('class','APURI APURI_autograding_commit').html(_t.autograding_commit).on('click', _.commitAutograding))
+                                .append($('<button />').attr('id','APURI_autograding_commit').attr('class','APURI APURI_autograding_commit disabled').html(_t.autograding_commit).on('click', _.commitAutograding))
                                 .append($('<a />')
                                     .attr('class', 'APURI_cr')
                                     .attr('href', "#")
@@ -1850,11 +1854,36 @@ var APURI ={
                                     .attr('id', 'APURI_autograding_opentable')
                                     .html(_t.autograding_gradingtable_open)
                                     .on('click', _.openGradingTableModal).hide())
+                                .append($('<div />')
+                                    .attr('class', 'APURI_autograding_commitcheck_container')
+                                    .append($('<input />')
+                                        .attr('type','checkbox')
+                                        .attr('id','APURI_autograding_commitcheck')
+                                        .on('click', _.toggleAutogradingCommitcheck))
+                                    .append($('<label />')
+                                        .attr('for','APURI_autograding_commitcheck')
+                                        .attr('class','APURI_autograding_commitcheck')
+                                        .html(_t.autograding_commit_checkbox)))
                                 .append($('<span />').attr('class','APURI APURI_popup_close').html('<i class="fa fa-times-circle" aria-hidden="true"></i>').on('click', _.closeScoringPopup))
                                 .on('click',_.preventPopupClose).hide();
                         return el;
                     },
+                    toggleAutogradingCommitcheck() {
+                        let _ = APURI.views.gradingSummary;
+                        let val = $('#APURI_autograding_commitcheck').is(':checked');
+                        if (val) {
+                            $('#APURI_autograding_commit').removeClass('disabled');
+                        } else {
+                            $('#APURI_autograding_commit').addClass('disabled');                            
+                        }
+                        _.updateValuesAndView();
+                    },
                     commitAutograding() {
+                        let check = $('#APURI_autograding_commitcheck').is(':checked'); 
+                        if (!check) {
+                            // interrupt is not checked
+                            return;
+                        }
                         $('#scoreTable td.proposalGrade').each((index, el) => {
                             let $el = $(el);
                             let grade = $el.html();
@@ -1893,7 +1922,7 @@ var APURI ={
                         }
                         $('.proposalGrade').each((i,el) => {
                             let $el = $(el);
-                            let score = parseInt($el.prev().html());
+                            let score = parseInt($el.prev().html(), 10);
                             if (_.showGrades) {
                                 $el.html(_.getGradeFromScore(score));
                             } else {
@@ -1915,7 +1944,11 @@ var APURI ={
                         let maxFieldOk = function() {
                             $("#APURI_autograding_maxscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
                         }
-                        let maxScore = parseInt(value);
+                        let maxScore = parseInt(value,10);
+                        if (isNaN(maxScore)) {
+                            maxFieldError(_t.autograding_minscorefield_parseerror)
+                            return;
+                        }
                         if (maxScore < 1) {
                             maxFieldError(_t.autograding_maxscore_negative);
                             return;
@@ -1943,7 +1976,7 @@ var APURI ={
                             $("#APURI_autograding_minscore").removeClass("APURIfielderror").removeClass("APURIfieldminor").attr('title', '');
                         }
                         let _ = APURI.views.gradingSummary;
-                        if (value === '' || value === null)
+                        if (value === '' || value === null || typeof value === 'undefined')
                             value = APURI.settings.local.autograding_defaultMinGrade;
                         let minscore = 0;
                         let minscoreStr = '';
@@ -1953,13 +1986,25 @@ var APURI ={
                             let resultset = percentStr.exec(value);
                             if (resultset !== null && typeof resultset[1] !== 'undefined') {
                                 // percent value
-                                minscore = parseFloat(resultset[1])/100*_.totalMaxScore;
+                                let max = _.totalMaxScore;
+                                if (typeof max !== 'number' || isNaN(max)) {
+                                    max = _.getCalculativeTotalMaxscore();
+                                }
+                                minscore = parseFloat(resultset[1])/100*max;
+                                if (isNaN(minscore)) {
+                                    minFieldError(_t.autograding_minscorefield_parseerror);                                    
+                                    return;
+                                }
                                 minscoreStr = resultset[1]+"%";
                             } else {
                                 resultset = pointStr.exec(value);
                               
                                 if (resultset !== null && typeof resultset[1] !== 'undefined') {
                                     minscore = parseFloat(resultset[1]);
+                                    if (isNaN(minscore)) {
+                                        minFieldError(_t.autograding_minscorefield_parseerror);                                    
+                                        return;
+                                    }
                                     minscoreStr = minscore;
                                 } else {
                                     minFieldError(_t.autograding_minscorefield_parseerror);
@@ -2030,17 +2075,17 @@ var APURI ={
                     },
                     getTotalMaxScore() {
                         let _ = APURI.views.gradingSummary;
-                        if (_.totalMaxScore) {
+                        if (_.totalMaxScore && !isNaN(_.totalMaxScore)) {
                             return _.totalMaxScore;
                         }
-                        let gradingMaxScore = Cookies.get(_.getCurrentUuid()+'APURI_autograding_maxScore');
-                        if (typeof gradingMaxScore !== 'undefined' || gradingMaxScore !== null) {
+                        let gradingMaxScore = parseInt(Cookies.get(_.getCurrentUuid()+'APURI_autograding_maxScore'));
+                        if (typeof gradingMaxScore !== 'undefined' || gradingMaxScore !== null || !isNaN(gradingMaxScore)) {
                             _.totalMaxScore = gradingMaxScore;
                             return gradingMaxScore
                         }  else {
                             let calc = APURI.views.gradingSummary.getCalculativeTotalMaxscore();
                             Cookies.set(_.getCurrentUuid()+'APURI_autograding_maxScore', calc);
-                            return _.totalMaxScore = parseInt(calc);
+                            return _.totalMaxScore = parseInt(calc, 10);
                         }
                     },
                     getGradeFromScore(score) {
