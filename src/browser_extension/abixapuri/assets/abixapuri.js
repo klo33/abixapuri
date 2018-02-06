@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.5.3
+// @version     0.5.4
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -205,7 +205,7 @@ var APURI ={
                 fetchGetHeaders: {
                     'Accept': 'application/json, text/javascript, */*; q=0.01'                   
                 },
-                csv_idtitle: "ID",
+                csv_idtitle: "vasttunniste",
                 csv_separator: ";",
                 csv_wrapping: "%s", //%s as replaced value
 //                oldlink_map: /(?:<img\s([^>\/]+\s)??src=["'](?:http[s]?:)?\/\/[^"']+)|(?:<a\s([^>]+\s)??href=["'](?:http[s]?:)?\/\/[^"']+)/i,

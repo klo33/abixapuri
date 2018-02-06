@@ -61,6 +61,8 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.5.4 (6.2.2018)
+- Korjauksia CSV-tiedostoon
 
 #### v0.5.3 (30.1.2018)
 - Lisätty varmistus arvosanatyökaluun
