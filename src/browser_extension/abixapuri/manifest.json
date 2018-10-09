@@ -26,5 +26,8 @@
 			    "id":"{d0499b76-d502-4568-bc19-fbbf5f9a0e51}",
                 "update_url": "https://klo33.github.io/abixapuri/dist/updates.json"
             }
-        }
+		},
+		"options_ui": {
+			"page": "options/options.html"
+		}
 }

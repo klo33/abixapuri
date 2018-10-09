@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>AbixApuri options</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+</head>
+<body>
+    <script src="options.js"></script>
+    <form>
+        <h2>Kokeelliset ominaisuudet</h2>
+        <p>Laittamalla päälle <strong>rajatun kuuntelun säilytys muokattaessa</strong> -ominaisuuden, hyväksyt, että AbixApuri
+        <strong>estää oma.abitti.fi-palvelun normaalin tallennuksen</strong>. Jos kokeen rakenne muuttuu tai Ylioppilastutkinto 
+        lautakunta muuttaa oma.abitti.fi-palveluaan, estää AbixApuri todennäköisesti kokonaan Abitti-kokeen muokkauksen ja tallennuksen
+        ja pahimmillaan korruptoi koko olemassaolevat kokeet joita yrität muokata/katsella. 
+        Se ei siis vaikuta ainoastaan kokeisiin, joissa on rajattuja kuunteluita, vaan kaikkiin kokeisiin</p>
+
+        <p>AbixApurin kehittäjä <strong>ei suosittele</strong>, että tätä kokeellista ominaisuutta käytetään varmuuden vuoksi.</p>
+
+        <label for="triggerInterruptedSaving">rajatun kuuntelun säilytys muokattaessa</label><input onclick="settingChanged()" id="triggerInterruptedSaving" type="checkbox" name="triggerInterruptedSaving" />
+    </form>
+</body>
+</html>
