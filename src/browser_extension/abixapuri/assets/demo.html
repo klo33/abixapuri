@@ -66,6 +66,7 @@
         },
         examSaveCurrent(exam) {
             console.log("EXAM TO SAVE", exam);
+            return Promise.resolve(true);
         },
         exam:   {
                 bufferLast: null,
@@ -262,6 +263,8 @@
     var current = {"examUuid":"656f489a-ade9-46ec-872a-752826407865","content":{"title":"Uusi koe","instruction":"Testittist","sections":[{"title":"A-osa / Del A","casForbidden":true,"questions":[{"id":0,"displayNumber":"1","type":"text","text":"Tehtävä 1 A-osassai","level":1,"maxScore":6,"screenshotExpected":true},{"id":1,"displayNumber":"2","type":"text","text":"Tethtävä 2 A-osassa","level":1,"maxScore":6,"screenshotExpected":true}]},{"title":"B-osa / Del B","questions":[{"id":2,"displayNumber":"3","type":"text","text":"Tehtävä B-osassaa 1","level":1,"maxScore":6,"screenshotExpected":true},{"id":3,"displayNumber":"4","type":"text","text":"Tehtävä 2 B:ssä","level":1,"maxScore":6,"screenshotExpected":true}]}]},"locked":false,"password":"tiekunta kihaus saunio kaakki","accessible":false,"attachments":[],"attachmentsFilename":null,"deletionDate":null};
     //APURI.examImportCurrent(function(current){
                 APURI.questionsort.bufferOld = $.extend(true, {}, current);
+                //APURI.questionsort.original = $.extend(true, {}, current);
+                APURI.questionsort.originalQuestions = [];
                 APURI.questionsort.changed = false;
                 if (typeof current !== 'undefined' && typeof current.examUuid !== 'undefined') {
                     APURI.ui.openModalWindow((div)=> {
@@ -277,13 +280,14 @@
                                 sectul.append(secli);
                                 if (typeof section.questions !== 'undefined') {
                                         var qul = $('<ul />');
-                                        qul.attr("class", "APURI_sort_question");
+                                        qul.attr("class", "APURI_sort_question").attr("data-section-id",section.id).attr("data-section-index", i);
                                         secli.append(qul);
-                                        for(var j=0; j<section.questions.length; j++) {				
+                                        for(var j=0; j<section.questions.length; j++) {
                                                 var question = section.questions[j];
+                                                APURI.questionsort.originalQuestions[question.id] = $.extend(true, {}, question);
                                                // console.log(".");
                                                 var text = APURI.shortenText($("<div />").html(question.text).text(), 100);
-                                                var sis = $('<li />').attr('name',"q_"+question.id).attr('data-orig-id',question.id)
+                                                var sis = $('<li />').attr('name',"q_"+question.id).attr("data-id",question.id).attr('data-question-id',question.id)
                                                         .attr('class',"APURI_sortable_question").append($('<i class="fa fa-arrows hide_nothover" aria-hidden="true"></i>'))
                                                         .html(question.displayNumber+": "+text);
                                                 // jos monivalinta niin mahdollista kysymysten sorttaus
@@ -296,7 +300,7 @@
                                                     for (var k=0; k<question.choices.length; k++) {
                                                         var choice = question.choices[k];
                                                         var texti = APURI.shortenText($("<div />").html(choice.text).text(), 100);
-                                                        var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id)
+                                                        var cli = $('<li />').attr('name',"q_"+question.id+"_c_"+choice.id).attr('data-question-id', question.id).attr('data-orig-id', question.id+"_"+choice.id).attr('data-choice-id',choice.id)
                                                                 .attr('class',"APURI_sortable_choice")
                                                                 .html(choice.displayNumber+": "+texti);
                                                         coul.append(cli);
@@ -316,10 +320,77 @@
                 
                 var sectionsort = document.getElementById("APURI_sort_section");
                 var questionsort = sectionsort.getElementsByClassName("APURI_sort_question");
+                var multichoicesort = sectionsort.getElementsByClassName("APURI_sortable_choice");
+                function onSortQuestionHandler(ev) {
+                    if (APURI.questionsort.changed == null || APURI.questionsort.changed == false) {
+                        APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
+                    }
+                    var currentDraggedSortable = ev.to[Object.keys(ev.to)[0]];
+                    var order = currentDraggedSortable.toArray();
+                    var sectionTargetIndex = ev.to.getAttribute("data-section-index");
+                    var questionTargetId = ev.to.getAttribute("data-question-id");
+                    if (sectionTargetIndex == null) {
+                        if (questionTargetId != null) {
+                            for (var i = 0; i <APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions.length; i++) {
+                                if (APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions[i].id == questionTargetId) {
+                                    // tee ensin hakutaulukko
+                                    if (APURI.questionsort.originalQuestions[questionTargetId].choices == null)
+                                        return;
+                                    var indexapuhaku = [];
+                                    for (let index=0; index < APURI.questionsort.originalQuestions[questionTargetId].choices.length; index++) {
+                                        indexapuhaku[APURI.questionsort.originalQuestions[questionTargetId].id] = index;
+                                    }
+                                    // järjestä kokeeseen
+                                    APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions[i].choices = [];
+                                    for (var chId of order) {
+                                        APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions[i].choices.push(
+                                            APURI.questionsort.originalQuestions[questionTargetId].choices[indexapuhaku[chId]]
+                                        );
+                                    }
+                                    // Huom! Päivitä myös kysymykseen, että järjestys säilyy, jos koko kysärin paikkaa vaihdetaan
+                                    APURI.questionsort.originalQuestions[questionTargetId].choices = $.extend(true, {}, 
+                                        APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions[i].choices);
+                                    break;
+                                }
+                            }
+                        } else {
+                            console.error("SortSection not found");
+                            return;
+                        }
+                    } else {
+                        // console.log("TARGET:", ev.to, sectionTargetIndex, order);
+                        APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions = [];
+                        for (var qId of order) {
+                            APURI.questionsort.bufferSaved.content.sections[sectionTargetIndex].questions.push(
+                                APURI.questionsort.originalQuestions[qId] 
+                            );
+                        }
+                    }
+                    APURI.questionsort.changed = true;
+                    // TODO pistä verho ja estä
+
+                    APURI.exam.traverseSetId(APURI.questionsort.bufferSaved, 0);
+                    APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                    if (APURI.questionsort.trigger == null) 
+                        APURI.questionsort.trigger = setTimeout(
+                            function() {
+                                // Odotus, jotta molemmat toimenpiteet varmasti ehtivät
+                                // Tässä tehdään tallennus vasta
+                                APURI.exam.traverseSetId(APURI.questionsort.bufferSaved, 0);
+                                APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
+                                APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false).then(function() {
+                                    // TODO Poistaverho
+                                    APURI.questionsort.trigger = null;
+                                });
+                            }
+                        ,100);
+                }
+
                 var sortConfigQuestion = {
                         get: function(sortable) {
+                            console.debug(".")
                             var arrkey = sortable.toArray();
-                            console.debug("SORTABLE GROUP:",sortable.options.group.name,arrkey, sortable.options.group)
+                            console.debug("SORTABLE GROUP BEGIN:",sortable, arrkey,sortable.options.group.name,arrkey, sortable.options.group)
                             APURI.questionsort.bufferOrder[sortable.options.group.name] = [];
                             for (var i=0; i<arrkey.length; i++) {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
@@ -330,14 +401,23 @@
                             return APURI.questionsort.bufferOrder;
                         },
                         set: function(sortable) {
-                            console.debug("SORT-TO", sortable);
                             //console.log("Sortable.store.SET:"+sortable.options.group.name);
                             //console.log(sortable.toArray());
                             //while (APURI.questionsort.waitingSaving !== 'null')
                                 ;// TODO KESKEN!!!!
                             //APURI.questionsort.waitingSaving = setInterval(APURI.questionsort.delayTrigger, 100);
                             APURI.questionsort.bufferSaved = $.extend(true, {}, APURI.questionsort.bufferOld);
+                            for (var i=0; i<APURI.questionsort.bufferSaved.content.sections.lenght; i++) {
+                                if (APURI.questionsort.bufferSaved.content.sections[i].questions != null)
+                                    for (var j=0; j<APURI.questionsort.bufferSaved.content.sections[i].questions.length; j++) {
+                                        if (APURI.questionsort.bufferSaved.content.sections[i].questions[j].type == 'choicegroup' &&
+                                        APURI.questionsort.bufferSaved.content.sections[i].questions[j].choices != null)
+                                            for (var k=0; k<APURI.questionsort.bufferSaved.content.sections[i].questions[j].choices.length; k++) {
+                                            }
+                                    }
+                            }
                             var arrkey = sortable.toArray();
+                            console.debug("SORT-TO", sortable, arrkey);
                             for (var i=0; i<arrkey.length; i++) {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
                                 APURI.questionsort.bufferSaved.content.sections[0].questions[i] = APURI.questionsort.bufferOrder[sortable.options.group.name][arrkey[i]];
@@ -355,13 +435,24 @@
                         }
                     };
                 for (var el of questionsort) {
+                    /*
                     Sortable.create(el, {
                     group: "questions",
-                    store: sortConfigQuestion});
+                    store: sortConfigQuestion, 
+                    onSort: function(evt) {
+                    var currentSortable = evt.to[Object.keys(evt.to)[0]];
+    var order = currentSortable.toArray();
+    console.debug("OnSort: ", order, currentSortable, evt.to, evt, Object.keys(evt.to));
+            }
+    });*/
 
-                } 
+                    Sortable.create(el, {
+                    group: "questions",
+                    onSort: onSortQuestionHandler
+                    }); 
                 
                 }
+            }
 
             
     
