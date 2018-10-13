@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.5.4
+// @version     0.6.0
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -3251,6 +3251,8 @@ if (typeof APURI.showSortDialog !== 'function') {
                                 // sectionloop
                                 var section = current.content.sections[i];
                                 var secli = $('<li />');
+                                if (section.title != null)
+                                    secli.append($('<h2 />').html(section.title));
                                 sectul.append(secli);
                                 if (typeof section.questions !== 'undefined') {
                                         var qul = $('<ul />');
@@ -3297,6 +3299,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                     store: {
                         get: function(sortable) {
                             var arrkey = sortable.toArray();
+                            console.debug("SORTABLE GROUP:",sortable.options.group.name, sortable.options.group)
                             APURI.questionsort.bufferOrder[sortable.options.group.name] = [];
                             for (var i=0; i<arrkey.length; i++) {
                                 // TODO: Tämä ei ole yleinen vaan olettaa, että on yksi sections
