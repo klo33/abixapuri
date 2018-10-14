@@ -69,6 +69,7 @@
             return Promise.resolve(true);
         },
         exam:   {
+                currentBuffer: null,
                 bufferLast: null,
                 /**
                  * Returns exam UUID extracted from the location of current window
@@ -90,8 +91,40 @@
                     return null;
                 },
                 /**
+                 * Loads current Exam
+                 * @param {boolean} force reload if exam in Buffer
+                 * @returns {Promise} Promise which resolves to current examobject
+                 */
+                getCurrentExam(forceLoad = false) {
+                    let currentUUID = APURI.exam.getCurrentLocationUuid();
+                    return new Promise((resolve, reject) => {
+                        if (forceLoad == false && APURI.exam.currentBuffer != null) {
+                            resolve(APURI.exam.currentBuffer);
+                        }
+                        APURI.exam.loadExam(currentUUID).then(examData => {
+                            resolve(examData);
+                        }).catch(error => {
+                            reject(error);
+                        });
+                    });
+                },
+                /**
+                 * Loads current Exam sections
+                 * @returns {Promise} Promise which resolves to current examobject sections
+                 */ 
+                getCurrentSections() {
+                    return new Promise((resolve, reject) => {
+                        APURI.exam.getCurrentExam(true).then(examData => {
+                            resolve(examData.content.sections);
+                        }).catch(error => {
+                            reject(error);
+                        })
+                    });
+                },
+                /**
                  * Loads exam JSON
                  * @param {string} examUuid UUID for exam
+                 * @param {boolean} is examHeld, if true, only loads a held exam. Otherwise only after 404 on nonheld.
                  * @returns {Promise} Promise which resolves for ExamObject  
                  */
                 loadExam(examUuid, heldExam = false) {
