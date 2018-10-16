@@ -16,7 +16,11 @@
     background: #AAA; 
     opacity: .40; 
     filter: Alpha(Opacity=40);
-}   
+}
+
+.lapa .content #exam .input-and-notifications-wrapper .empty-question-warning {
+    margin-bottom: 2.5em;   
+}
 
 #APURI_modal_content { 
     position: fixed; 
