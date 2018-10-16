@@ -61,6 +61,10 @@ Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainl
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.6.0 (16.10.2018)
+- Tuki YTL:n kaksiosaiselle kokeelle (A- ja B-osa)
+- Monivalintakokeen uudelleenjärjestämisen tuki
+
 #### v0.5.4 (6.2.2018)
 - Korjauksia CSV-tiedostoon
 
