@@ -15,13 +15,8 @@ Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]
 1. Mene [Chrome-selaimen kauppaan ja etsi AbixApuri][8]
 2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
 
-AbixApuria voi edelleen käyttää TamperMonkeyn avulla. Asennusohjeet tähän alempana.
+AbixApuria voi edelleen käyttää TamperMonkeyn avulla, mutta tätä vaihtoehtoa ei suositella. Asennusohjeet tähän alempana.
 
-## [HUOM!! GreaseMonkey v4 ei toistaiseksi toimi AbixApurin kanssa][7]
-**Päivitetty 16.11.2017**
-
-Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja ei toistaiseksi ole yhteensopiva AbixApurin kanssa. Lataa mieluiten [selainlisäosa][4]. Voit ladata Firefoxille [TamperMonkey][6]-lisäosan ja [asentaa skriptin uudelleen][3], jolloin saat AbixApurin toimimaan
-**[Tarkemmat ohjeet >>][7]**
 
 ## Ominaisuudet
 
@@ -52,11 +47,11 @@ Firefoxin päivityksessä versioon 57 on [GreaseMonkey][1]-lisäosa muuttunut ja
 
 ## Asentaminen Tampermonkeyn avulla
 
+**AbixApurin käyttämistä TamperMonkeyn avulla ei suositella ensisijaisena vaihtoehtona, etenkään uusiin asennuksiin. Lataa mieluummin AbixApuri mieluummin selainlaajennoksena.**
+
 1. Firefox-selaimessa lataa [TamperMonkey Firefoxille][6]-lisäosa. Chrome-selaimessa lataa [TamperMonkey Chromelle][2]-lisäosa.
 2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
 3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
-
-Jos et halua asentaa ym. laajennoksia voit vaihtoehtoisesti asentaa oman selainlaajennoksen [Chromeen][5] tai [Firefoxiin][4], mutta tämä prosessi on monimutkaisempi. Tästä tietoa alempana.
 
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
@@ -234,7 +229,7 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.5.4.0-an+fx.xpi?raw=true
+[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.6.0.0-fx.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/abixapurichrome-0.5.0.0.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
