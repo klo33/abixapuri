@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.6.0
+// @version     0.6.1
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -2512,12 +2512,12 @@ var APURI ={
                                 for (let mutation of mutationList) {
                                     if (mutation.type == 'childList') {
                                         for (let child of mutation.addedNodes) {
-                                            if (child.className === "add-annotation-popup") {
+                                            if (child.classList != null && child.classList.contains("add-annotation-popup")) {
                                                 //$(child).attr('style','top: 98.5px !important;');
                                                 // search for input field
                                                 let inputNode = null;
                                                 for (let subchild of child.children) {
-                                                    if (subchild.className === 'add-annotation-text') {
+                                                    if (subchild.classList != null && subchild.classList.contains('add-annotation-text')) {
                                                         inputNode = subchild;
                                                         break;
                                                     }
@@ -2731,7 +2731,7 @@ var APURI ={
                         this.multichoiceFieldInit();
                     },
                     multichoiceFieldInit() {
-                        $('table.options .optionRow input.option:not([data-apuri-name])').each(
+                        $('.choicegroup table.options .optionRow input.option:not([data-apuri-name])').each(
                             function(index, element) {
                                 let el = $(element);
                                 if (el.next().length === 0) {

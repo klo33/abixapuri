@@ -45,17 +45,12 @@ AbixApuria voi edelleen käyttää TamperMonkeyn avulla, mutta tätä vaihtoehto
 2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
 
 
-## Asentaminen Tampermonkeyn avulla
-
-**AbixApurin käyttämistä TamperMonkeyn avulla ei suositella ensisijaisena vaihtoehtona, etenkään uusiin asennuksiin. Lataa mieluummin AbixApuri mieluummin selainlaajennoksena.**
-
-1. Firefox-selaimessa lataa [TamperMonkey Firefoxille][6]-lisäosa. Chrome-selaimessa lataa [TamperMonkey Chromelle][2]-lisäosa.
-2. Lataa [AbixApuri][3] menemällä osoitteeseen [klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js][3]. Jos 1-kohdan lisäosa on asennettu selaimeen oikein sen pitäisi ehdottaa asennusta. Hyväksy asennus.
-3. Mene osoitteeseen [oma.abitti.fi] normaalisti. Tarvittaessa varmista GreaseMonkeys apina-kuvakkeesta tai TamperMonkeyn "ruutu"-kuvakkeesta, että AbixApuri on päällä.
-
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.6.1 (30.11.2018)
+- Korjauksia kommentointiin oma.abitti.fi:n muutoksien vuoksi ja huomautuksiin monivalinnoissa
+
 #### v0.6.0 (16.10.2018)
 - Tuki YTL:n kaksiosaiselle kokeelle (A- ja B-osa)
 - Monivalintakokeen uudelleenjärjestämisen tuki

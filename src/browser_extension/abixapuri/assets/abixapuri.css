@@ -307,6 +307,9 @@ border: 3px solid #3E7800;
     padding-bottom: 0;
 }
 
+.popup.add-annotation-popup {
+    display:block !important;
+}
 .APURI_comment_container {
     position:   relative;
     z-index:    50; 
