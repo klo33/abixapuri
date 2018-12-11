@@ -28,6 +28,7 @@ APURI.injectScriptHeadInline(`APURILoader = { check: "xxx", css: "${chrome.exten
     cookiesR: "${chrome.extension.getURL("assets/")}js.cookie.min" };`);
 
 APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/abixapuri.js"));
+APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/require.min.js"))
 /*        
 APURILoader =  {
     css: chrome.extension.getURL("assets/abixapuri.css"),

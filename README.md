@@ -48,6 +48,10 @@ AbixApuria voi edelleen käyttää TamperMonkeyn avulla, mutta tätä vaihtoehto
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+#### v0.6.2 (11.12.2018)
+- Korjauksia johtuen oma.abitti.fi:n muutoksista
+- TamperMonkey-usersriptiä ei toistaiseksi päivitetä. Päivitä selainlaajennukseen.
+
 #### v0.6.1 (30.11.2018)
 - Korjauksia kommentointiin oma.abitti.fi:n muutoksien vuoksi ja huomautuksiin monivalinnoissa
 
