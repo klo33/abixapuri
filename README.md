@@ -17,6 +17,8 @@ Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]
 
 AbixApuria voi edelleen käyttää TamperMonkeyn avulla, mutta tätä vaihtoehtoa ei suositella. Asennusohjeet tähän alempana.
 
+### Lisäosan päivittäminen
+Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamalla lisäosa uudelleen.
 
 ## Ominaisuudet
 
@@ -228,7 +230,7 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.6.0.0-fx.xpi?raw=true
+[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.6.2.0-an+fx.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/abixapurichrome-0.5.0.0.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
