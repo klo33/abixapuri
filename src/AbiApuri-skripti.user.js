@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.6.1
+// @version     0.6.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -122,7 +122,9 @@ var APURI ={
                 importcsv_open_popup: "Vie arviointitiedosto Abittiin",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Lataa",
-                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:"
+                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:",
+                support_tampermonkey_firefox: "<strong>HUOM! TÄRKEÄ TIEDOTE AbixApurin Tampermonkey-laajennuksen käyttäjille</strong><p>YTL:n joulukuussa tekemien muutosten jälkeen TamperMonkey-version tukea ei ole jatkettu, jolloin AbixApuri ei Tampermonkeyn alla toimi oikein.</p><p>Jos haluat jatkaa AbixApurin käyttöä</p><ol><li>Lataa <a href='https://klo33.github.io/abixapuri' target='_blank'>AbixApurin kotisivuilta Firefox-selainlaajennus</a> ja hyväksy sen asennus.</li><li>Poista TamperMonkey tai TamperMonkeysta AbixApuri</li>",
+                support_tampermonkey_chrome: "<strong>HUOM! TÄRKEÄ TIEDOTE AbixApurin Tampermonkey-laajennuksen käyttäjille</strong><p>YTL:n joulukuussa tekemien muutosten jälkeen TamperMonkey-version tukea ei ole jatkettu, jolloin AbixApuri ei Tampermonkeyn alla toimi oikein.</p><p>Jos haluat jatkaa AbixApurin käyttöä</p><ol><li>Lataa <a href='https://chrome.google.com/webstore/detail/abixapuri/jjeikocnggeifbldpibadabeidjaphom'  target='_blank'>Chrome Web Storesta AbixApuri</a> ja hyväksy sen asennus.</li><li>Poista TamperMonkey tai TamperMonkeysta AbixApuri</li>"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -198,7 +200,9 @@ var APURI ={
                 importcsv_open_popup: "Ladda upp bedömningen till Abitti",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Ladda upp",
-                import_select_section_label: "Välj till vilket del uppgift hemtas:"
+                import_select_section_label: "Välj till vilket del uppgift hemtas:",
+                support_tampermonkey_firefox: "<strong>OBS! TÄRKEÄ TIEDOTE AbixApurin Tampermonkey-laajennuksen käyttäjille</strong><p>YTL:n joulukuussa tekemien muutosten jälkeen TamperMonkey-version tukea ei ole jatkettu, jolloin AbixApuri ei Tampermonkeyn alla toimi oikein.</p><p>Jos haluat jatkaa AbixApurin käyttöä</p><ol><li>Lataa <a href='https://klo33.github.io/abixapuri' target='_blank'>AbixApurin kotisivuilta Firefox-selainlaajennus</a> ja hyväksy sen asennus.</li><li>Poista TamperMonkey tai TamperMonkeysta AbixApuri</li>",
+                support_tampermonkey_chrome: "<strong>OBS! TÄRKEÄ TIEDOTE AbixApurin Tampermonkey-laajennuksen käyttäjille</strong><p>YTL:n joulukuussa tekemien muutosten jälkeen TamperMonkey-version tukea ei ole jatkettu, jolloin AbixApuri ei Tampermonkeyn alla toimi oikein.</p><p>Jos haluat jatkaa AbixApurin käyttöä</p><ol><li>Lataa <a href='https://chrome.google.com/webstore/detail/abixapuri/jjeikocnggeifbldpibadabeidjaphom'  target='_blank'>Chrome Web Storesta AbixApuri</a> ja hyväksy sen asennus.</li><li>Poista TamperMonkey tai TamperMonkeysta AbixApuri</li>"
                   
               }  
             },
@@ -953,7 +957,7 @@ var APURI ={
 
                     return b64_sha256(param)
                 },
-                browserFirefoxDetect() {
+                browserFirefoxDetectVersion() {
                     
                     let pattern = /Firefox\/(\d\d)./g;
                     let res = pattern.exec(navigator.userAgent);
@@ -964,6 +968,16 @@ var APURI ={
                     return false;
                     //return (navigator.userAgent.indexOf("Firefox/57") > -1?true:false);                    
                 },
+                browserFirefoxVersion() {
+                    
+                    let pattern = /Firefox\/(\d\d)./g;
+                    let res = pattern.exec(navigator.userAgent);
+                    if (res !== null) {
+                        return true;
+                    }
+                    return false;
+                    //return (navigator.userAgent.indexOf("Firefox/57") > -1?true:false);                    
+                }, 
                 osBrowserDetect() {
                     let pattern = /(Windows NT)|(X11\/Linux)/g;
                     if (navigator.userAgent.search(pattern)>0) {
@@ -2682,8 +2696,11 @@ var APURI ={
                     initTimer: null,
                     show: function () {
                         if (APURI.util.browserFirefoxDetect()) {
-                            let div = jQuery('<div />').attr('id','APURI_extwarning').html(APURI.text.firefox_greasemonkey_warning);
+                            let div = jQuery('<div />').attr('id','APURI_extwarning').html(APURI.text.support_tampermonkey_firefox);
                             div.insertBefore('div#page-content h1');
+                        } else {
+                            let div = jQuery('<div />').attr('id','APURI_extwarning').html(APURI.text.support_tampermonkey_chrome);
+                            div.insertBefore('div#page-content h1');                            
                         }
                         if (document.querySelector('div#page-content h1') !== null || document.querySelector('#APURI_extwarning') !== null)
                             clearInterval(this.initTimer);
