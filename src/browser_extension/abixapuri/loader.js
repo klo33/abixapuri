@@ -20,7 +20,7 @@ var	APURI = {
 };
 
  // console.log("url", browser.extension.getURL("assets/abixapuri.js"));
-APURI.injectScriptHeadInline(`APURILoader = { check: "xxx", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
+APURI.injectScriptHeadInline(`APURILoader = { check: "537bde28-1473-4220-9a1d-5c23770f0c2b", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
     ckeditor: "${chrome.extension.getURL("assets/ckeditor/ckeditor.js")}",
     sortableR: "${chrome.extension.getURL("assets/")}Sortable.min",
     jqueryR: "${chrome.extension.getURL("assets/")}jquery-3.2.1.min",

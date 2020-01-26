@@ -122,7 +122,8 @@ var APURI ={
                 importcsv_open_popup: "Vie arviointitiedosto Abittiin",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Lataa",
-                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:"
+                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:",
+                attachment_converted_filename: "konvertoitu_koeliite"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -198,7 +199,8 @@ var APURI ={
                 importcsv_open_popup: "Ladda upp bedömningen till Abitti",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Ladda upp",
-                import_select_section_label: "Välj till vilket del uppgift hemtas:"
+                import_select_section_label: "Välj till vilket del uppgift hemtas:",
+                attachment_converted_filename: "transformerat_provbilag"
                   
               }  
             },
@@ -2928,6 +2930,110 @@ var APURI ={
                     viewObj.init();
                 }
                 viewObj.initTimer = window.setInterval(function() {viewObj.show();}, delayTiming);
+            },
+            /**
+             * Searches base64-data from Json and converts to non-base64 referenses
+             * @param {string} examData Json formatted exam data 
+             * @param {string} examUuid ExamUuid
+             * @returns {Promise} Promise whichs resolves for converted data. In this phase the exam contains already the attachments
+             */
+            base64transform(examData, examUuid) {
+                if (typeof examData !== 'string') {
+                    console.error("Väärä parametri", examData);
+                }
+                const perusnimi=APURI.text.attachment_converted_filename;
+                let replaceCount = 0;
+                /**
+                 * [{
+                 *  }]
+                 */
+                let blobPromises = []; 
+                function getSuffix(mimeType) {
+                    const suffixLookup = {
+                        "image/jpeg":".jpg",
+                        "image/png":".png",
+                        "image/gif":".gif",
+                        "image/bmp":".bmp",
+                        "image/svg+xml":".svg"
+                    }
+                    if (suffixLookup[mimeType] !== undefined)
+                        return suffixLookup[mimeType]
+                    else
+                        return "."+mimeType.split("/")[1];
+                }
+                /**
+                 * Converts base64-data to Blob
+                 * @param {string} mime mimeType
+                 * @param {string} data base64-encoded data 
+                 * @returns {Blob}
+                 */
+                function convertToBlob(mime, data) {
+                    var binary = atob(data), array = [];
+                    for(var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+                    return new Blob([new Uint8Array(array)], {type: mime});
+                }
+
+                /**
+                 * Initiates Blob upload to an exam
+                 * @param {Blob} blob 
+                 * @param {string} targetExamUuid 
+                 * @param {string} filename 
+                 * @param {string} mimeType
+                 * @returns {Promise} 
+                 */
+                function convertedBlobUpload(blob, targetExamUuid, filename, mimeType) {
+                    return new Promise((resolve, reject)=>{
+                        APURI.ui.showUploadStatus(filename);
+                        let targetUri = `/exam-api/exams/${targetExamUuid}/attachments/add`;
+                        if (typeof mimeType === 'undefined') {
+                            mimeType = blob.type;
+                        }
+                        APURI.util.uploadBlob(targetUri, blob, {filename: filename, filetype: mimeType}, function(e) {
+                            if (e.lengthComputable) {
+                                APURI.ui.updateCurrentUpload(filename, (e.loaded/e.total)*100);
+                            }
+                        }).then(function() {
+                            APURI.ui.updateCurrentUpload(filename, 100);
+                            APURI.ui.hideUploadStatus(filename);
+                            resolve(filename);
+                        }).catch(error => {
+                            console.error("Error uploading converted", filename);
+                            reject(error);
+                        });
+    
+                    });
+                }
+
+                function replacer(match, erotin, mimeString, dataString) {
+                    replaceCount++;
+                    let filename = perusnimi+replaceCount+getSuffix(mimeString);
+                    blobPromises.push(
+                        convertedBlobUpload(convertToBlob(mimeString, dataString), 
+                            examUuid, 
+                            filename, 
+                            mimeString));
+                    return `src=${erotin}/attachments/${filename}${erotin}`;
+                }
+                let pr = new Promise(
+                    (resolveTransform, rejectTransform)=>{
+                        let regexp = /src=(\\?["'])data:(\w+\/[\w\-\+]+);base64,([\w=+\/]+)\1/g;
+                        if (!examData.includes(";base64,")) {
+                            resolveTransform(examData);
+                            return;
+                        }
+                        APURI.ui.showAttachmentCopy();
+                        let newData = examData.replace(regexp, replacer);
+                        Promise.all(blobPromises)
+                            .then(() => {
+                                resolveTransform(newData);
+                            })
+                            .catch((error) => {
+                                console.error("Failed in base64 conversion of exam", examUuid);
+                                rejectTransform(error);
+                            })
+                    }
+                )
+                return pr;
             }
         };
 
@@ -3623,7 +3729,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,htmlwriter,abittiimage',
+					extraPlugins: 'mathjax,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -3633,8 +3739,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         entities_greek:false,
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
-		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
+		{ name: 'insert', items: [ 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
@@ -3756,38 +3861,49 @@ APURI.makeCopyOfExam = function(origUuid) {
 					success: function(uusidata){
 						var uudenUuid = uusidata.examUuid;
                                                 // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
-						origData.content.title = origData.content.title + " (kopio)";
-						$.ajax({
-								type: "POST",
-								url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-								data: JSON.stringify(origData.content),
-								accept: "application/json; text/javascript",
-								contentType: "application/json; charset=UTF-8",
-								dataType: "json",
-								success: function(data){
-									// Kopioidaan liitteet
-                                                                        if (origData.attachments.length > 0) {
-//                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
-                                                                            APURI.ui.showAttachmentCopy();
-                                                                            APURI.attachments.copyAttachments(origUuid, uudenUuid)
-                                                                                    .then(filenames => {
-                                                                                APURI.ui.clearAttachmentCopy();                                                                                        
+                        origData.content.title = origData.content.title + " (kopio)";
+                        // tarkista, onko sisällössä base64:sta
+                        APURI.base64transform(JSON.stringify(origData), uudenUuid)
+                            .then((origDataTransformedStr) => {
+                                let origDataTransformed = JSON.parse(origDataTransformedStr);
+                                $.ajax({
+                                    type: "POST",
+                                    url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
+                                    data: JSON.stringify(origDataTransformed.content),
+                                    accept: "application/json; text/javascript",
+                                    contentType: "application/json; charset=UTF-8",
+                                    dataType: "json",
+                                    success: function(data){
+                                        // Kopioidaan liitteet
+                                                                            if (origData.attachments.length > 0) {
+    //                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                                                                                APURI.ui.showAttachmentCopy();
+                                                                                APURI.attachments.copyAttachments(origUuid, uudenUuid)
+                                                                                        .then(filenames => {
+                                                                                    APURI.ui.clearAttachmentCopy();                                                                                        
+                                                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                                                });
+                                                                            } else {
+                                                                                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
                                                                                 window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                            });
-                                                                        } else {
-                                                                            // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                                                                            window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                        }
-								},
-								failure: function(errMsg) {
-										console.log("ERROR kopion tallennuksessa: "+errMsg);
+                                                                            }
+                                    },
+                                    failure: function(errMsg) {
+                                            console.error("ERROR kopion tallennuksessa: "+errMsg);
+    
+                                    }
+                                });
+                            })
+                            .catch((error)=>{
+                                console.error("ERROR Base64-konversiovirhe");
+                                console.error(error);
+                            })
+                        console.log(".");
 
-								}
-						});
 						
 					},
 					failure: function(errMsg) {
-							console.log("ERROR uuden luomisessa: "+errMsg);
+							console.error("ERROR uuden luomisessa: "+errMsg);
 
 					}
 			});
