@@ -195,7 +195,32 @@ li.APURI_import_exam .date::after {
     
 }
 
-#APURI_delayd, #APURI_bittiniilo {
+#APURI_base64box {
+    font-size: 80%;
+    background: #F1FBE8;
+    margin-top: 1em;
+    margin-bottom:1em;
+}
+
+#APURI_base64box a {
+    color: #3E7800;
+}
+
+#APURI_base64box button {
+    float: right;
+    margin: 1em;
+    padding: 0.1em;
+    font-size: 95%;
+    height: 30px;
+    line-height: 30px;
+}
+
+#APURI_base64box br {
+    clear: right;
+}
+
+
+#APURI_delayd, #APURI_base64exam, #APURI_bittiniilo {
     height: 4em;
     background-color: #C2FF81;
     /*background-color: #C2FF81E6;*/
@@ -210,15 +235,25 @@ border: 3px solid #3E7800;
     margin: auto;
     
 }
-#APURI_delayd div.APURI_message, #APURI_bittiniilo div.APURI_message {
+#APURI_delayd div.APURI_message, #APURI_base64exam div.APURI_message, #APURI_bittiniilo div.APURI_message {
     padding: 1em;
 }
 
-#APURI_delayd button, #APURI_bittiniilo button {
+#APURI_delayd button, #APURI_base64exam button, #APURI_bittiniilo button {
     right: 5%;
     top: 0.7em;
     position: absolute;
     background-color: #3E7800 !important;
+}
+
+.APURI_base64note {
+    font-size: small;
+    font-weight: bold;
+    color: #3E7800;
+    background: #C2FF81;
+    border: 1px solid #C2FF81;
+    padding: 0.2em 0.2em 0.2em 0.2em;
+    border-radius: 5px;
 }
 
 @keyframes movedown {
@@ -238,10 +273,10 @@ border: 3px solid #3E7800;
         top:-100px;
     }
 }
-#APURI_delayd.comedown, #APURI_bittiniilo.comedown{
+#APURI_delayd.comedown, #APURI_base64exam.comedown, #APURI_bittiniilo.comedown{
   animation: movedown 1s ease-out forwards;
 }
-#APURI_delayd.clearup, #APURI_delayd.clearup {
+#APURI_delayd.clearup, #APURI_base64exam.clearup, #APURI_delayd.clearup {
   animation: moveup 1s ease-in forwards;
 }
 

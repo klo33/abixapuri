@@ -123,7 +123,12 @@ var APURI ={
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Lataa",
                 import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:",
-                attachment_converted_filename: "konvertoitu_koeliite"
+                attachment_converted_filename: "konvertoitu_koeliite",
+                exam_contains_base64_msg: "<strong>Huom! Koe sisältää poistuvia liitteitä!</strong><br/> Kokeesi sisältää liitetiedostoja base64-muodossa, joiden <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>tuki loppuu Abitissa</a>. Voit muuntaa kuvat tuettuun muotoon.",
+                exam_contains_base64_button: "Muunna kokeen liitteet",
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki päättyy Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
+                examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
+                examlist_base64_note: "base64"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -200,7 +205,13 @@ var APURI ={
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Ladda upp",
                 import_select_section_label: "Välj till vilket del uppgift hemtas:",
-                attachment_converted_filename: "transformerat_provbilag"
+                attachment_converted_filename: "transformerat_provbilag",
+                exam_contains_base64_msg: "<strong>Obs! Provet innehåller bilag som inte mer stöds!</strong><br/> Din prov har bilag i base64-form, vars <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>stöd i Abitti slutar</a>.",
+                exam_contains_base64_button: "Transformera till bilagor",
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag slutar i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
+                examlist_base64_button: "Visa prov som innehåller base64-bilag",
+                examlist_base64_note: "base64"
+
                   
               }  
             },
@@ -1550,6 +1561,28 @@ var APURI ={
                 },
                 currentBuffer: null,
                 bufferLast: null,
+                containsBase64(examData, quick = false) {
+                    let examDataStr;
+                    if (typeof examData !== 'string') {
+                        examDataStr = JSON.stringify(examData);
+                    } else {
+                        examDataStr = examData;
+                    }
+                    if (quick) {
+                        if (examDataStr.includes(";base64,")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    let regexp = /src=(\\?["'])data:(\w+\/[\w\-\+]+);base64,([\w=+\/]+)\1/g;
+                    let retval = examDataStr.match(regexp);
+                    if (retval == null)
+                        return false;
+                    else
+                        return true;
+                },
                 /**
                  * Returns exam UUID extracted from the location of current window
                  * @returns {string} current locations exam UUID or null if not recognized
@@ -2695,7 +2728,35 @@ var APURI ={
   
                 examview: {
                     initTimer: null,
+                    addBase64Warning() {
+                        APURI.ui.showWarning(APURI.text.exam_contains_base64_msg, APURI.text.exam_contains_base64_button, "APURI_base64exam",
+                            () => {
+                                let examUuid = APURI.exam.getCurrentLocationUuid();
+                                APURI.exam.getCurrentExam()
+                                    .then((examData) => {
+                                        APURI.base64transform(JSON.stringify(examData), examUuid)
+                                            .then((convertedExamDataStr) => {
+                                                let convertedExamData = JSON.parse(convertedExamDataStr);
+                                                APURI.exam.saveExam(convertedExamData, true);
+                                            })
+                                            .catch((error) => {
+                                                console.error("Error in conversion", error);
+                                            });
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error loading exam", error);
+                                    })
+                            }
+                        );
+                    },
                     show: function() {
+                        APURI.exam.getCurrentExam()
+                            .then((examData) => {
+                                // if contains base64-data
+                                if (APURI.exam.containsBase64(examData)) {
+                                    this.addBase64Warning();
+                                }
+                            });
                         if (document.getElementsByClassName("questionButtons").length > 0) {
                                 //console.log("begin button");
                                 var $impButton = $('<button />').html(APURI.text.import_assignment_button).attr('class','addQuestion APURI importExam').on('click', APURI.showImporDialog);
@@ -2776,6 +2837,27 @@ var APURI ={
                 },
                 examlist: {
                     initTimer: null,
+                    doBase64SearchForAll() {
+                        APURI.ui.showLoadingSpinner("Lataus");
+                        let loadjobs = [];
+                        APURI.examList.loadList()
+                            .then((examlist)=> {
+                                console.debug("Examlist", examlist)
+                                for (let exam of examlist.exams) {
+                                    loadjobs.push(APURI.exam.loadExam(exam.examUuid, false)
+                                        .then((examData)=> {
+                                            if (APURI.exam.containsBase64(examData, true)) {
+                                                $(`#available-exams tr[data-exam-uuid='${examData.examUuid}'] + tr > td:first`)
+                                                .append($("<div>").attr("class","APURI APURI_base64note").html(APURI.text.examlist_base64_note));
+                                            }
+                                        }));
+                                }
+                                Promise.all(loadjobs)
+                                    .then(()=> {
+                                        APURI.ui.clearLoadingSpinner();
+                                    });
+                            });
+                    },
                     showFilterInput(tableid, inputid) {
                         let examsInput = document.getElementById(inputid);
                         let examTaulukko = document.getElementById(tableid);
@@ -2912,6 +2994,16 @@ var APURI ={
                                 $('span.disabled-modify-exam-button-tooltip').html(APURI.text.copy_exam_tooltip);
                                 taulukko.setAttribute("apuri_mod", "done");
                             }
+                        }
+                        let base64divcont = document.getElementById("APURI_base64box");
+                        if (base64divcont == null) {
+                            let base64div = $("<div>").attr("id","APURI_base64box").attr("class", "APURI")
+                            .html(APURI.text.examlist_base64_info);
+                            base64div.append($("<button>").attr("id","APURI_base64box_button").attr("class","APURI edit-exam").html(APURI.text.examlist_base64_button).on('click',()=> {
+                                $("#APURI_base64box_button").hide();
+                                this.doBase64SearchForAll();
+                            })).append($("<br>"));
+                            $("#instructions-wrapper").after(base64div);
                         }
                     }
                 },
