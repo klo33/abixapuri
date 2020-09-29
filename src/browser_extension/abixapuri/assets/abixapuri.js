@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.6.1
+// @version     0.6.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -1864,7 +1864,7 @@ var APURI ={
                         }
 //                        console.log("ImgSrcReplace");
                         let absoluteAttachmentPath = '/exam-api/exams/%uuid/attachments/';
-                        document.querySelectorAll('iframe').forEach( item => {
+                        document.querySelectorAll('iframe').forEach( item => {if (item.contentWindow.document.body.querySelectorAll('img,video,audio,source')!== null){
                             let allImg = item.contentWindow.document.body.querySelectorAll('img,video,audio,source');                  
                             for (let img of allImg) {
                                 let src = img.getAttribute('src');
@@ -1877,7 +1877,7 @@ var APURI ={
                                     img.setAttribute('src', newUri);
                                 }
                             }
-                            });
+						}});
                         
                     }
                 },
@@ -2845,12 +2845,12 @@ var APURI ={
                                 console.debug("Examlist", examlist)
                                 for (let exam of examlist.exams) {
                                     loadjobs.push(APURI.exam.loadExam(exam.examUuid, false)
-                                        .then((examData)=> {
+                                        .then((examData)=> {if( $("div").not(".xml-exam-not-editable-note") ) {
                                             if (APURI.exam.containsBase64(examData, true)) {
                                                 $(`#available-exams tr[data-exam-uuid='${examData.examUuid}'] + tr > td:first`)
                                                 .append($("<div>").attr("class","APURI APURI_base64note").html(APURI.text.examlist_base64_note));
                                             }
-                                        }));
+                                        }}));
                                 }
                                 Promise.all(loadjobs)
                                     .then(()=> {
