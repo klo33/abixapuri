@@ -1304,6 +1304,27 @@ var APURI ={
                     return null;
                 },
                 /**
+                 * Get comments per answer
+                 * @param {*} data 
+                 * @param {*} answerId 
+                 */
+                getCommentsByAnswer(data, answerId = null) {
+                    let comments = new Array();
+                    for (let pupil of data) {
+                        for (let answer of pupil.answers) {
+                            if (answer.metadata !== null && (answer.id === questionId))
+                                for (let annotation of answer.metadata.annotations) {
+                                    let subannos = annotation.message.split(" / ");
+                                    for (let subanno of subannos) {
+                                        comments.push(subanno);
+                                    }
+                                }
+                        }
+                    }
+                    return comments;                    
+                },
+
+                /**
                  * 
                  * @param {type} data
                  * @param {type} questionId
@@ -2488,7 +2509,32 @@ var APURI ={
                      * @type type
                      */
                     commentsByQuestion: new Map(),
-
+                    calculateScoreSum(answerId) {
+                        let comments = APURI.exam.getCommentsByAnswer(answers, answerId);
+                        const pointPattern = /\((\-?\d+)p\)/;
+                        let sums = {
+                            positive: 0,
+                            negative: 0,
+                            total: 0
+                        }
+                        for (comment of comments) {
+                            let found = str.match(pointPattern);
+                            if (found != null) {
+                                let points = parseInt(found[1]);
+                                if (points < 0)
+                                    sums.negative += points;
+                                else
+                                    sums.positive += points;
+                                sums.total += points;
+                            }
+                        }
+                        return sums;
+                    },
+                    /**
+                     * 
+                     * @param {*} questionId 
+                     * @returns Promise({comments:, points:})
+                     */
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
                             let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2557,8 +2603,11 @@ var APURI ={
                                                         break;
                                                     }
                                                 }
-                                                let questionId = $(child).closest('.answer').attr('data-question-id');
+                                                let $closestAnswerEl = $(child).closest('.answer');
+                                                let questionId = $closestAnswerEl.attr('data-question-id');
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
                                                 questionId = parseInt(questionId);
+                                                answerId = parseInt(answerId);
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
 
