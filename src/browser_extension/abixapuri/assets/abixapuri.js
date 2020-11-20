@@ -2608,6 +2608,44 @@ var APURI ={
                                                 let answerId = $closestAnswerEl.attr('data-answer-id');
                                                 questionId = parseInt(questionId);
                                                 answerId = parseInt(answerId);
+
+
+                                                let elPointsContainer = $('<div />', {
+                                                    style: '',
+                                                    class: 'APURI_comment_points_container'
+                                                }).appendTo(child);
+                                                for (let p=-3; p<5; p++) {
+                                                    if (p === 0) continue;
+                                                    (function(pValue, inputNode, elPointsContainer) {
+                                                        let text = (pValue<0?'':'+')+pValue;
+                                                        let clickPointsHandler = function() {
+                                                            //  console.log("Click", inputField, text);
+                                                            if (inputNode.value === "") {
+                                                                inputNode.value = text;                                                                
+                                                            } else {
+                                                                if (inputNode.value.endsWith(" / ")) {
+                                                                    inputNode.value += text;
+                                                                } else {
+                                                                    inputNode.value += ' / '+text;
+                                                                }
+                                                            }
+                                                            return false;
+                                                        };
+                                                    let pointEl = $('<div/>', {
+                                                        class: 'APURI_comment_point_selector',
+                                                        text: text
+                                                    }).on('mousedown',clickPointsHandler).appendTo(elPointsContainer);
+                                                    if (APURI.settings.local.enableReviewKeyboardShortcuts && counter < 8) {
+                                                        $(inputNode).on("keydown", event => {
+                                                           if (event.altKey === false && event.shiftKey === true && event.ctrlKey ===true && event.which === 49+num) {
+                                                               clickPointsHandler();
+                                                           }
+                                                        });
+                                                    }
+
+                                                })(p, inputNode, elPointsContainer);
+                                                    
+                                                }
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
 
