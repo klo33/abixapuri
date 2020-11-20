@@ -1312,7 +1312,7 @@ var APURI ={
                     let comments = new Array();
                     for (let pupil of data) {
                         for (let answer of pupil.answers) {
-                            if (answer.metadata !== null && (answer.id === questionId))
+                            if (answer.metadata !== null && (answer.id === answerId))
                                 for (let annotation of answer.metadata.annotations) {
                                     let subannos = annotation.message.split(" / ");
                                     for (let subanno of subannos) {
@@ -2509,16 +2509,19 @@ var APURI ={
                      * @type type
                      */
                     commentsByQuestion: new Map(),
-                    calculateScoreSum(answerId) {
-                        let comments = APURI.exam.getCommentsByAnswer(answers, answerId);
-                        const pointPattern = /\((\-?\d+)p\)/;
+                    calculateScoreSum(answerId, comments = null) {
+                        if (comments === null)
+                            comments = APURI.grading.getCommentsByAnswer(APURI.views.grading.answers, answerId);
+                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                        if (typeof comments === "string")
+                            comments = [comments];
                         let sums = {
                             positive: 0,
                             negative: 0,
                             total: 0
                         }
-                        for (comment of comments) {
-                            let found = str.match(pointPattern);
+                        for (let comment of comments) {
+                            let found = comment.match(pointPattern);
                             if (found != null) {
                                 let points = parseInt(found[1]);
                                 if (points < 0)
@@ -2558,6 +2561,79 @@ var APURI ={
                             
                         });
                     },
+                    triggerRecount(answerId, $answerEl = null, mass = false) {
+                        if ($answerEl == null) {
+                            $answerEl = $(`[data-answer-id=${answerId}]`);
+                        }
+                        let loadJobs = [Promise.resolve()];
+                        if (!mass) {
+                            console.log("Single recount!");
+                            loadJobs = [new Promise((resolve)=>{
+                                setTimeout(()=>
+                                    {APURI.views.grading.loadComments()
+                                            .then(()=>
+                                                {resolve()})
+                                            }, 2000);
+                                }), // Promise that checks comments in a second
+                                new Promise((resolve)=> {
+                                    setTimeout(()=>{resolve()}, 3000);
+                                })]; // do not resolve before 1 secs
+                        }
+                        Promise.all(loadJobs).then(()=>{
+                            let count = this.calculateScoreSum(answerId);
+                            let $scoreEl = $answerEl.find(".score");
+                            let $sumEl = $scoreEl.children(".APURI_scoresum");
+                            let text = `(∑=${count.total}p)`;
+                            if ($sumEl.length == 0) {
+                                $sumEl = $("<div />", {
+                                    class: 'APURI_scoresum',
+                                    text: text
+                                }).appendTo($scoreEl);
+                            } else {
+                                $sumEl.text(text);
+                            }    
+                        })
+                    },
+                    immediatRecount(answerId, $answerEl, content, removal = false) {
+                        if ($answerEl == null) {
+                            $answerEl = $(`[data-answer-id=${answerId}]`);
+                        } else {
+
+                        }
+                        let points = APURI.views.grading.calculateScoreSum(answerId, content);
+                        let change = (removal==true?(-1):1)*points.total;
+                        let $scoreEl = $answerEl.find(".score");
+                        let $sumEl = $scoreEl.children(".APURI_scoresum");
+                        if ($sumEl.length == 0) {
+                            if (removal)
+                                return;
+                            let text = `(∑=${change}p)`;
+                            $sumEl = $("<div />", {
+                                class: 'APURI_scoresum',
+                                text: text
+                            }).appendTo($scoreEl);
+                        } else {
+                            function extractCurrentPoints(text) {
+                                const sumPattern = /\(∑=([\-\+]?\d+)p\)/;
+                                let found = $sumEl.text().match(sumPattern);
+                                if (found != null) {
+                                    return parseInt(found[1]);
+                                } else
+                                    return 0;
+    
+                            }
+                            let text = `(∑=${extractCurrentPoints($sumEl.text())+change}p)`;
+                            $sumEl.text(text);
+                        }    
+                },
+                    triggerRecountAll() {
+                        let answerElements = document.querySelectorAll('#answers div.answer');
+                        Array.from(answerElements).forEach((element, index) => {
+                            let answerId = element.getAttribute('data-answer-id');
+                            answerId = parseInt(answerId);
+                            APURI.views.grading.triggerRecount(answerId, $(element), true);
+                        })
+                    },
                     init() {
                         APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2572,6 +2648,7 @@ var APURI ={
                                                     comments: comments
                                                 });
                                     }
+                                    APURI.views.grading.triggerRecountAll();
                                 })
                                 .catch((err)=>{
                                     console.log("ERROR", err);
@@ -2586,12 +2663,29 @@ var APURI ={
                     },
                     show: function () {
 //                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
+                        
                         let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
                         if (answerBoxes !== null && answerBoxes.length > 0) {
                             let config = {attributes: false, childList: true};
                             let callback = function(mutationList) {
                                 for (let mutation of mutationList) {
                                     if (mutation.type == 'childList') {
+                                        let answerAnnotionChecker = function(child, removal = false, target = null) {
+                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
+                                                let message = child.getAttribute("data-message");
+                                                if (message === null) // check if does not contain message
+                                                    return;
+                                                console.debug("New annotation detected", removal, child);
+                                                let $closestAnswerEl = $(child).closest('.answer');
+                                                if (target !== null) {
+                                                    $closestAnswerEl = $(target).closest('.answer');
+                                                }
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
+                                                answerId = parseInt(answerId);
+                                                APURI.views.grading.immediatRecount(answerId, $closestAnswerEl, message, removal)
+                                                APURI.views.grading.triggerRecount(answerId, $closestAnswerEl);
+                                            }
+                                        }
                                         for (let child of mutation.addedNodes) {
                                             if (child.classList != null && child.classList.contains("add-annotation-popup")) {
                                                 //$(child).attr('style','top: 98.5px !important;');
@@ -2614,19 +2708,20 @@ var APURI ={
                                                     style: '',
                                                     class: 'APURI_comment_points_container'
                                                 }).appendTo(child);
-                                                for (let p=-3; p<5; p++) {
+                                                for (let p=-4; p<6; p++) {
                                                     if (p === 0) continue;
                                                     (function(pValue, inputNode, elPointsContainer) {
                                                         let text = (pValue<0?'':'+')+pValue;
+                                                        let inputText = `(${text}p.)`
                                                         let clickPointsHandler = function() {
                                                             //  console.log("Click", inputField, text);
                                                             if (inputNode.value === "") {
-                                                                inputNode.value = text;                                                                
+                                                                inputNode.value = inputText;                                                                
                                                             } else {
                                                                 if (inputNode.value.endsWith(" / ")) {
-                                                                    inputNode.value += text;
+                                                                    inputNode.value += inputText;
                                                                 } else {
-                                                                    inputNode.value += ' / '+text;
+                                                                    inputNode.value += ' / '+inputText;
                                                                 }
                                                             }
                                                             return false;
@@ -2635,8 +2730,9 @@ var APURI ={
                                                         class: 'APURI_comment_point_selector',
                                                         text: text
                                                     }).on('mousedown',clickPointsHandler).appendTo(elPointsContainer);
-                                                    if (APURI.settings.local.enableReviewKeyboardShortcuts && counter < 8) {
+                                                    if (APURI.settings.local.enableReviewKeyboardShortcuts && pValue > 0 && pValue < 8) {
                                                         $(inputNode).on("keydown", event => {
+                                                           let num = pValue-1;
                                                            if (event.altKey === false && event.shiftKey === true && event.ctrlKey ===true && event.which === 49+num) {
                                                                clickPointsHandler();
                                                            }
@@ -2652,7 +2748,7 @@ var APURI ={
                                                     // set of showed comments
                                                     let commentSet = new Set();
                                                     let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
-//                                                    console.log("Question comm", questionComments);
+                                                    //  console.log("Question comm", questionComments);
                                                     if (questionComments !== null && typeof questionComments !== 'undefined') {
                                                         for (let comm of questionComments.comments) {
                                                             if (commentSet.size > 6) break;
@@ -2708,7 +2804,7 @@ var APURI ={
                                                     for (let comm of commentSet) {
                                                         (function(inputField, text, num) {              
                                                             let clickHandler = function() {
-  //                                                              console.log("Click", inputField, text);
+                                                                //  console.log("Click", inputField, text);
                                                                 if (inputNode.value === "") {
                                                                     inputNode.value = text;                                                                
                                                                 } else {
@@ -2746,9 +2842,15 @@ var APURI ={
                                                 });
 
                                             }
+                                            answerAnnotionChecker(child);
+                                            //console.debug("Added nodes", child);
+                                        }
+                                        for (let child of mutation.removedNodes) {
+                                            answerAnnotionChecker(child, true, mutation.target);
+                                            // console.debug("Removed nodes", child, mutation);
                                         }
                                     }
-                                    //console.log("MUTATION", mutation);
+                                    // console.debug("MUTATION", mutation);
                                 }
                             }
                                                  

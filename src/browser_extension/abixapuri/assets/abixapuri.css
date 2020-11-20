@@ -528,3 +528,24 @@ td.APURI_gradedistblock {
 #APURI_modal_content table th  {
     margin-right: 1em;
 }
+
+.APURI_comment_points_container {
+    background: #eaf1e3;
+}
+
+.APURI_comment_points_container .APURI_comment_point_selector {
+    background: #d2ebb7;
+    color: #3E7800;
+    border: solid 1px #3E7800;
+    border-radius: 10px;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    margin-left: 1em;
+    display: inline-block;
+}
+
+.APURI_scoresum {
+    background: #e7f3db;
+    font-weight: bold;
+    color: #3E7800;
+}
