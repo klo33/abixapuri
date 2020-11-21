@@ -3,9 +3,7 @@
 **AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
 [oma.abitti.fi]-koepalveluun. **AbixApuri** toimii [Firefox][4]- ja [Chrome][8]-selaimissa erillisen ladattavalla lisäosalla.
 
-Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]/[TamperMonkey Chromelle][2]) avulla. 
-
-## Asennusohjeet (lisäosana)
+## Asennusohjeet
 ### Firefoxille
 1. Tallenna [Firefox-laajennus (.XPI-tiedosto)][4] koneellesi ja 
 2. raahaa se Firefoxin ikkunaan.
@@ -14,8 +12,6 @@ Sitä voi myös käyttää erillisen laajennoksen ([TamperMonkey Firefoxille][6]
 ### Chromelle
 1. Mene [Chrome-selaimen kauppaan ja etsi AbixApuri][8]
 2. Valitse Lisää Chromeen -nappi ja hyväksy asennus
-
-AbixApuria voi edelleen käyttää TamperMonkeyn avulla, mutta tätä vaihtoehtoa ei suositella. Asennusohjeet tähän alempana.
 
 ### Lisäosan päivittäminen
 Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamalla lisäosa uudelleen.
@@ -50,6 +46,14 @@ Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamall
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+
+#### v0.8.0 (20.11.2020)
+- Tuki osapisteytyksille arvostelussa
+- Aikaisemmassa versiopäivityksessä (rinnakkaisessa haarasta joka yhdistty versioon): 
+  * Tuki base64-liitteiden konversiolle kokeen kopioinnissa ja 
+  * base64-liitteiden etsiminen.
+  * Uuden koeformaatin kokeissa CSV-taulukon latauksen tuki
+
 #### v0.6.2 (11.12.2018)
 - Korjauksia johtuen oma.abitti.fi:n muutoksista
 - TamperMonkey-usersriptiä ei toistaiseksi päivitetä. Päivitä selainlaajennukseen.
@@ -160,17 +164,6 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 - Lisätty viivästetty tallennus, jos kuvia liittää suuria määriä
 - Eroteltu YTL:n toivomuksesta selkeämmin lisätyt elementit ja YTL:n elementit sekä tieto, että lisäosa on latautunut
 
-### Selainlaajennokset
-- [Firefoxille][4]
-Tallenna laajennus koneellesi ja sen jälkeen raahaa ladattu XPI-tiedosto Firefoxin ikkunaan. 
-- [Chromelle][5]
-Chromessa ilmeisesti asennus onnistuu ainoastaan kehittäjätilassa (chrome://extensions -> kehittäjätila)
-
-#### Miksi haluaisin käyttää erillisiä selainlaajennoksia?
-Tietooni on tullut, että AbixAjurin käyttäjien juridisesta asemasta on heitetty epäilyksiä, viitaten siihen, että GreaseMonkey ja TamperMonkey eivät olisi luotettavia. Molemmat lisäosat ovat vakiintuneita ja hyvämaineisia, erityisesti viimeaikoina kun niiden skriptien asetuksia on pystynyt rajaamaan tarkemmin. Lisäksi AbixApuri ei tallenna mitään tietoja kyseisiin lisäosiin.
-
-Erillisen laajennuksen käyttö poistaa kuitenkin nämä epäilyt. Erillinen lisäosa ei myöskään lataa verkosta mitään sisältöä tai skriptejä, vaan kaikki toiminnallisuus on toteuttu paikallisesti.
-
 #### Miksi selainlaajennos ei ole Firefoxin kaupassa?
 
 Laajennos käyttää CKEditoria, joka on Firefoxin selainkaupan kooditarkistuksen mielestä osin heikkolaatuista. En ole heti parantelemassa sen ongelmia.
@@ -190,26 +183,31 @@ Ota ruksi pois Bittiniilon *Käytössä* sarakkeesta. Jos haluat poistaa Bittini
 Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöön valitsemalla *Ota käyttöön*.
 
 - Firefoxissa valikossa (kolme vaakaviivaa) valitse *Lisäosat* ja tarvittaessa sivuvalikosta *Laajennukset*. Bittiniilon kohdalla paina *Poista käytöstä* napista.
-#### AbixApurin kytkeminen pois käytöstä
+
+#### AbixApurin kytkeminen pois käytöstä 
+- Chrome: Valikko (kolme pistettä) > Lisää työkaluja > Laajennokset, jossa laajennus joko poistetaan tai kytketään pois käytöstä.
+- Firefox: Valikko (kolme vaakaviivaa) > Add-ons, jossa laajennos joko poistetaan tai kytketään pois käytöstä.
+
+#### AbixApurin kytkeminen pois käytöstä (käytettäessä Greasemonkey skriptejä) 
 - Chromessa kun olet oma.abitti.fi-osoitteessa valitse TamperMonkey-laajennuksen kuvake (pyöreäreunainen neliö, jossa kaksi aukkoa) ja AbixApurin kohdalta käännä on->off. Tarvittaessa päälle kytkentä samoin.
 - Firefoxissa oma.abitti.fi-osoitteessa GreaseMonkey-laajennuksen kuvakkeesta (apinakuvake) alasnuoli -> ota valinta pois AbixApurin kohdalta. Tarvittaessa kytke uudelleen päälle ja päivitä verkkosivu.
 
+Huom! Suosittelen poistamaan käytöstä Greasemonkey ja Tampermonkey -skriptejä käyttävät laajennosversiot.
+
 ### Tunnetut ongelmat
-+ GreaseMonkey v4 kanssa suuria yhteensopivuusongelmia. GreaseMonkey v4 tulee vakiona käyttöön Firefox-selaimen 57 Quantum päivityksen yhteydessä. Koska skriptin päivitys ei toimi lainkaan uudessa GreaseMonkeyssa, niin suositellaan toistaiseksi siirtymään TamperMonkey-lisäosan käyttöön myös Firefoxissa
-+ Chrome-selaimessa TamperMonkey'ssa kuvien liittämisessä leikepöydältä on vielä ongelmia. Firefox-GreaseMonkey-yhdistelmällä toimii.
 + Viivästetyn tallennuksen ollessa aktiivinen, koetehtävien järjestelytoiminto kyllä pyrkii tallentamaan kokeen, mutta potentiaalisesti voi joutua tilanteeseen, että viimeisimmät muutokset menetetään.
 + Suurten kokeiden kohdalla koetehtävien järjestelytoiminto ei toimi, mikäli siirtelee tehtäviä nopeasti. Kiertokeino: Pidä taukoa vähintään viisi sekuntia tehtävien siirtojen välillä.
 
 ### Lisenssi ja vastuuvapaus
 
-Lisäosan kehittäjällä ei ole yhteyksissä Ylioppilastutkintolautakuntaan, eikä lisäosa ole YTL:n kehittämä. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
+Lisäosa ole YTL:n kehittämä tai YTL:n tarkistama. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
 
 Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopuolella, mutta lähettää YTL:n Abitti-palveluun rajapintakutsuja kyseisen sivun "päälle liimattuna osana" sekä lataa skriptitiedostoja internetistä (toiminnallisuuksiin liittyvät laajennuksia). Sinänsä toiminnallisuuksien ei pitäisi rikkoa yhtään mitään YTL:n eikä käyttäjän tiedoista, mutta skripti tekee muutoksia avoinna olevan kokeen tietoihin, mikä onkin sen käyttötarkoitus. Muihin kokeisiin laajennus ei tee muutoksia. Skripti voi myös luoda uuden kokeen, kun sitä nimenomaisesti pyydetään ottamaan kopio. V0.5.0 alkaen skripti voi myös tallentaa YTL:n APIin kokeen arvosanatietoja kokeen pistemäärän perusteella käyttäjän nimenomaisesti niin pyytäessä (Arvosanalaskurin nappi "Toimeenpane" tai Arvosanojen tuonti toiminnon "Tallenna"). Muita muutoksia skripti ei tee tai tallenna mitään tietoja YTL:n Abitti-palvelun (ja selaimen välimuistin) ulkopuolelle toimistaan. 
 
 AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
 
     AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2018 Joni Lehtola
+    Copyright (C) 2017-2020 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

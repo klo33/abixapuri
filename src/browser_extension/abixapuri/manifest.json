@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "AbixApuri",
 	"short_name": "AbixApuri",
-	"version": "0.6.3.3",
+	"version": "0.8.0.0",
 	"description": "AbixApuri tuo lisätoiminnallisuutta oma.abitti.fi-palveluun",
 	"icons" : {
 		"96": "icons/abix-96.png",
