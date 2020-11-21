@@ -19,7 +19,9 @@
 		{ "version": "0.6.1.0",
 			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.6.1.0-an+fx.xpi"},
 		{ "version": "0.6.2.0",
-			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.6.2.0-an+fx.xpi"}
+			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.6.2.0-an+fx.xpi"},
+		{ "version": "0.8.0.0",
+			"update_link": "https://klo33.github.io/abixapuri/dist/abixapuri-0.8.0.0-an+fx.xpi"}
       ]
     }
   }
