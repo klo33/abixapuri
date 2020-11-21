@@ -13,7 +13,7 @@
 // @include     https://oma.abitti.fi/school/grading/*
 // @include     https://oma.abitti.fi/school/review/*
 // @include     https://oma.abitti.fi/
-// @version     0.6.1
+// @version     0.6.3
 // @grant	none
 // @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
 // @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
@@ -122,7 +122,13 @@ var APURI ={
                 importcsv_open_popup: "Vie arviointitiedosto Abittiin",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Lataa",
-                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:"
+                import_select_section_label: "Valitse mihin kokeen osaan tehtävä tuodaan:",
+                attachment_converted_filename: "konvertoitu_koeliite",
+                exam_contains_base64_msg: "<strong>Huom! Koe sisältää poistuvia liitteitä!</strong><br/> Kokeesi sisältää liitetiedostoja base64-muodossa, joiden <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>tuki loppuu Abitissa</a>. Voit muuntaa kuvat tuettuun muotoon.",
+                exam_contains_base64_button: "Muunna kokeen liitteet",
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki päättyy Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
+                examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
+                examlist_base64_note: "base64"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -198,7 +204,14 @@ var APURI ={
                 importcsv_open_popup: "Ladda upp bedömningen till Abitti",
                 importcsv_popup_fileinfo: "",
                 importcsv_popup_button: "Ladda upp",
-                import_select_section_label: "Välj till vilket del uppgift hemtas:"
+                import_select_section_label: "Välj till vilket del uppgift hemtas:",
+                attachment_converted_filename: "transformerat_provbilag",
+                exam_contains_base64_msg: "<strong>Obs! Provet innehåller bilag som inte mer stöds!</strong><br/> Din prov har bilag i base64-form, vars <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>stöd i Abitti slutar</a>.",
+                exam_contains_base64_button: "Transformera till bilagor",
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag slutar i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
+                examlist_base64_button: "Visa prov som innehåller base64-bilag",
+                examlist_base64_note: "base64"
+
                   
               }  
             },
@@ -1291,6 +1304,27 @@ var APURI ={
                     return null;
                 },
                 /**
+                 * Get comments per answer
+                 * @param {*} data 
+                 * @param {*} answerId 
+                 */
+                getCommentsByAnswer(data, answerId = null) {
+                    let comments = new Array();
+                    for (let pupil of data) {
+                        for (let answer of pupil.answers) {
+                            if (answer.metadata !== null && (answer.id === answerId))
+                                for (let annotation of answer.metadata.annotations) {
+                                    let subannos = annotation.message.split(" / ");
+                                    for (let subanno of subannos) {
+                                        comments.push(subanno);
+                                    }
+                                }
+                        }
+                    }
+                    return comments;                    
+                },
+
+                /**
                  * 
                  * @param {type} data
                  * @param {type} questionId
@@ -1548,6 +1582,28 @@ var APURI ={
                 },
                 currentBuffer: null,
                 bufferLast: null,
+                containsBase64(examData, quick = false) {
+                    let examDataStr;
+                    if (typeof examData !== 'string') {
+                        examDataStr = JSON.stringify(examData);
+                    } else {
+                        examDataStr = examData;
+                    }
+                    if (quick) {
+                        if (examDataStr.includes(";base64,")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    let regexp = /src=(\\?["'])data:(\w+\/[\w\-\+]+);base64,([\w=+\/]+)\1/g;
+                    let retval = examDataStr.match(regexp);
+                    if (retval == null)
+                        return false;
+                    else
+                        return true;
+                },
                 /**
                  * Returns exam UUID extracted from the location of current window
                  * @returns {string} current locations exam UUID or null if not recognized
@@ -1829,7 +1885,7 @@ var APURI ={
                         }
 //                        console.log("ImgSrcReplace");
                         let absoluteAttachmentPath = '/exam-api/exams/%uuid/attachments/';
-                        document.querySelectorAll('iframe').forEach( item => {
+                        document.querySelectorAll('iframe').forEach( item => {if (item.contentWindow.document.body.querySelectorAll('img,video,audio,source')!== null){
                             let allImg = item.contentWindow.document.body.querySelectorAll('img,video,audio,source');                  
                             for (let img of allImg) {
                                 let src = img.getAttribute('src');
@@ -1842,7 +1898,7 @@ var APURI ={
                                     img.setAttribute('src', newUri);
                                 }
                             }
-                            });
+						}});
                         
                     }
                 },
@@ -2453,7 +2509,35 @@ var APURI ={
                      * @type type
                      */
                     commentsByQuestion: new Map(),
-
+                    calculateScoreSum(answerId, comments = null) {
+                        if (comments === null)
+                            comments = APURI.grading.getCommentsByAnswer(APURI.views.grading.answers, answerId);
+                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                        if (typeof comments === "string")
+                            comments = [comments];
+                        let sums = {
+                            positive: 0,
+                            negative: 0,
+                            total: 0
+                        }
+                        for (let comment of comments) {
+                            let found = comment.match(pointPattern);
+                            if (found != null) {
+                                let points = parseInt(found[1]);
+                                if (points < 0)
+                                    sums.negative += points;
+                                else
+                                    sums.positive += points;
+                                sums.total += points;
+                            }
+                        }
+                        return sums;
+                    },
+                    /**
+                     * 
+                     * @param {*} questionId 
+                     * @returns Promise({comments:, points:})
+                     */
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
                             let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2477,6 +2561,79 @@ var APURI ={
                             
                         });
                     },
+                    triggerRecount(answerId, $answerEl = null, mass = false) {
+                        if ($answerEl == null) {
+                            $answerEl = $(`[data-answer-id=${answerId}]`);
+                        }
+                        let loadJobs = [Promise.resolve()];
+                        if (!mass) {
+                            console.log("Single recount!");
+                            loadJobs = [new Promise((resolve)=>{
+                                setTimeout(()=>
+                                    {APURI.views.grading.loadComments()
+                                            .then(()=>
+                                                {resolve()})
+                                            }, 2000);
+                                }), // Promise that checks comments in a second
+                                new Promise((resolve)=> {
+                                    setTimeout(()=>{resolve()}, 3000);
+                                })]; // do not resolve before 1 secs
+                        }
+                        Promise.all(loadJobs).then(()=>{
+                            let count = this.calculateScoreSum(answerId);
+                            let $scoreEl = $answerEl.find(".score");
+                            let $sumEl = $scoreEl.children(".APURI_scoresum");
+                            let text = `(∑=${count.total}p)`;
+                            if ($sumEl.length == 0) {
+                                $sumEl = $("<div />", {
+                                    class: 'APURI_scoresum',
+                                    text: text
+                                }).appendTo($scoreEl);
+                            } else {
+                                $sumEl.text(text);
+                            }    
+                        })
+                    },
+                    immediatRecount(answerId, $answerEl, content, removal = false) {
+                        if ($answerEl == null) {
+                            $answerEl = $(`[data-answer-id=${answerId}]`);
+                        } else {
+
+                        }
+                        let points = APURI.views.grading.calculateScoreSum(answerId, content);
+                        let change = (removal==true?(-1):1)*points.total;
+                        let $scoreEl = $answerEl.find(".score");
+                        let $sumEl = $scoreEl.children(".APURI_scoresum");
+                        if ($sumEl.length == 0) {
+                            if (removal)
+                                return;
+                            let text = `(∑=${change}p)`;
+                            $sumEl = $("<div />", {
+                                class: 'APURI_scoresum',
+                                text: text
+                            }).appendTo($scoreEl);
+                        } else {
+                            function extractCurrentPoints(text) {
+                                const sumPattern = /\(∑=([\-\+]?\d+)p\)/;
+                                let found = $sumEl.text().match(sumPattern);
+                                if (found != null) {
+                                    return parseInt(found[1]);
+                                } else
+                                    return 0;
+    
+                            }
+                            let text = `(∑=${extractCurrentPoints($sumEl.text())+change}p)`;
+                            $sumEl.text(text);
+                        }    
+                },
+                    triggerRecountAll() {
+                        let answerElements = document.querySelectorAll('#answers div.answer');
+                        Array.from(answerElements).forEach((element, index) => {
+                            let answerId = element.getAttribute('data-answer-id');
+                            answerId = parseInt(answerId);
+                            APURI.views.grading.triggerRecount(answerId, $(element), true);
+                        })
+                    },
                     init() {
                         APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2491,6 +2648,7 @@ var APURI ={
                                                     comments: comments
                                                 });
                                     }
+                                    APURI.views.grading.triggerRecountAll();
                                 })
                                 .catch((err)=>{
                                     console.log("ERROR", err);
@@ -2505,12 +2663,29 @@ var APURI ={
                     },
                     show: function () {
 //                        let answerBoxes = document.querySelectorAll(APURI.ytle.grading_answertext);
+                        
                         let answerBoxes = document.querySelectorAll(".answer-text-container .answerText");
                         if (answerBoxes !== null && answerBoxes.length > 0) {
                             let config = {attributes: false, childList: true};
                             let callback = function(mutationList) {
                                 for (let mutation of mutationList) {
                                     if (mutation.type == 'childList') {
+                                        let answerAnnotionChecker = function(child, removal = false, target = null) {
+                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
+                                                let message = child.getAttribute("data-message");
+                                                if (message === null) // check if does not contain message
+                                                    return;
+                                                console.debug("New annotation detected", removal, child);
+                                                let $closestAnswerEl = $(child).closest('.answer');
+                                                if (target !== null) {
+                                                    $closestAnswerEl = $(target).closest('.answer');
+                                                }
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
+                                                answerId = parseInt(answerId);
+                                                APURI.views.grading.immediatRecount(answerId, $closestAnswerEl, message, removal)
+                                                APURI.views.grading.triggerRecount(answerId, $closestAnswerEl);
+                                            }
+                                        }
                                         for (let child of mutation.addedNodes) {
                                             if (child.classList != null && child.classList.contains("add-annotation-popup")) {
                                                 //$(child).attr('style','top: 98.5px !important;');
@@ -2522,15 +2697,58 @@ var APURI ={
                                                         break;
                                                     }
                                                 }
-                                                let questionId = $(child).closest('.answer').attr('data-question-id');
+                                                let $closestAnswerEl = $(child).closest('.answer');
+                                                let questionId = $closestAnswerEl.attr('data-question-id');
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
                                                 questionId = parseInt(questionId);
+                                                answerId = parseInt(answerId);
+
+
+                                                let elPointsContainer = $('<div />', {
+                                                    style: '',
+                                                    class: 'APURI_comment_points_container'
+                                                }).appendTo(child);
+                                                for (let p=-4; p<6; p++) {
+                                                    if (p === 0) continue;
+                                                    (function(pValue, inputNode, elPointsContainer) {
+                                                        let text = (pValue<0?'':'+')+pValue;
+                                                        let inputText = `(${text}p.)`
+                                                        let clickPointsHandler = function() {
+                                                            //  console.log("Click", inputField, text);
+                                                            if (inputNode.value === "") {
+                                                                inputNode.value = inputText;                                                                
+                                                            } else {
+                                                                if (inputNode.value.endsWith(" / ")) {
+                                                                    inputNode.value += inputText;
+                                                                } else {
+                                                                    inputNode.value += ' / '+inputText;
+                                                                }
+                                                            }
+                                                            return false;
+                                                        };
+                                                    let pointEl = $('<div/>', {
+                                                        class: 'APURI_comment_point_selector',
+                                                        text: text
+                                                    }).on('mousedown',clickPointsHandler).appendTo(elPointsContainer);
+                                                    if (APURI.settings.local.enableReviewKeyboardShortcuts && pValue > 0 && pValue < 8) {
+                                                        $(inputNode).on("keydown", event => {
+                                                           let num = pValue-1;
+                                                           if (event.altKey === false && event.shiftKey === true && event.ctrlKey ===true && event.which === 49+num) {
+                                                               clickPointsHandler();
+                                                           }
+                                                        });
+                                                    }
+
+                                                })(p, inputNode, elPointsContainer);
+                                                    
+                                                }
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
 
                                                     // set of showed comments
                                                     let commentSet = new Set();
                                                     let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
-//                                                    console.log("Question comm", questionComments);
+                                                    //  console.log("Question comm", questionComments);
                                                     if (questionComments !== null && typeof questionComments !== 'undefined') {
                                                         for (let comm of questionComments.comments) {
                                                             if (commentSet.size > 6) break;
@@ -2586,7 +2804,7 @@ var APURI ={
                                                     for (let comm of commentSet) {
                                                         (function(inputField, text, num) {              
                                                             let clickHandler = function() {
-  //                                                              console.log("Click", inputField, text);
+                                                                //  console.log("Click", inputField, text);
                                                                 if (inputNode.value === "") {
                                                                     inputNode.value = text;                                                                
                                                                 } else {
@@ -2624,9 +2842,15 @@ var APURI ={
                                                 });
 
                                             }
+                                            answerAnnotionChecker(child);
+                                            //console.debug("Added nodes", child);
+                                        }
+                                        for (let child of mutation.removedNodes) {
+                                            answerAnnotionChecker(child, true, mutation.target);
+                                            // console.debug("Removed nodes", child, mutation);
                                         }
                                     }
-                                    //console.log("MUTATION", mutation);
+                                    // console.debug("MUTATION", mutation);
                                 }
                             }
                                                  
@@ -2693,7 +2917,35 @@ var APURI ={
   
                 examview: {
                     initTimer: null,
+                    addBase64Warning() {
+                        APURI.ui.showWarning(APURI.text.exam_contains_base64_msg, APURI.text.exam_contains_base64_button, "APURI_base64exam",
+                            () => {
+                                let examUuid = APURI.exam.getCurrentLocationUuid();
+                                APURI.exam.getCurrentExam()
+                                    .then((examData) => {
+                                        APURI.base64transform(JSON.stringify(examData), examUuid)
+                                            .then((convertedExamDataStr) => {
+                                                let convertedExamData = JSON.parse(convertedExamDataStr);
+                                                APURI.exam.saveExam(convertedExamData, true);
+                                            })
+                                            .catch((error) => {
+                                                console.error("Error in conversion", error);
+                                            });
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error loading exam", error);
+                                    })
+                            }
+                        );
+                    },
                     show: function() {
+                        APURI.exam.getCurrentExam()
+                            .then((examData) => {
+                                // if contains base64-data
+                                if (APURI.exam.containsBase64(examData)) {
+                                    this.addBase64Warning();
+                                }
+                            });
                         if (document.getElementsByClassName("questionButtons").length > 0) {
                                 //console.log("begin button");
                                 var $impButton = $('<button />').html(APURI.text.import_assignment_button).attr('class','addQuestion APURI importExam').on('click', APURI.showImporDialog);
@@ -2774,6 +3026,27 @@ var APURI ={
                 },
                 examlist: {
                     initTimer: null,
+                    doBase64SearchForAll() {
+                        APURI.ui.showLoadingSpinner("Lataus");
+                        let loadjobs = [];
+                        APURI.examList.loadList()
+                            .then((examlist)=> {
+                                console.debug("Examlist", examlist)
+                                for (let exam of examlist.exams) {
+                                    loadjobs.push(APURI.exam.loadExam(exam.examUuid, false)
+                                        .then((examData)=> {if( $("div").not(".xml-exam-not-editable-note") ) {
+                                            if (APURI.exam.containsBase64(examData, true)) {
+                                                $(`#available-exams tr[data-exam-uuid='${examData.examUuid}'] + tr > td:first`)
+                                                .append($("<div>").attr("class","APURI APURI_base64note").html(APURI.text.examlist_base64_note));
+                                            }
+                                        }}));
+                                }
+                                Promise.all(loadjobs)
+                                    .then(()=> {
+                                        APURI.ui.clearLoadingSpinner();
+                                    });
+                            });
+                    },
                     showFilterInput(tableid, inputid) {
                         let examsInput = document.getElementById(inputid);
                         let examTaulukko = document.getElementById(tableid);
@@ -2911,6 +3184,16 @@ var APURI ={
                                 taulukko.setAttribute("apuri_mod", "done");
                             }
                         }
+                        let base64divcont = document.getElementById("APURI_base64box");
+                        if (base64divcont == null) {
+                            let base64div = $("<div>").attr("id","APURI_base64box").attr("class", "APURI")
+                            .html(APURI.text.examlist_base64_info);
+                            base64div.append($("<button>").attr("id","APURI_base64box_button").attr("class","APURI edit-exam").html(APURI.text.examlist_base64_button).on('click',()=> {
+                                $("#APURI_base64box_button").hide();
+                                this.doBase64SearchForAll();
+                            })).append($("<br>"));
+                            $("#instructions-wrapper").after(base64div);
+                        }
                     }
                 },
                 footer: {
@@ -2928,6 +3211,110 @@ var APURI ={
                     viewObj.init();
                 }
                 viewObj.initTimer = window.setInterval(function() {viewObj.show();}, delayTiming);
+            },
+            /**
+             * Searches base64-data from Json and converts to non-base64 referenses
+             * @param {string} examData Json formatted exam data 
+             * @param {string} examUuid ExamUuid
+             * @returns {Promise} Promise whichs resolves for converted data. In this phase the exam contains already the attachments
+             */
+            base64transform(examData, examUuid) {
+                if (typeof examData !== 'string') {
+                    console.error("Väärä parametri", examData);
+                }
+                const perusnimi=APURI.text.attachment_converted_filename;
+                let replaceCount = 0;
+                /**
+                 * [{
+                 *  }]
+                 */
+                let blobPromises = []; 
+                function getSuffix(mimeType) {
+                    const suffixLookup = {
+                        "image/jpeg":".jpg",
+                        "image/png":".png",
+                        "image/gif":".gif",
+                        "image/bmp":".bmp",
+                        "image/svg+xml":".svg"
+                    }
+                    if (suffixLookup[mimeType] !== undefined)
+                        return suffixLookup[mimeType]
+                    else
+                        return "."+mimeType.split("/")[1];
+                }
+                /**
+                 * Converts base64-data to Blob
+                 * @param {string} mime mimeType
+                 * @param {string} data base64-encoded data 
+                 * @returns {Blob}
+                 */
+                function convertToBlob(mime, data) {
+                    var binary = atob(data), array = [];
+                    for(var i = 0; i < binary.length; i++) array.push(binary.charCodeAt(i));
+                    return new Blob([new Uint8Array(array)], {type: mime});
+                }
+
+                /**
+                 * Initiates Blob upload to an exam
+                 * @param {Blob} blob 
+                 * @param {string} targetExamUuid 
+                 * @param {string} filename 
+                 * @param {string} mimeType
+                 * @returns {Promise} 
+                 */
+                function convertedBlobUpload(blob, targetExamUuid, filename, mimeType) {
+                    return new Promise((resolve, reject)=>{
+                        APURI.ui.showUploadStatus(filename);
+                        let targetUri = `/exam-api/exams/${targetExamUuid}/attachments/add`;
+                        if (typeof mimeType === 'undefined') {
+                            mimeType = blob.type;
+                        }
+                        APURI.util.uploadBlob(targetUri, blob, {filename: filename, filetype: mimeType}, function(e) {
+                            if (e.lengthComputable) {
+                                APURI.ui.updateCurrentUpload(filename, (e.loaded/e.total)*100);
+                            }
+                        }).then(function() {
+                            APURI.ui.updateCurrentUpload(filename, 100);
+                            APURI.ui.hideUploadStatus(filename);
+                            resolve(filename);
+                        }).catch(error => {
+                            console.error("Error uploading converted", filename);
+                            reject(error);
+                        });
+    
+                    });
+                }
+
+                function replacer(match, erotin, mimeString, dataString) {
+                    replaceCount++;
+                    let filename = perusnimi+replaceCount+getSuffix(mimeString);
+                    blobPromises.push(
+                        convertedBlobUpload(convertToBlob(mimeString, dataString), 
+                            examUuid, 
+                            filename, 
+                            mimeString));
+                    return `src=${erotin}/attachments/${filename}${erotin}`;
+                }
+                let pr = new Promise(
+                    (resolveTransform, rejectTransform)=>{
+                        let regexp = /src=(\\?["'])data:(\w+\/[\w\-\+]+);base64,([\w=+\/]+)\1/g;
+                        if (!examData.includes(";base64,")) {
+                            resolveTransform(examData);
+                            return;
+                        }
+                        APURI.ui.showAttachmentCopy();
+                        let newData = examData.replace(regexp, replacer);
+                        Promise.all(blobPromises)
+                            .then(() => {
+                                resolveTransform(newData);
+                            })
+                            .catch((error) => {
+                                console.error("Failed in base64 conversion of exam", examUuid);
+                                rejectTransform(error);
+                            })
+                    }
+                )
+                return pr;
             }
         };
 
@@ -3623,7 +4010,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                 // TODO pitäisikö nimen paikalla olla itse elementti x[i] ??
 				var elem = CKEDITOR.replace(x[i], {
 				
-					extraPlugins: 'base64image,mathjax,htmlwriter,abittiimage',
+					extraPlugins: 'mathjax,htmlwriter,abittiimage',
 					mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML',
 					height: heightVal[x[i].getAttribute('class')],
 					fileBrowserUploadUrl: 'base64',
@@ -3633,8 +4020,7 @@ if (typeof APURI.replaceBoxes !== 'function') {
                                         entities_greek:false,
                                         toolbar: [
 		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
-		{ name: 'links', items: [ 'Link', 'Unlink' ] },
-		{ name: 'insert', items: [ 'base64image', 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
+		{ name: 'insert', items: [ 'Mathjax', 'Table', 'HorizontalRule', 'SpecialChar', 'abittiimg' ] },
 		{ name: 'tools', items: [ 'Maximize' ] },
 		{ name: 'document', items: [ 'Source' ] },
 		'/',
@@ -3756,38 +4142,49 @@ APURI.makeCopyOfExam = function(origUuid) {
 					success: function(uusidata){
 						var uudenUuid = uusidata.examUuid;
                                                 // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
-						origData.content.title = origData.content.title + " (kopio)";
-						$.ajax({
-								type: "POST",
-								url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-								data: JSON.stringify(origData.content),
-								accept: "application/json; text/javascript",
-								contentType: "application/json; charset=UTF-8",
-								dataType: "json",
-								success: function(data){
-									// Kopioidaan liitteet
-                                                                        if (origData.attachments.length > 0) {
-//                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
-                                                                            APURI.ui.showAttachmentCopy();
-                                                                            APURI.attachments.copyAttachments(origUuid, uudenUuid)
-                                                                                    .then(filenames => {
-                                                                                APURI.ui.clearAttachmentCopy();                                                                                        
+                        origData.content.title = origData.content.title + " (kopio)";
+                        // tarkista, onko sisällössä base64:sta
+                        APURI.base64transform(JSON.stringify(origData), uudenUuid)
+                            .then((origDataTransformedStr) => {
+                                let origDataTransformed = JSON.parse(origDataTransformedStr);
+                                $.ajax({
+                                    type: "POST",
+                                    url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
+                                    data: JSON.stringify(origDataTransformed.content),
+                                    accept: "application/json; text/javascript",
+                                    contentType: "application/json; charset=UTF-8",
+                                    dataType: "json",
+                                    success: function(data){
+                                        // Kopioidaan liitteet
+                                                                            if (origData.attachments.length > 0) {
+    //                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                                                                                APURI.ui.showAttachmentCopy();
+                                                                                APURI.attachments.copyAttachments(origUuid, uudenUuid)
+                                                                                        .then(filenames => {
+                                                                                    APURI.ui.clearAttachmentCopy();                                                                                        
+                                                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                                                });
+                                                                            } else {
+                                                                                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
                                                                                 window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                            });
-                                                                        } else {
-                                                                            // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                                                                            window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                        }
-								},
-								failure: function(errMsg) {
-										console.log("ERROR kopion tallennuksessa: "+errMsg);
+                                                                            }
+                                    },
+                                    failure: function(errMsg) {
+                                            console.error("ERROR kopion tallennuksessa: "+errMsg);
+    
+                                    }
+                                });
+                            })
+                            .catch((error)=>{
+                                console.error("ERROR Base64-konversiovirhe");
+                                console.error(error);
+                            })
+                        console.log(".");
 
-								}
-						});
 						
 					},
 					failure: function(errMsg) {
-							console.log("ERROR uuden luomisessa: "+errMsg);
+							console.error("ERROR uuden luomisessa: "+errMsg);
 
 					}
 			});

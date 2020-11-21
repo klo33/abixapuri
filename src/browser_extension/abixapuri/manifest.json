@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "AbixApuri",
 	"short_name": "AbixApuri",
-	"version": "0.6.2.0",
+	"version": "0.8.0.0",
 	"description": "AbixApuri tuo lisätoiminnallisuutta oma.abitti.fi-palveluun",
 	"icons" : {
 		"96": "icons/abix-96.png",
@@ -15,7 +15,15 @@
 		{
 			"matches": ["*://oma.abitti.fi/school/exam/*","*://oma.abitti.fi/school/exams","*://oma.abitti.fi/school/grading", "*://oma.abitti.fi/", "*://oma.abitti.fi/school/review/*", "*://oma.abitti.fi/school/grading/*"],
 			"js": ["loader.js"]
-		}
+		},
+    {
+      "js": [ "review.js" ],
+      "matches": ["*://oma.abitti.fi/school/review/*" ]
+   },
+    {
+      "js": [ "grading.js" ],
+      "matches": ["*://oma.abitti.fi/school/grading/*" ]
+   }		
 	],
 	"permissions": [
 		"*://oma.abitti.fi/*"
