@@ -2744,7 +2744,14 @@ var APURI ={
                                                 }
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
-
+                                                    function isPointComment(comm) {
+                                                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                                                        let f = comm.match(pointPattern);
+                                                        if (f == null)
+                                                            return false;
+                                                        else
+                                                            return true;
+                                                    }
                                                     // set of showed comments
                                                     let commentSet = new Set();
                                                     let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
@@ -2752,14 +2759,16 @@ var APURI ={
                                                     if (questionComments !== null && typeof questionComments !== 'undefined') {
                                                         for (let comm of questionComments.comments) {
                                                             if (commentSet.size > 6) break;
-                                                            commentSet.add(comm.message);
+                                                            if (!isPointComment(comm.message))
+                                                                commentSet.add(comm.message);
                                                         }
                                                     }
 
                                                     // jos tilaa, niin lisää globaaleja
                                                     for (let comm of APURI.views.grading.commentsAll) {
                                                         if  (commentSet.size > 6)  break;
-                                                        commentSet.add(comm.message);
+                                                        if (!isPointComment(comm.message))
+                                                            commentSet.add(comm.message);
                                                     }
           
                                                     let counter = 0;
@@ -2771,20 +2780,20 @@ var APURI ={
                                                                 case 38: // up                                                                  
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
                                                                             .prev(".APURI_comment"). addClass("APURI_comment_active");
-                                                                    if (active.size() == 0)
+                                                                    if (active.length == 0)
                                                                         $(".APURI_comment_container .APURI_comment").last(). addClass("APURI_comment_active");
                                                                 break;
 
                                                                 case 40: // down
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
                                                                             .next(".APURI_comment"). addClass("APURI_comment_active");
-                                                                    if (active.size() == 0)
+                                                                    if (active.length == 0)
                                                                         $(".APURI_comment_container .APURI_comment").first(). addClass("APURI_comment_active");
                                                                 break;
                                                                 
                                                                 case 13: // enter
                                                                 active = $(".APURI_comment_active").trigger("mousedown").removeClass("APURI_comment_active");
-                                                                if (active.size() > 0)
+                                                                if (active.length > 0)
                                                                     e.stopImmediatePropagation();
                                                                 
                                                                 break;
@@ -2792,7 +2801,7 @@ var APURI ={
                                                                 case 27: // esc
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active");
                                                                     // e.preventDefault();
-                                                                    if (active.size() > 0)
+                                                                    if (active.length > 0)
                                                                         e.stopImmediatePropagation();
                                                                    
                                                                 break;
