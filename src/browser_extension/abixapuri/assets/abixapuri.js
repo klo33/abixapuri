@@ -1730,7 +1730,7 @@ var APURI ={
                             type: "POST",
                             url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
                             data: JSON.stringify({content:exam.content,
-                                                    language:exam.language||"fi-FI"}),
+                                                    examLanguage:exam.language||"fi-FI"}),
                             accept: "application/json; text/javascript",
                             contentType: "application/json; charset=UTF-8",
                             dataType: "json",
@@ -3333,7 +3333,7 @@ if (typeof APURILoader === 'undefined') {
             cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
         };
 } else {
-    if (APURIsecrets != null && APURIsecrets.check != null)
+    if (typeof APURIsecrets != "undefined" && APURIsecrets.check != null)
         APURILoader.check = APURIsecrets.check;
     if (typeof APURILoader.check !== 'string' 
             || APURI.util.checksum(APURILoader.check)!=='cIFxnbWbRfbDzwwjKmwZOIpXe+SaTq64q2wEHEgXVVU') {
@@ -3464,7 +3464,7 @@ if (typeof APURI.examSaveCurrent !== 'function') {
                 type: "POST",
                 url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
                 data: JSON.stringify({content:exam.content,
-                    language:exam.language||"fi-FI"}),
+                    examLanguage:exam.language||"fi-FI"}),
                 accept: "application/json; text/javascript",
                 contentType: "application/json; charset=UTF-8",
                 dataType: "json",
@@ -4126,7 +4126,7 @@ APURI.makeCopyOfExam = function(origUuid) {
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
 		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
-			var uusikoe = {content:{title: "Uusi koe"},language:"fi-FI"};
+			var uusikoe = {title: "Uusi koe"};
                         // Luo uusi koe
 			$.ajax({
 					type: "POST",
@@ -4147,7 +4147,7 @@ APURI.makeCopyOfExam = function(origUuid) {
                                     type: "POST",
                                     url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
                                     data: JSON.stringify({content:origDataTransformed.content,
-                                                        language:origDataTransformed.language||"fi-FI"}),
+                                                        examLanguage:origDataTransformed.language||"fi-FI"}),
                                     accept: "application/json; text/javascript",
                                     contentType: "application/json; charset=UTF-8",
                                     dataType: "json",
