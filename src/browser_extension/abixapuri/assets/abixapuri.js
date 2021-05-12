@@ -1675,7 +1675,9 @@ var APURI ={
                 },
                 getQuestionIds(examObj) {
                     let result = [];
-                    for (let i=0; i<examObj.content.sections.length; i++) {
+                    if (examObj.content != null) {
+                        // vanhan mallinen .meb-koe -> sisältää content-objektin
+                        for (let i=0; i<examObj.content.sections.length; i++) {
                             // sectionloop
                             let section = examObj.content.sections[i];
                             if (typeof section.questions !== 'undefined') {
@@ -1683,6 +1685,15 @@ var APURI ={
                                             result.push(section.questions[j].id);
                                     }
                             }
+                        }
+
+                    } else if (examObj.gradingStructure != null) {
+                        // .mex-koe, jossa on grading structure
+                        for (let question of examObj.gradingStructure.questions) {
+                            result.push(question.id);
+                        }
+                    } else {
+                        console.error("Grading structure not found!!")
                     }
                     return result;
                     
@@ -1697,7 +1708,9 @@ var APURI ={
                     // INFO: Has assumptions of exam object structure
                     if (typeof questionId !== 'number')
                         questionId = parseInt(questionId);
-                    for (let i=0; i<examObj.content.sections.length; i++) {
+                    if (examObj.content != null) {
+                        // .meb-style exam
+                        for (let i=0; i<examObj.content.sections.length; i++) {
                             // sectionloop
                             let section = examObj.content.sections[i];
                             if (typeof section.questions !== 'undefined') {
@@ -1709,6 +1722,14 @@ var APURI ={
                                             }
                                     }
                             }
+                        }
+                    } else if (examObj.gradingStructure != null) {
+                        // .mex-style exam
+                        for (let question of examObj.gradingStructure.questions) {
+                            if (question.id == questionId) {
+                                return question;
+                            }
+                        }
                     }
                     return null;
                 },
@@ -2618,6 +2639,7 @@ var APURI ={
                         APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
                         APURI.exam.loadExam(uuid).then(exam => {
+                                console.debug("loaded exam",uuid, exam);
                                 let ids = APURI.exam.getQuestionIds(exam);
                                 APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
                                     APURI.views.grading.answers = answers;
@@ -2651,9 +2673,22 @@ var APURI ={
                                 for (let mutation of mutationList) {
                                     if (mutation.type == 'childList') {
                                         let answerAnnotionChecker = function(child, removal = false, target = null) {
-                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
-
+                                            if (child.classList != null && child.classList.contains("attachmentWrapper")) {
+                                                let message = "";
+                                                $(child).children(".answerAnnotation").map(el => {message += " "+el.attr("data-message")});
+                                                console.debug("Something interesting just happened!:", message, "Dat", child, removal, target)
+                                                if (target !== null) {
+                                                    $closestAnswerEl = $(target).closest('.answer');
+                                                }
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
+                                                answerId = parseInt(answerId);
+                                                APURI.views.grading.immediatRecount(answerId, $closestAnswerEl, message, removal)
+                                                APURI.views.grading.triggerRecount(answerId, $closestAnswerEl);
                                             }
+/*                                            
+                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
+                                                console.debug("(2) Something interesting just happened!", child, removal, target)
+                                            }*/
                                             if (child.classList != null && child.classList.contains("answerAnnotation")) {
                                                 let message = child.getAttribute("data-message");
                                                 if (message === null) // check if does not contain message
