@@ -28,7 +28,7 @@
 	"permissions": [
 		"*://oma.abitti.fi/*"
 	],
-        "applications": {
+        "browser_specific_settings": {
 
              "gecko": {
 			    "id":"{d0499b76-d502-4568-bc19-fbbf5f9a0e51}",
