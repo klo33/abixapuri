@@ -9,7 +9,7 @@
 		"128": "icons/abix-128a.png"
 	},
 	"web_accessible_resources": [
-		"assets/*", "assets/ckeditor/*"
+		"assets/*", "assets/ckeditor/*", "secrets.js"
 	],
 	"content_scripts": [
 		{

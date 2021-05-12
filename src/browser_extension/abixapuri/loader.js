@@ -20,13 +20,14 @@ var	APURI = {
 };
 
  // console.log("url", browser.extension.getURL("assets/abixapuri.js"));
-APURI.injectScriptHeadInline(`APURILoader = { check: "xxx", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
+ let checkSum = (APURIsecrets != null? APURIsecrets.check :  "xxx");
+APURI.injectScriptHeadInline(`APURILoader = { check: "${checkSum}", css: "${chrome.extension.getURL("assets/abixapuri.css")}",
     ckeditor: "${chrome.extension.getURL("assets/ckeditor/ckeditor.js")}",
     sortableR: "${chrome.extension.getURL("assets/")}Sortable.min",
     jqueryR: "${chrome.extension.getURL("assets/")}jquery-3.2.1.min",
     jquerycsvR: "${chrome.extension.getURL("assets/")}jquery.csv.min",
     cookiesR: "${chrome.extension.getURL("assets/")}js.cookie.min" };`);
-
+    APURI.injectScriptHeadDirect(chrome.extension.getURL("secrets.js"));
 APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/abixapuri.js"));
 APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/require.min.js"))
 /*        

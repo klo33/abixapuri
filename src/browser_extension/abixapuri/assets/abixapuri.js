@@ -1,32 +1,11 @@
-// ==UserScript==
-// @name        AbixApuri
-// @name:fi     AbixApuri
-// @name:sv     AbixAssistenten
-// @namespace   http://klo33.github.io/abixapuri
-// @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:fi AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:sv  AbixAssistenten erbjuder extra funktioner till oma.abitti.fi
-// @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
-// @include     https://oma.abitti.fi/school/exam/*
-// @include     https://oma.abitti.fi/school/exams
-// @include     https://oma.abitti.fi/school/grading
-// @include     https://oma.abitti.fi/school/grading/*
-// @include     https://oma.abitti.fi/school/review/*
-// @include     https://oma.abitti.fi/
-// @version     0.6.3
-// @grant	none
-// @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
-// @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
-// ==/UserScript==
-
-/* AUTHOR Joni Lehtola, 2017-2018
+/* AUTHOR Joni Lehtola, 2017-2020
  * Lisätiedot https://klo33.github.io/abixapuri
  * Lisäosa on julkaistu GPLv3 lisenssillä. Lisänosan käyttö omalla vastuulla. 
- * Tällä lisäosalla tai sen kehittäjällä ei ole mitään tekemistä Ylioppilastutkintolautakunnan kanssa ja YTL ei vastaa mistään laajennuksen aiheuttamista 
+ * Lisäosa ei ole Ylioppilastutkintolautakunnan hyväksymä tai YTL:n tarkistama ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista tai vahingoista, kuten myöskään ei tekijä, vaikka lisäosa ei tarkoituksellisesti tee mitään vahingollista. 
  * 
  * AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2018 Joni Lehtola
+    Copyright (C) 2017-2020 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1750,7 +1729,8 @@ var APURI ={
                     $.ajax({
                             type: "POST",
                             url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
-                            data: JSON.stringify(exam.content),
+                            data: JSON.stringify({content:exam.content,
+                                                    language:exam.language||"fi-FI"}),
                             accept: "application/json; text/javascript",
                             contentType: "application/json; charset=UTF-8",
                             dataType: "json",
@@ -2672,6 +2652,9 @@ var APURI ={
                                     if (mutation.type == 'childList') {
                                         let answerAnnotionChecker = function(child, removal = false, target = null) {
                                             if (child.classList != null && child.classList.contains("answerAnnotation")) {
+
+                                            }
+                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
                                                 let message = child.getAttribute("data-message");
                                                 if (message === null) // check if does not contain message
                                                     return;
@@ -2708,7 +2691,8 @@ var APURI ={
                                                     style: '',
                                                     class: 'APURI_comment_points_container'
                                                 }).appendTo(child);
-                                                for (let p=-4; p<6; p++) {
+                                                // Pisteiden toiminnon alaraja -3 ja yläraja 6
+                                                for (let p=-3; p<=6; p++) {
                                                     if (p === 0) continue;
                                                     (function(pValue, inputNode, elPointsContainer) {
                                                         let text = (pValue<0?'':'+')+pValue;
@@ -3349,6 +3333,8 @@ if (typeof APURILoader === 'undefined') {
             cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
         };
 } else {
+    if (APURIsecrets != null && APURIsecrets.check != null)
+        APURILoader.check = APURIsecrets.check;
     if (typeof APURILoader.check !== 'string' 
             || APURI.util.checksum(APURILoader.check)!=='cIFxnbWbRfbDzwwjKmwZOIpXe+SaTq64q2wEHEgXVVU') {
         APURILoader = {};
@@ -3477,7 +3463,8 @@ if (typeof APURI.examSaveCurrent !== 'function') {
             $.ajax({
                 type: "POST",
                 url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
-                data: JSON.stringify(exam.content),
+                data: JSON.stringify({content:exam.content,
+                    language:exam.language||"fi-FI"}),
                 accept: "application/json; text/javascript",
                 contentType: "application/json; charset=UTF-8",
                 dataType: "json",
@@ -4139,7 +4126,7 @@ APURI.makeCopyOfExam = function(origUuid) {
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
 		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
-			var uusikoe = {title: "Uusi koe"};
+			var uusikoe = {content:{title: "Uusi koe"},language:"fi-FI"};
                         // Luo uusi koe
 			$.ajax({
 					type: "POST",
@@ -4159,7 +4146,8 @@ APURI.makeCopyOfExam = function(origUuid) {
                                 $.ajax({
                                     type: "POST",
                                     url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-                                    data: JSON.stringify(origDataTransformed.content),
+                                    data: JSON.stringify({content:origDataTransformed.content,
+                                                        language:origDataTransformed.language||"fi-FI"}),
                                     accept: "application/json; text/javascript",
                                     contentType: "application/json; charset=UTF-8",
                                     dataType: "json",
