@@ -1,32 +1,11 @@
-// ==UserScript==
-// @name        AbixApuri
-// @name:fi     AbixApuri
-// @name:sv     AbixAssistenten
-// @namespace   http://klo33.github.io/abixapuri
-// @description AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:fi AbixApuri lisää toiminnallisuutta oma.abitti.fi-kokeenlaadintaan
-// @description:sv  AbixAssistenten erbjuder extra funktioner till oma.abitti.fi
-// @author      Joni Lehtola, joni.lehtola@kauniaistenlukio.fi
-// @include     https://oma.abitti.fi/school/exam/*
-// @include     https://oma.abitti.fi/school/exams
-// @include     https://oma.abitti.fi/school/grading
-// @include     https://oma.abitti.fi/school/grading/*
-// @include     https://oma.abitti.fi/school/review/*
-// @include     https://oma.abitti.fi/
-// @version     0.6.3
-// @grant	none
-// @downloadUrl https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.user.js
-// @updateUrl   https://github.com/klo33/abixapuri/raw/master/src/AbiApuri-skripti.meta.js
-// ==/UserScript==
-
-/* AUTHOR Joni Lehtola, 2017-2018
+/* AUTHOR Joni Lehtola, 2017-2021
  * Lisätiedot https://klo33.github.io/abixapuri
  * Lisäosa on julkaistu GPLv3 lisenssillä. Lisänosan käyttö omalla vastuulla. 
- * Tällä lisäosalla tai sen kehittäjällä ei ole mitään tekemistä Ylioppilastutkintolautakunnan kanssa ja YTL ei vastaa mistään laajennuksen aiheuttamista 
+ * Lisäosa ei ole Ylioppilastutkintolautakunnan hyväksymä tai YTL:n tarkistama ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista tai vahingoista, kuten myöskään ei tekijä, vaikka lisäosa ei tarkoituksellisesti tee mitään vahingollista. 
  * 
  * AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2018 Joni Lehtola
+    Copyright (C) 2017-2021 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -126,7 +105,7 @@ var APURI ={
                 attachment_converted_filename: "konvertoitu_koeliite",
                 exam_contains_base64_msg: "<strong>Huom! Koe sisältää poistuvia liitteitä!</strong><br/> Kokeesi sisältää liitetiedostoja base64-muodossa, joiden <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>tuki loppuu Abitissa</a>. Voit muuntaa kuvat tuettuun muotoon.",
                 exam_contains_base64_button: "Muunna kokeen liitteet",
-                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki päättyy Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki on päättynyt Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
                 examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
                 examlist_base64_note: "base64"
               }, 
@@ -208,7 +187,7 @@ var APURI ={
                 attachment_converted_filename: "transformerat_provbilag",
                 exam_contains_base64_msg: "<strong>Obs! Provet innehåller bilag som inte mer stöds!</strong><br/> Din prov har bilag i base64-form, vars <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>stöd i Abitti slutar</a>.",
                 exam_contains_base64_button: "Transformera till bilagor",
-                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag slutar i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag har slutat i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
                 examlist_base64_button: "Visa prov som innehåller base64-bilag",
                 examlist_base64_note: "base64"
 
@@ -1696,7 +1675,9 @@ var APURI ={
                 },
                 getQuestionIds(examObj) {
                     let result = [];
-                    for (let i=0; i<examObj.content.sections.length; i++) {
+                    if (examObj.content != null) {
+                        // vanhan mallinen .meb-koe -> sisältää content-objektin
+                        for (let i=0; i<examObj.content.sections.length; i++) {
                             // sectionloop
                             let section = examObj.content.sections[i];
                             if (typeof section.questions !== 'undefined') {
@@ -1704,6 +1685,15 @@ var APURI ={
                                             result.push(section.questions[j].id);
                                     }
                             }
+                        }
+
+                    } else if (examObj.gradingStructure != null) {
+                        // .mex-koe, jossa on grading structure
+                        for (let question of examObj.gradingStructure.questions) {
+                            result.push(question.id);
+                        }
+                    } else {
+                        console.error("Grading structure not found!!")
                     }
                     return result;
                     
@@ -1718,7 +1708,9 @@ var APURI ={
                     // INFO: Has assumptions of exam object structure
                     if (typeof questionId !== 'number')
                         questionId = parseInt(questionId);
-                    for (let i=0; i<examObj.content.sections.length; i++) {
+                    if (examObj.content != null) {
+                        // .meb-style exam
+                        for (let i=0; i<examObj.content.sections.length; i++) {
                             // sectionloop
                             let section = examObj.content.sections[i];
                             if (typeof section.questions !== 'undefined') {
@@ -1730,6 +1722,14 @@ var APURI ={
                                             }
                                     }
                             }
+                        }
+                    } else if (examObj.gradingStructure != null) {
+                        // .mex-style exam
+                        for (let question of examObj.gradingStructure.questions) {
+                            if (question.id == questionId) {
+                                return question;
+                            }
+                        }
                     }
                     return null;
                 },
@@ -1750,7 +1750,8 @@ var APURI ={
                     $.ajax({
                             type: "POST",
                             url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
-                            data: JSON.stringify(exam.content),
+                            data: JSON.stringify({content:exam.content,
+                                                    examLanguage:exam.language||"fi-FI"}),
                             accept: "application/json; text/javascript",
                             contentType: "application/json; charset=UTF-8",
                             dataType: "json",
@@ -2512,7 +2513,7 @@ var APURI ={
                     calculateScoreSum(answerId, comments = null) {
                         if (comments === null)
                             comments = APURI.grading.getCommentsByAnswer(APURI.views.grading.answers, answerId);
-                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                        const pointPattern = /\(([\-\+]?\d+)p\.\)/g;
                         if (typeof comments === "string")
                             comments = [comments];
                         let sums = {
@@ -2521,9 +2522,9 @@ var APURI ={
                             total: 0
                         }
                         for (let comment of comments) {
-                            let found = comment.match(pointPattern);
-                            if (found != null) {
-                                let points = parseInt(found[1]);
+                            let founds = comment.matchAll(pointPattern);
+                            for (let hit of founds) {
+                                let points = parseInt(hit[1]);
                                 if (points < 0)
                                     sums.negative += points;
                                 else
@@ -2567,7 +2568,6 @@ var APURI ={
                         }
                         let loadJobs = [Promise.resolve()];
                         if (!mass) {
-                            console.log("Single recount!");
                             loadJobs = [new Promise((resolve)=>{
                                 setTimeout(()=>
                                     {APURI.views.grading.loadComments()
@@ -2638,6 +2638,7 @@ var APURI ={
                         APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
                         APURI.exam.loadExam(uuid).then(exam => {
+                                //console.debug("loaded exam",uuid, exam);
                                 let ids = APURI.exam.getQuestionIds(exam);
                                 APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
                                     APURI.views.grading.answers = answers;
@@ -2671,11 +2672,26 @@ var APURI ={
                                 for (let mutation of mutationList) {
                                     if (mutation.type == 'childList') {
                                         let answerAnnotionChecker = function(child, removal = false, target = null) {
+                                            if (child.classList != null && child.classList.contains("attachmentWrapper")) {
+                                                let message = "";
+                                                $(child).children(".answerAnnotation").each((el, ob) => { message += " "+ob.getAttribute("data-message")||""});
+                                                let $closestAnswerEl = $(child).closest('.answer');
+                                                if (target !== null) {
+                                                    $closestAnswerEl = $(target).closest('.answer');
+                                                }
+                                                let answerId = $closestAnswerEl.attr('data-answer-id');
+                                                answerId = parseInt(answerId);
+                                                APURI.views.grading.immediatRecount(answerId, $closestAnswerEl, message, removal)
+                                                APURI.views.grading.triggerRecount(answerId, $closestAnswerEl);
+                                            }
+/*                                            
+                                            if (child.classList != null && child.classList.contains("answerAnnotation")) {
+                                                console.debug("(2) Something interesting just happened!", child, removal, target)
+                                            }*/
                                             if (child.classList != null && child.classList.contains("answerAnnotation")) {
                                                 let message = child.getAttribute("data-message");
                                                 if (message === null) // check if does not contain message
                                                     return;
-                                                console.debug("New annotation detected", removal, child);
                                                 let $closestAnswerEl = $(child).closest('.answer');
                                                 if (target !== null) {
                                                     $closestAnswerEl = $(target).closest('.answer');
@@ -2708,7 +2724,8 @@ var APURI ={
                                                     style: '',
                                                     class: 'APURI_comment_points_container'
                                                 }).appendTo(child);
-                                                for (let p=-4; p<6; p++) {
+                                                // Pisteiden toiminnon alaraja -3 ja yläraja 6
+                                                for (let p=-3; p<=6; p++) {
                                                     if (p === 0) continue;
                                                     (function(pValue, inputNode, elPointsContainer) {
                                                         let text = (pValue<0?'':'+')+pValue;
@@ -2744,7 +2761,14 @@ var APURI ={
                                                 }
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
                                                 APURI.views.grading.loadComments().then(x => {
-
+                                                    function isPointComment(comm) {
+                                                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                                                        let f = comm.match(pointPattern);
+                                                        if (f == null)
+                                                            return false;
+                                                        else
+                                                            return true;
+                                                    }
                                                     // set of showed comments
                                                     let commentSet = new Set();
                                                     let questionComments = APURI.views.grading.commentsByQuestion.get(questionId);
@@ -2752,14 +2776,16 @@ var APURI ={
                                                     if (questionComments !== null && typeof questionComments !== 'undefined') {
                                                         for (let comm of questionComments.comments) {
                                                             if (commentSet.size > 6) break;
-                                                            commentSet.add(comm.message);
+                                                            if (!isPointComment(comm.message))
+                                                                commentSet.add(comm.message);
                                                         }
                                                     }
 
                                                     // jos tilaa, niin lisää globaaleja
                                                     for (let comm of APURI.views.grading.commentsAll) {
                                                         if  (commentSet.size > 6)  break;
-                                                        commentSet.add(comm.message);
+                                                        if (!isPointComment(comm.message))
+                                                            commentSet.add(comm.message);
                                                     }
           
                                                     let counter = 0;
@@ -2771,20 +2797,20 @@ var APURI ={
                                                                 case 38: // up                                                                  
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
                                                                             .prev(".APURI_comment"). addClass("APURI_comment_active");
-                                                                    if (active.size() == 0)
+                                                                    if (active.length == 0)
                                                                         $(".APURI_comment_container .APURI_comment").last(). addClass("APURI_comment_active");
                                                                 break;
 
                                                                 case 40: // down
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active") 
                                                                             .next(".APURI_comment"). addClass("APURI_comment_active");
-                                                                    if (active.size() == 0)
+                                                                    if (active.length == 0)
                                                                         $(".APURI_comment_container .APURI_comment").first(). addClass("APURI_comment_active");
                                                                 break;
                                                                 
                                                                 case 13: // enter
                                                                 active = $(".APURI_comment_active").trigger("mousedown").removeClass("APURI_comment_active");
-                                                                if (active.size() > 0)
+                                                                if (active.length > 0)
                                                                     e.stopImmediatePropagation();
                                                                 
                                                                 break;
@@ -2792,7 +2818,7 @@ var APURI ={
                                                                 case 27: // esc
                                                                     active = $(".APURI_comment_active").removeClass("APURI_comment_active");
                                                                     // e.preventDefault();
-                                                                    if (active.size() > 0)
+                                                                    if (active.length > 0)
                                                                         e.stopImmediatePropagation();
                                                                    
                                                                 break;
@@ -2838,7 +2864,7 @@ var APURI ={
                                                         child.style.top = (currTop+75)+"px";
                                                     }                                                                                                  
                                                 }).catch(err => {
-                                                    console.log("ERROR on loading comments",err)
+                                                    console.error("ERROR on loading comments",err)
                                                 });
 
                                             }
@@ -3031,7 +3057,7 @@ var APURI ={
                         let loadjobs = [];
                         APURI.examList.loadList()
                             .then((examlist)=> {
-                                console.debug("Examlist", examlist)
+                                //console.debug("Examlist", examlist)
                                 for (let exam of examlist.exams) {
                                     loadjobs.push(APURI.exam.loadExam(exam.examUuid, false)
                                         .then((examData)=> {if( $("div").not(".xml-exam-not-editable-note") ) {
@@ -3340,6 +3366,8 @@ if (typeof APURILoader === 'undefined') {
             cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
         };
 } else {
+    if (typeof APURIsecrets != "undefined" && APURIsecrets.check != null)
+        APURILoader.check = APURIsecrets.check;
     if (typeof APURILoader.check !== 'string' 
             || APURI.util.checksum(APURILoader.check)!=='cIFxnbWbRfbDzwwjKmwZOIpXe+SaTq64q2wEHEgXVVU') {
         APURILoader = {};
@@ -3468,7 +3496,8 @@ if (typeof APURI.examSaveCurrent !== 'function') {
             $.ajax({
                 type: "POST",
                 url: "/exam-api/composing/"+exam.examUuid+"/exam-content",
-                data: JSON.stringify(exam.content),
+                data: JSON.stringify({content:exam.content,
+                    examLanguage:exam.language||"fi-FI"}),
                 accept: "application/json; text/javascript",
                 contentType: "application/json; charset=UTF-8",
                 dataType: "json",
@@ -3826,7 +3855,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                             APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false).then(function() {
                                 // Poista verho
-                                console.debug("Tallennus ok")
+                                //console.debug("Tallennus ok")
                                 APURI.ui.clearLoadingSpinner();
                                 setTimeout(APURI.ui.clearLoadingSpinner, 100);
                                 APURI.questionsort.trigger = null;
@@ -4150,7 +4179,8 @@ APURI.makeCopyOfExam = function(origUuid) {
                                 $.ajax({
                                     type: "POST",
                                     url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-                                    data: JSON.stringify(origDataTransformed.content),
+                                    data: JSON.stringify({content:origDataTransformed.content,
+                                                        examLanguage:origDataTransformed.language||"fi-FI"}),
                                     accept: "application/json; text/javascript",
                                     contentType: "application/json; charset=UTF-8",
                                     dataType: "json",
@@ -4204,12 +4234,12 @@ APURI.listCopyExamTrigger = function(event) {
 };
 
 APURI.testExamAttachmentCopyTrigger = function() {
-    console.log("Start copyprocess");
+    console.debug("Start copyprocess");
     APURI.ui.showLoadingSpinner();
     APURI.ui.showAttachmentCopy();
     APURI.attachments.copyAttachments('7949611d-d720-4197-8d9d-4606129dc9a5','25cea84c-a83e-413e-bfec-23376a701508')
             .then(function() {
-                console.log("Finished copying");
+                console.debug("Finished copying");
     });
 };
 

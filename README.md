@@ -31,6 +31,7 @@ Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamall
 (Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
 7. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
 8. Arvosanataulukko sisällytetty Abittiin, jolloin Apuri ehdottaa suoraan arvosanaa.
+9. Tehtävien osapisteytys ja osapisteiden laskenta.
 
 ## Asentaminen selaimen lisäosana
 ### Firefoxille
@@ -47,9 +48,18 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 
 ### Muutokset
 
+
+#### v0.8.2 (12.5.2021)
+- Abitin koekielen tuki 
+  * korjattu ongelmat kopioinnissa ja järjestelyssä, jotka aiheutuivat rajapintamuutoksista
+- Osapisteytyksen parannuksia
+  * Korjattu ongelmat laskennassa kaavojen ja kuvien kohdalla
+  * Useampi pisteytys samassa kommentissa toimii nyt
+  * Korjauskommentit toimivat myös aitojen .mex-kokeiden korjauksissa
+
 #### v0.8.0 (20.11.2020)
 - Tuki osapisteytyksille arvostelussa
-- Aikaisemmassa versiopäivityksessä (rinnakkaisessa haarasta joka yhdistty versioon): 
+- Aikaisemmassa versiopäivityksessä (rinnakkaisessa haarasta joka yhdistetty versioon): 
   * Tuki base64-liitteiden konversiolle kokeen kopioinnissa ja 
   * base64-liitteiden etsiminen.
   * Uuden koeformaatin kokeissa CSV-taulukon latauksen tuki
@@ -200,14 +210,14 @@ Huom! Suosittelen poistamaan käytöstä Greasemonkey ja Tampermonkey -skriptej�
 
 ### Lisenssi ja vastuuvapaus
 
-Lisäosa ole YTL:n kehittämä tai YTL:n tarkistama. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
+Lisäosa ei ole YTL:n kehittämä tai YTL:n tarkistama. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
 
 Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopuolella, mutta lähettää YTL:n Abitti-palveluun rajapintakutsuja kyseisen sivun "päälle liimattuna osana" sekä lataa skriptitiedostoja internetistä (toiminnallisuuksiin liittyvät laajennuksia). Sinänsä toiminnallisuuksien ei pitäisi rikkoa yhtään mitään YTL:n eikä käyttäjän tiedoista, mutta skripti tekee muutoksia avoinna olevan kokeen tietoihin, mikä onkin sen käyttötarkoitus. Muihin kokeisiin laajennus ei tee muutoksia. Skripti voi myös luoda uuden kokeen, kun sitä nimenomaisesti pyydetään ottamaan kopio. V0.5.0 alkaen skripti voi myös tallentaa YTL:n APIin kokeen arvosanatietoja kokeen pistemäärän perusteella käyttäjän nimenomaisesti niin pyytäessä (Arvosanalaskurin nappi "Toimeenpane" tai Arvosanojen tuonti toiminnon "Tallenna"). Muita muutoksia skripti ei tee tai tallenna mitään tietoja YTL:n Abitti-palvelun (ja selaimen välimuistin) ulkopuolelle toimistaan. 
 
 AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
 
     AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017-2020 Joni Lehtola
+    Copyright (C) 2017-2021 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
