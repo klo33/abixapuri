@@ -48,6 +48,15 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 
 ### Muutokset
 
+
+#### v0.8.2 (12.5.2021)
+- Abitin koekielen tuki 
+  * korjattu ongelmat kopioinnissa ja järjestelyssä, jotka aiheutuivat rajapintamuutoksista
+- Osapisteytyksen parannuksia
+  * Korjattu ongelmat laskennassa kaavojen ja kuvien kohdalla
+  * Useampi pisteytys samassa kommentissa toimii nyt
+  * Korjauskommentit toimivat myös aitojen .mex-kokeiden korjauksissa
+
 #### v0.8.0 (20.11.2020)
 - Tuki osapisteytyksille arvostelussa
 - Aikaisemmassa versiopäivityksessä (rinnakkaisessa haarasta joka yhdistetty versioon): 
@@ -208,7 +217,7 @@ Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopu
 AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
 
     AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017-2020 Joni Lehtola
+    Copyright (C) 2017-2021 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
