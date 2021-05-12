@@ -2513,7 +2513,7 @@ var APURI ={
                     calculateScoreSum(answerId, comments = null) {
                         if (comments === null)
                             comments = APURI.grading.getCommentsByAnswer(APURI.views.grading.answers, answerId);
-                        const pointPattern = /\(([\-\+]?\d+)p\.\)/;
+                        const pointPattern = /\(([\-\+]?\d+)p\.\)/g;
                         if (typeof comments === "string")
                             comments = [comments];
                         let sums = {
@@ -2522,9 +2522,9 @@ var APURI ={
                             total: 0
                         }
                         for (let comment of comments) {
-                            let found = comment.match(pointPattern);
-                            if (found != null) {
-                                let points = parseInt(found[1]);
+                            let founds = comment.matchAll(pointPattern);
+                            for (let hit of founds) {
+                                let points = parseInt(hit[1]);
                                 if (points < 0)
                                     sums.negative += points;
                                 else
@@ -2568,7 +2568,6 @@ var APURI ={
                         }
                         let loadJobs = [Promise.resolve()];
                         if (!mass) {
-                            console.log("Single recount!");
                             loadJobs = [new Promise((resolve)=>{
                                 setTimeout(()=>
                                     {APURI.views.grading.loadComments()
@@ -2639,7 +2638,7 @@ var APURI ={
                         APURI.util.osBrowserDetect();
                         let uuid = APURI.exam.getCurrentLocationUuid();
                         APURI.exam.loadExam(uuid).then(exam => {
-                                console.debug("loaded exam",uuid, exam);
+                                //console.debug("loaded exam",uuid, exam);
                                 let ids = APURI.exam.getQuestionIds(exam);
                                 APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
                                     APURI.views.grading.answers = answers;
@@ -2675,8 +2674,8 @@ var APURI ={
                                         let answerAnnotionChecker = function(child, removal = false, target = null) {
                                             if (child.classList != null && child.classList.contains("attachmentWrapper")) {
                                                 let message = "";
-                                                $(child).children(".answerAnnotation").map(el => {message += " "+el.attr("data-message")});
-                                                console.debug("Something interesting just happened!:", message, "Dat", child, removal, target)
+                                                $(child).children(".answerAnnotation").each((el, ob) => { message += " "+ob.getAttribute("data-message")||""});
+                                                let $closestAnswerEl = $(child).closest('.answer');
                                                 if (target !== null) {
                                                     $closestAnswerEl = $(target).closest('.answer');
                                                 }
@@ -2693,7 +2692,6 @@ var APURI ={
                                                 let message = child.getAttribute("data-message");
                                                 if (message === null) // check if does not contain message
                                                     return;
-                                                console.debug("New annotation detected", removal, child);
                                                 let $closestAnswerEl = $(child).closest('.answer');
                                                 if (target !== null) {
                                                     $closestAnswerEl = $(target).closest('.answer');
@@ -2866,7 +2864,7 @@ var APURI ={
                                                         child.style.top = (currTop+75)+"px";
                                                     }                                                                                                  
                                                 }).catch(err => {
-                                                    console.log("ERROR on loading comments",err)
+                                                    console.error("ERROR on loading comments",err)
                                                 });
 
                                             }
@@ -3059,7 +3057,7 @@ var APURI ={
                         let loadjobs = [];
                         APURI.examList.loadList()
                             .then((examlist)=> {
-                                console.debug("Examlist", examlist)
+                                //console.debug("Examlist", examlist)
                                 for (let exam of examlist.exams) {
                                     loadjobs.push(APURI.exam.loadExam(exam.examUuid, false)
                                         .then((examData)=> {if( $("div").not(".xml-exam-not-editable-note") ) {
@@ -3857,7 +3855,7 @@ if (typeof APURI.showSortDialog !== 'function') {
                             APURI.exam.traverseDisplayNumber(APURI.questionsort.bufferSaved, 1);
                             APURI.examSaveCurrent(APURI.questionsort.bufferSaved, false).then(function() {
                                 // Poista verho
-                                console.debug("Tallennus ok")
+                                //console.debug("Tallennus ok")
                                 APURI.ui.clearLoadingSpinner();
                                 setTimeout(APURI.ui.clearLoadingSpinner, 100);
                                 APURI.questionsort.trigger = null;
@@ -4236,12 +4234,12 @@ APURI.listCopyExamTrigger = function(event) {
 };
 
 APURI.testExamAttachmentCopyTrigger = function() {
-    console.log("Start copyprocess");
+    console.debug("Start copyprocess");
     APURI.ui.showLoadingSpinner();
     APURI.ui.showAttachmentCopy();
     APURI.attachments.copyAttachments('7949611d-d720-4197-8d9d-4606129dc9a5','25cea84c-a83e-413e-bfec-23376a701508')
             .then(function() {
-                console.log("Finished copying");
+                console.debug("Finished copying");
     });
 };
 
