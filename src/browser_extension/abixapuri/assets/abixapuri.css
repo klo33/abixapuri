@@ -209,7 +209,7 @@ li.APURI_import_exam .date::after {
 #APURI_base64box button {
     float: right;
     margin: 1em;
-    padding: 0.1em;
+    /*padding: 0.1em;*/
     font-size: 95%;
     height: 30px;
     line-height: 30px;
@@ -548,4 +548,29 @@ td.APURI_gradedistblock {
     background: #e7f3db;
     font-weight: bold;
     color: #3E7800;
+}
+
+#APURI_base64box_button {
+    border: 1px solid #c8c8c8;
+    border-radius: 2px;
+    box-shadow: 0 0 3px #ddd;
+    color: #6d6d6d;
+    cursor: pointer;
+    font-family: Source Sans\ 3,sans-serif;
+    font-size: 18px;
+    font-size: 14px;
+    font-weight: 400;
+    height: auto;
+    line-height: 25px;
+    /* line-height: 23px; */
+    margin: 0 12px 0 0;
+    padding: 2px 10px 3px;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    width: auto;
+    background-color: #79e70336 !important;
 }
