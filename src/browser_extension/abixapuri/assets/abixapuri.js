@@ -532,16 +532,17 @@ var APURI ={
                  */
                 openModalWindow(renderFkt, buttonTitle, actionFkt = null, altOptions = null) {
                     let _ = APURI.ui;
+                    var actionOnBlurTemp = (altOptions!=null?altOptions.actionOnBlur:null)||(()=>{});
                     var options = Object.assign({
                         closeOnBlur: false,
-                        actionOnBlur: function() {},
+                        actionOnBlur: actionOnBlurTemp,
                         backgroundclass: 'APURImodal_back',
                         diffuse: false,
                         _blurHandler: function() {
                             if (options.closeOnBlur) {
                                 _.closeModalWindow();
                             }
-                            actionOnBlur();
+                            actionOnBlurTemp();
                         }
                     }, altOptions);
                     if (options.diffuse) {
@@ -1407,13 +1408,47 @@ var APURI ={
                  * @returns {Array} Array of {id: question_id, value: "" }
                  */
                 constructTemplateObject(examObj) {
+                    function calculateMaxScore(gradingQuestion) {
+                        if (gradingQuestion.maxScore != null)
+                            return gradingQuestion.maxScore;
+                        else if (gradingQuestion.type == "choicegroup") {
+                            let sum = 0;
+                            for (let choice of gradingQuestion.choices) {
+                                sum += calculateMaxScore(choice);
+                            }
+                            return sum;
+                        } else if (gradingQuestion.type = "choice") {
+                            let max = 0;
+                            for (let option of gradingQuestion.options) {
+                                if (option.score > max)
+                                    max = option.score;
+                            }
+                            return max;
+                        }
+                        return 0;
+                    }
                     let template = new Array();
-                    let sections = examObj.content.sections;
-                    for (let s = 0; s < sections.length; s++) {
-                        let questions = sections[s].questions;
-                        for (let q = 0; q < questions.length; q++) {
-                            template[questions[q].id]={id: questions[q].id,
-                                value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
+                    if (examObj.content != null) {
+                        // koe on .meb-koe
+                        let sections = examObj.content.sections;
+                        for (let s = 0; s < sections.length; s++) {
+                            let questions = sections[s].questions;
+                            for (let q = 0; q < questions.length; q++) {
+                                template[questions[q].id]={id: questions[q].id,
+                                    value: "", displayNumber: questions[q].displayNumber, maxScore: questions[q].maxScore};
+                            }
+                        }
+    
+                    } else if (examObj.gradingStructure != null) {
+                        // koe on .mex-koe
+                        for (let question of examObj.gradingStructure.questions) {
+                            template[question.id] = {
+                                id: question.id,
+                                value: "",
+                                displayNumber: question.displayNumber,
+                                maxScore: calculateMaxScore(question),
+                                type: question.type
+                            }
                         }
                     }
                     return template;
