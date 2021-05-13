@@ -49,6 +49,10 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 ### Muutokset
 
 
+#### v0.8.3 (13.5.2021)
+- Arvosanataulukon korjauksia
+  * Arvosanataulukko ja pisteytyksien sisäinen vienti .cvs-muotoon toimivat myös aidoissa .mex-kokeissa.
+
 #### v0.8.2 (12.5.2021)
 - Abitin koekielen tuki 
   * korjattu ongelmat kopioinnissa ja järjestelyssä, jotka aiheutuivat rajapintamuutoksista
@@ -238,7 +242,7 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.8.2.0-an+fx.xpi?raw=true
+[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.8.3.0-an+fx.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/abixapurichrome-0.5.0.0.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
