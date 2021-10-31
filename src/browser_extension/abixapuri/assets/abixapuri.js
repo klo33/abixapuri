@@ -187,7 +187,7 @@ var APURI ={
                 attachment_converted_filename: "transformerat_provbilag",
                 exam_contains_base64_msg: "<strong>Obs! Provet innehåller bilag som inte mer stöds!</strong><br/> Din prov har bilag i base64-form, vars <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>stöd i Abitti slutar</a>.",
                 exam_contains_base64_button: "Transformera till bilagor",
-                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag har slutat i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilagor har slutat i Abitti.</a></strong><br>AbixApuri har tidigare skapat base64-bilder. Genom att göra en kopia av provet med base64-bilder transformeras de till en bilagsfil.`,
                 examlist_base64_button: "Visa prov som innehåller base64-bilag",
                 examlist_base64_note: "base64"
 
@@ -264,7 +264,8 @@ var APURI ={
                 savedIndicator: "div.savedIndicator",
                 emptyQuestionWarning: 'div.empty-question-warning',
                 grading_answertext: '#answers answer-text-container answerText',
-                grading_popup: 'answerText add-annotation-popup'
+                grading_popup: 'answerText add-annotation-popup',
+                xmlTransferButtonDis: '.exam-export-form .exam-export-button[disabled]'
             },
 
             questionsort: { 
