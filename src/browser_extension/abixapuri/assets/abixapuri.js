@@ -107,7 +107,8 @@ var APURI ={
                 exam_contains_base64_button: "Muunna kokeen liitteet",
                 examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki on päättynyt Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
                 examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
-                examlist_base64_note: "base64"
+                examlist_base64_note: "base64",
+                mex_code: "MexCode"
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -189,8 +190,8 @@ var APURI ={
                 exam_contains_base64_button: "Transformera till bilagor",
                 examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilagor har slutat i Abitti.</a></strong><br>AbixApuri har tidigare skapat base64-bilder. Genom att göra en kopia av provet med base64-bilder transformeras de till en bilagsfil.`,
                 examlist_base64_button: "Visa prov som innehåller base64-bilag",
-                examlist_base64_note: "base64"
-
+                examlist_base64_note: "base64",
+                mex_code: "MexCode"
                   
               }  
             },
@@ -373,6 +374,14 @@ var APURI ={
                 }
             },
             ui: {
+                showXMLPopup: (text) => {
+                    APURI.ui.openModalWindow(($div)=>{
+                        $div.append($("<h3 />").html("Uuden formaatin XML-koodi"))
+                            .append($("<p />").html("Alla kokeen koodi kovertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>"))
+                            .append($("<textarea>").val(text).attr("style", "width: 100%; height: 80%;"))
+                           return $div;
+                    }, "Sulje");
+                },
                 showWarning: function(msg_text, button_text = 'OK', id_text = 'APURI_msg', actionHandler = null) {
                     var outer = $('<div />').attr('id', id_text).attr('class','comedown');
                     var message = $('<div />').attr('class','APURI_message').html(msg_text);
@@ -1903,6 +1912,36 @@ var APURI ={
                         }
                     }                    
                 },
+
+                examXMLEditorView: {
+                    initTimer: null,
+                    
+                    doShow: function () {
+                        let $xmlEditBox = $("textarea.mex-field")
+                        if ($xmlEditBox.lenght != 1) {
+                            console.debug("Invalid amount of editors");
+                        }
+                        $(function() {
+                            var extractor = new Xsd2Json("exam.xsd", {"schemaURI":APURI.settings.uris.schema, "rootElement": "e:exam"});
+                      
+                            $xmlEditBox.xmlEditor({
+                                    schema: extractor.getSchema()
+                            });
+                      });
+                    },
+                    show: function () {
+                        console.debug("Trying to add XML-button")
+                        let XMLHeader = $("textarea.mex-field")
+                        if (XMLHeader.length > 0) {
+                            console.debug("This is indeed XML-exam")
+                            let $xmlEditBox = $("textarea.mex-field")
+                            $xmlEditBox.after($('<a>').text("Näytä XML-editori").on('click', ()=>{
+                                APURI.views.examXMLEditorView.doShow();
+                            }))
+                        }
+                        clearInterval(this.initTimer);
+                    }
+                },
                 attachmentsPoller: {
                     initTimer: null,
                     show: function () {
@@ -3150,6 +3189,62 @@ var APURI ={
                             $("#"+tableid+" thead tr th:first").next().append(wrapper);                        
                         }
                     },
+                    showMex: function (uuid) {
+                        /** Prettify from https://stackoverflow.com/questions/376373/pretty-printing-xml-with-javascript */
+                        var prettifyXml = function(sourceXml)
+{
+    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+    var xsltDoc = new DOMParser().parseFromString([
+        '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+        '  <xsl:strip-space elements="*"/>',
+        '  <xsl:template match="para[content-style][not(text())]">', 
+        '    <xsl:value-of select="normalize-space(.)"/>',
+        '  </xsl:template>',
+        '  <xsl:template match="node()|@*">',
+        '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+        '  </xsl:template>',
+        '  <xsl:output indent="yes"/>',
+        '</xsl:stylesheet>',
+    ].join('\n'), 'application/xml');
+
+    var xsltProcessor = new XSLTProcessor();    
+    xsltProcessor.importStylesheet(xsltDoc);
+    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+    var resultXml = new XMLSerializer().serializeToString(resultDoc);
+    return resultXml;
+};
+                        $.getJSON("https://oma.abitti.fi/exam-api/exams/"+uuid+"/exam?useMex", (origData) => {
+                            let xml = origData.contentXml;
+                            if (xml == null) {
+                                const latexRender = /<e:formula svg=\"([^\"]*)\"/g
+                                const displayName = / display-number=\"[^\"]*\"/g
+                                const questionId = / (?:question|option)-id=\"[^\"]*\"/g
+                                const sectMaxScore = /(<e:(?:exam|section|question|choice-answer) [^\>]*)max-score=\"[^\"]*\"/g
+                                const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
+    
+                                xml = origData.masteredXml;
+                                if (xml != null) {
+                                    xml = xml.replace(latexRender, "<e:formula")
+                                    xml = xml.replace(displayName, " ")
+                                    xml = xml.replace(questionId, " ")
+                                    xml = xml.replace(sectMaxScore, "$1")
+                                    xml = xml.replace(imageHeightWidth, "$1")    
+                                    xml = xml.replace(imageHeightWidth, "$1")    
+                                }
+                            }
+                            if (xml != null) 
+                                xml = prettifyXml(xml)
+                            APURI.ui.showXMLPopup(xml?? "XML koodia ei saatavilla")
+                        })
+                    },
+                    showMexTrigger: function(event) {
+                        var tag = event.target;
+                        if (tag !== null) {
+                            let examUuid = tag.getAttribute("uuid");
+                            APURI.views.examlist.showMex(examUuid);
+                        }
+                        return false;
+                    },
                     show: function() {
                         var filterInput = document.getElementById("APURI_examfilter"); 
                         var taulukko = document.getElementById("available-exams");
@@ -3237,8 +3332,11 @@ var APURI ={
                                         // ollaan varsinaisella rivillä
                                         var span = $('<span />').attr('class', 'edit-exam');
                                         var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html(APURI.text.copy_exam_button);
+                                        var showMex = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html(APURI.text.mex_code);
                                         link[0].onclick = APURI.listCopyExamTrigger;
+                                        showMex[0].onclick = APURI.views.examlist.showMexTrigger;
                                         span.append(link).appendTo(uusisolu);
+                                        span.append(showMex).appendTo(uusisolu);
                                     }
                                     uusisolu.appendTo(rivit[i]);
                                 }
@@ -4175,71 +4273,121 @@ APURI.settings.uris = APURILoader;
             }
         );
 //        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
+        APURI.loadScriptDirect(APURI.settings.uris.ace, function(){
+            // window.Range = ace.acequire('ace/range').Range;
+        });
+        //APURI.loadScriptDirect(APURI.settings.uris.jqueryUi);
+        APURI.loadScriptDirect(APURI.settings.uris.xsd2json);
+        APURI.ui.appendCSS(APURI.settings.uris.jqueryUiCss);
         APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
-                'Sortable': APURI.settings.uris.sortableR
-            }
+                'Sortable': APURI.settings.uris.sortableR,
+                'jquery': APURI.settings.uris.jqueryR,
+                'jquery-ui': APURI.settings.uris.jqueryUiR,
+            },
+            shim: {
+                'jquiry-ui': ['jquery']
+            }            
+
         });
-        require(['Sortable'], function (Sortable){
+
+        require(['Sortable', 'jquery', 'jquery-ui'], function (Sortable, $, ui){
                         window.Sortable = Sortable; // exports
+                        window.$ = $;
+                        window.$.ui = ui;
                 });
+        setTimeout(()=>{
+            APURI.loadScriptDirect(APURI.settings.uris.xmlEditor);
+            APURI.ui.appendCSS(APURI.settings.uris.xmlEditorCss);
+        }, 100);
+        APURI.initView(APURI.views.examXMLEditorView, 2000);
         APURI.initView(APURI.views.examview);
         APURI.initView(APURI.views.ckeAbiximageInfo);
         APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
-        APURI.initView(APURI.views.attachmentLinkReplace, 1000);        
+        APURI.initView(APURI.views.attachmentLinkReplace, 1000);   
+        setTimeout(()=>{
+            console.debug("Window ", window, "$", $)
+        }, 4000)     
 })();
 
 APURI.makeCopyOfExam = function(origUuid) {
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
+
+        const kopioiLiitteet = (origData, uudenUuid) => () => {
+            // Kopioidaan liitteet
+            if (origData.attachments.length > 0) {
+                // console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                APURI.ui.showAttachmentCopy();
+                APURI.attachments.copyAttachments(origUuid, uudenUuid)
+                    .then(filenames => {
+                        APURI.ui.clearAttachmentCopy();                                                                                        
+                        window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                    });
+            } else {
+                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
+                window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+            }            
+        }
+        const luoUusiKoe = (uusikoeData, successHandler) => {
+            $.ajax({
+                type: "POST",
+                url: "/kurko-api/exam/exam-event",
+                data: JSON.stringify(uusikoeData),
+                accept: "application/json; text/javascript",
+                contentType: "application/json; charset=UTF-8",
+                dataType: "json",
+                success: successHandler,             
+                failure: function(errMsg) {
+                    console.error("ERROR uuden luomisessa: "+errMsg);
+        
+            }
+         });
+        }
+        const paivitaKoe = (uuid, koeData, successHandler, errorHandler = (errMsg) => {
+            console.error("ERROR kopion tallennuksessa: "+errMsg);
+        }) => {
+            $.ajax({
+                type: "POST",
+                url: ("/exam-api/composing/"+uuid+"/exam-content"),
+                data: koeData,
+                accept: "application/json; text/javascript",
+                contentType: "application/json; charset=UTF-8",
+                dataType: "json",
+                success: successHandler,
+                failure: errorHandler
+            });
+        }
+
+
 		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
-			var uusikoe = {title: "Uusi koe"};
+			var uusikoeJson = {title: "Uusi koe", "examLanguage": "fi-FI"};
+            let uusikoeXml = {
+                "title": "Uusi koe",
+                "examLanguage": "fi-FI",
+                "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"A\" day-code=\"E\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
+            };
                         // Luo uusi koe
-			$.ajax({
-					type: "POST",
-					url: "/kurko-api/exam/exam-event",
-					data: JSON.stringify(uusikoe),
-					accept: "application/json; text/javascript",
-					contentType: "application/json; charset=UTF-8",
-					dataType: "json",
-					success: function(uusidata){
-						var uudenUuid = uusidata.examUuid;
+            if (origData?.content != null) {
+                // Kyseessä on JSON-koe
+                luoUusiKoe(uusikoeJson, 
+                    // Uusi koe luotu
+                    (uusidata) => {
+                        const uudenUuid = uusidata.examUuid;
                                                 // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
                         origData.content.title = origData.content.title + " (kopio)";
                         // tarkista, onko sisällössä base64:sta
                         APURI.base64transform(JSON.stringify(origData), uudenUuid)
                             .then((origDataTransformedStr) => {
                                 let origDataTransformed = JSON.parse(origDataTransformedStr);
-                                $.ajax({
-                                    type: "POST",
-                                    url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-                                    data: JSON.stringify({content:origDataTransformed.content,
-                                                        examLanguage:origDataTransformed.language||"fi-FI"}),
-                                    accept: "application/json; text/javascript",
-                                    contentType: "application/json; charset=UTF-8",
-                                    dataType: "json",
-                                    success: function(data){
-                                        // Kopioidaan liitteet
-                                                                            if (origData.attachments.length > 0) {
-    //                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
-                                                                                APURI.ui.showAttachmentCopy();
-                                                                                APURI.attachments.copyAttachments(origUuid, uudenUuid)
-                                                                                        .then(filenames => {
-                                                                                    APURI.ui.clearAttachmentCopy();                                                                                        
-                                                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                                });
-                                                                            } else {
-                                                                                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                                                                                window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                            }
-                                    },
-                                    failure: function(errMsg) {
-                                            console.error("ERROR kopion tallennuksessa: "+errMsg);
-    
-                                    }
-                                });
+                                paivitaKoe(
+                                    uudenUuid, 
+                                    JSON.stringify({content:origDataTransformed.content,
+                                            examLanguage:origDataTransformed.language||"fi-FI"}), 
+                                    kopioiLiitteet(origData, uudenUuid));
+
                             })
                             .catch((error)=>{
                                 console.error("ERROR Base64-konversiovirhe");
@@ -4247,13 +4395,33 @@ APURI.makeCopyOfExam = function(origUuid) {
                             })
                         console.log(".");
 
-						
-					},
-					failure: function(errMsg) {
-							console.error("ERROR uuden luomisessa: "+errMsg);
+                        
+                    }
+                    );
 
-					}
-			});
+            } else if (origData?.contentXml != null) {
+                // Kyseessä on XML-MEX-koe
+                luoUusiKoe(uusikoeXml, 
+                    (uusidata) => {
+                        const uudenUuid = uusidata.examUuid;
+                        console.debug("Content is", origData);
+                        origData.title = origData.title + " (kopio)";
+                        paivitaKoe(uudenUuid,
+                            JSON.stringify({
+                                content: {title: origData.title,
+                                    xml: origData.contentXml},
+                                examLanguage:origData.language||"fi-FI"
+                            }), 
+                            kopioiLiitteet(origData, uudenUuid), 
+                            (errMsg) => {
+                                // TODO TÄMÄ KESKEN
+                                if (errMsg == "jotain")  {
+
+                                }
+                            })
+                    })            
+            }
+
 
 		});
 
@@ -4310,7 +4478,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
             'jquery-csv': APURI.settings.uris.jquerycsvR
         },
         shim: {
-            'jquery-csv': ['jquery']
+            'jquery-csv': ['jquery'],
         }
     });
     require(['Cookies', 'jquery', 'jquery-csv'], function (Cookies, $){
