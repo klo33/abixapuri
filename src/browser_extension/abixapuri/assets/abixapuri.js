@@ -113,6 +113,7 @@ var APURI ={
                 mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
                 mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
                 mex_code_liitteet: "Liitteet",
+                mex_code_convert_bertta: "Muunna Bertta/MEX-kokeeksi",
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -199,7 +200,8 @@ var APURI ={
                 mex_code_title: "Uuden formaatin MEX-kokeen XML-koodi",
                 mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
                 mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
-                mex_code_liitteet: "Bilagor",                  
+                mex_code_liitteet: "Bilagor",   
+                mex_code_convert_bertta: "Muunna Bertta/MEX-kokeeksi",               
               }  
             },
             text: null,
@@ -1635,7 +1637,46 @@ var APURI ={
                     }
                     return xml;
                 },
+                masteredXmlToRaw: (xml) => {
+                    const latexRender = /(<e:formula )svg=\"[^\"]*\"/g
+                    const displayName = / display-number=\"[^\"]*\"/g
+                    const questionId = / (?:question|option)-id=\"[^\"]*\"/g
+                    const sectMaxScore = /(<e:(?:exam|section|question|choice-answer|dropdown-answer) [^\>]*)max-score=\"[^\"]*\"/g
+                    const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
+                    if (xml != null) {
+                        xml = xml.replace(latexRender, "$1")
+                        xml = xml.replace(displayName, " ")
+                        xml = xml.replace(questionId, " ")
+                        xml = xml.replace(sectMaxScore, "$1")
+                        xml = xml.replace(imageHeightWidth, "$1")    
+                        xml = xml.replace(imageHeightWidth, "$1")    // toiseen kertaan, jotta molemmat parametrit hävitetään
 
+                    }
+                    return xml;
+                },
+                prettifyXml:  /** Prettify from https://stackoverflow.com/questions/376373/pretty-printing-xml-with-javascript */
+                 function(sourceXml)
+                    {
+                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+                    var xsltDoc = new DOMParser().parseFromString([
+                    '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+                    '  <xsl:strip-space elements="*"/>',
+                    '  <xsl:template match="para[content-style][not(text())]">', 
+                    '    <xsl:value-of select="normalize-space(.)"/>',
+                    '  </xsl:template>',
+                    '  <xsl:template match="node()|@*">',
+                    '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+                    '  </xsl:template>',
+                    '  <xsl:output indent="yes"/>',
+                    '</xsl:stylesheet>',
+                    ].join('\n'), 'application/xml');
+
+                    var xsltProcessor = new XSLTProcessor();    
+                    xsltProcessor.importStylesheet(xsltDoc);
+                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+                    var resultXml = new XMLSerializer().serializeToString(resultDoc);
+                    return resultXml;
+                    },
                 importQuestion: {
                     currentSectionSelected: 0,
                     sectionTitles: null,
@@ -1749,9 +1790,9 @@ var APURI ={
                                                 APURI.exam.buffer = data;
                                                 resolve(data);
                                             })
-                                            .catch(reject);
+                                            .catch(reject=>console.err("Rejected", reject));
                             });                              
-                        }).catch(reject);
+                        }).catch(reject=>console.err("Rejected", reject));
                     
                     });
                 },
@@ -1952,19 +1993,58 @@ var APURI ={
 
                 examXMLEditorView: {
                     initTimer: null,
+
+                    removeShow: function() {
+                        $("#APURI_change_xmleditor").remove();
+                        let $xmlEditBox = $("textarea.mex-field")
+                        $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
+                            APURI.views.examXMLEditorView.doShow();
+                        }))
+                        $xmlEditBox.attr("style", "display:block");
+                        $xmlEditor = $("#APURI_xmleditor");
+                        $xmlEditor.remove();
+
+                    },
                     
                     doShow: function () {
                         let $xmlEditBox = $("textarea.mex-field")
                         if ($xmlEditBox.lenght != 1) {
                             console.debug("Invalid amount of editors");
                         }
-                        let $xmlEditBoxNew = $("<textarea>").attr("class", "omaEditori").attr("style", "height: 50em").val($xmlEditBox.val());
-                        //$xmlEditBox.hide()
+                        $("#APURI_change_xmleditor").remove();
+                        $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Palauta alkuperäinen XML-editori (kokeellinen)").on('click', ()=>{
+                            APURI.views.examXMLEditorView.removeShow();
+                        }))
+                        const beginVal = $xmlEditBox.val()
+                        let $xmlEditBoxNew = $("<div>").attr('id','APURI_xmleditor').attr("class", "omaEditori").attr("style", `height: ${beginVal.split('\n').length+2}em;`);
+                        $xmlEditBox.attr("style", "display:none")
                         $xmlEditBox.after($xmlEditBoxNew);
+                        // Prevent save event and problems
+                        $xmlEditBoxNew.on('input keydown keyup', (e)=>{
+                            e.stopPropagation();
+                            
+                        })
                         let editor = ace.edit($xmlEditBoxNew[0], {
                             mode: "ace/mode/xml",
-                            selectionStyle: "text"
+                            selectionStyle: "text",
+                            useWrapMode: true,
+                            indentedSoftWrap: true
                         })
+                        editor.setValue(beginVal);
+                        editor.session.on('change', function(delta) {
+                            const val = editor.getValue()
+                            $xmlEditBoxNew.attr("style", `height: ${val.split('\n').length+2}em;`);
+                            //$xmlEditBox[0].value = val;
+                           // $xmlEditBox.trigger('keydown input change keyup')
+                            const textarea = document.querySelector('textarea.mex-field')
+
+                            var nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                            nativeTextAreaValueSetter.call(textarea, val);
+
+                            const event = new Event('input', { bubbles: true});
+                            textarea.dispatchEvent(event);
+                        });
+
                         console.log("Editor", editor)
                         /*
                         $(function() {
@@ -1981,11 +2061,11 @@ var APURI ={
                         if (XMLHeader.length > 0) {
                             console.debug("This is indeed XML-exam")
                             let $xmlEditBox = $("textarea.mex-field")
-                            //APURI.views.examXMLEditorView.doShow();
-
-                            $xmlEditBox.after($('<a>').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
+                            $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
                                 APURI.views.examXMLEditorView.doShow();
                             }))
+                            APURI.views.examXMLEditorView.doShow();
+
                         }
                         clearInterval(this.initTimer);
                     }
@@ -3094,7 +3174,7 @@ var APURI ={
                                 if (APURI.exam.containsBase64(examData)) {
                                     this.addBase64Warning();
                                 }
-                            });
+                            })
                         if (document.getElementsByClassName("questionButtons").length > 0) {
                                 //console.log("begin button");
                                 var $impButton = $('<button />').html(APURI.text.import_assignment_button).attr('class','addQuestion APURI importExam').on('click', APURI.showImporDialog);
@@ -3121,6 +3201,9 @@ var APURI ={
                                 window.clearInterval(this.initTimer);
                                 APURI.ui.appendSupportNotice();
 
+                        } else if (document.getElementsByClassName("mex-field").length > 0) {
+                            // this is a mex-iew
+                            window.clearInterval(this.initTimer);
                         }                       
                     }
                 },
@@ -3238,55 +3321,15 @@ var APURI ={
                         }
                     },
                     showMex: function (uuid) {
-                        /** Prettify from https://stackoverflow.com/questions/376373/pretty-printing-xml-with-javascript */
-                        var prettifyXml = function(sourceXml)
-{
-    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
-    var xsltDoc = new DOMParser().parseFromString([
-        '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-        '  <xsl:strip-space elements="*"/>',
-        '  <xsl:template match="para[content-style][not(text())]">', 
-        '    <xsl:value-of select="normalize-space(.)"/>',
-        '  </xsl:template>',
-        '  <xsl:template match="node()|@*">',
-        '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-        '  </xsl:template>',
-        '  <xsl:output indent="yes"/>',
-        '</xsl:stylesheet>',
-    ].join('\n'), 'application/xml');
-
-    var xsltProcessor = new XSLTProcessor();    
-    xsltProcessor.importStylesheet(xsltDoc);
-    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-    var resultXml = new XMLSerializer().serializeToString(resultDoc);
-    return resultXml;
-};
+                       
                         $.getJSON("https://oma.abitti.fi/exam-api/exams/"+uuid+"/exam?useMex", (origData) => {
                             let xml = origData.contentXml;
                             if (xml == null) {
-                                const latexRender = /(<e:formula )svg=\"[^\"]*\"/g
-                                const displayName = / display-number=\"[^\"]*\"/g
-                                const questionId = / (?:question|option)-id=\"[^\"]*\"/g
-                                const sectMaxScore = /(<e:(?:exam|section|question|choice-answer|dropdown-answer) [^\>]*)max-score=\"[^\"]*\"/g
-                                const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
-                                const oldSchemaTest = /^<e:exam [^\>]*schema-version="(0\.[1|2])"[^\>]*>/
-                                const oldSchema = /^<e:exam [^\>]*date="([^\"]*)"[^\>]*>/
-                                const newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
-                                const oldLang = /<e:languages>(\s*<e:language>(fi-FI)<\/e:language>)+\s*<\/e:languages>/
-                                xml = origData.masteredXml;
-                                if (xml != null) {
-                                    xml = xml.replace(latexRender, "$1")
-                                    xml = xml.replace(displayName, " ")
-                                    xml = xml.replace(questionId, " ")
-                                    xml = xml.replace(sectMaxScore, "$1")
-                                    xml = xml.replace(imageHeightWidth, "$1")    
-                                    xml = xml.replace(imageHeightWidth, "$1")    // toiseen kertaan, jotta molemmat parametrit hävitetään
-
-                                }
+                                xml = APURI.exam.masteredXmlToRaw(origData.masteredXml);
                             }
                             if (xml != null) {
                                 xml = APURI.exam.convertXmlExamSchema(xml);
-                                xml = prettifyXml(xml)
+                                xml = APURI.exam.prettifyXml(xml);
                             }
                             const showXMLPopup = (xml, exam) => {
                                 APURI.ui.openModalWindow(($div)=>{
@@ -3295,9 +3338,14 @@ var APURI ={
                                         $attachmentList.append($("<li>").append($("<a>").attr("href", `/exam-api/exams/${exam.examUuid}/attachments/${att}`).html(att)))
                                     }
                                     $div.append($("<h3 />").html(APURI.text.mex_code_title))
-                                        .append($("<p />").html(origData.contentXml == null?APURI.text.mex_code_info_converted:APURI.text.mex_code_info))
+                                        .append($("<p />").html(exam.contentXml == null?APURI.text.mex_code_info_converted:APURI.text.mex_code_info))
                                         .append($("<textarea>").val(xml).attr("style", "width: 100%; height: 80%;"))
-                                        .append($("<div>").html(`<h4>${APURI.text.mex_code_liitteet}</h4>`).append($attachmentList))
+                                        .append($("<div>").html(`<h4>${APURI.text.mex_code_liitteet}</h4>`).append($attachmentList));
+                                    if (exam.contentXml == null && exam.masteredXml != null) {
+                                        $div.append($("<div>").append($("<button>").attr("class","APURI edit-link").html(APURI.text.mex_code_convert_bertta).on('click', ()=>{
+                                            APURI.makeCopyOfExam(origData.examUuid, true);
+                                        })))
+                                    }
                                        return $div;
                                 }, "Sulje");
                             }
@@ -4379,7 +4427,7 @@ APURI.settings.uris = APURILoader;
         }, 4000)     
 })();
 
-APURI.makeCopyOfExam = function(origUuid) {
+APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = null) {
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
 
@@ -4437,7 +4485,30 @@ APURI.makeCopyOfExam = function(origUuid) {
                 "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"A\" day-code=\"E\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
             };
                         // Luo uusi koe
-            if (origData?.content != null) {
+            if (forceConvertion == true && origData?.content != null && origData?.masteredXml != null) {
+                // pakotetaan conversio
+                let convertedXml = forceInput ?? APURI.exam.masteredXmlToRaw(origData.masteredXml);
+                luoUusiKoe(uusikoeXml, 
+                    (uusidata) => {
+                        const uudenUuid = uusidata.examUuid;
+                        console.debug("Content is", origData);
+                        origData.title = origData.title + " (muunnettu)";
+                        paivitaKoe(uudenUuid,
+                            JSON.stringify({
+                                content: {title: origData.title,
+                                    xml: APURI.exam.convertXmlExamSchema(convertedXml)},
+                                examLanguage:origData.language||"fi-FI"
+                            }), 
+                            kopioiLiitteet(origData, uudenUuid), 
+                            (errMsg) => {
+                                // TODO TÄMÄ KESKEN
+                                if (errMsg == "jotain")  {
+
+                                }
+                            })
+                    })            
+
+            } else if (origData?.content != null) {
                 // Kyseessä on JSON-koe
                 luoUusiKoe(uusikoeJson, 
                     // Uusi koe luotu
