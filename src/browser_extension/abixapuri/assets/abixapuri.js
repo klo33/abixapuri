@@ -108,7 +108,11 @@ var APURI ={
                 examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki on päättynyt Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
                 examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
                 examlist_base64_note: "base64",
-                mex_code: "MexCode"
+                mex_code: "Mex-koodi",
+                mex_code_title: "Uuden formaatin MEX-kokeen XML-koodi",
+                mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
+                mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
+                mex_code_liitteet: "Liitteet",
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -191,8 +195,11 @@ var APURI ={
                 examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilagor har slutat i Abitti.</a></strong><br>AbixApuri har tidigare skapat base64-bilder. Genom att göra en kopia av provet med base64-bilder transformeras de till en bilagsfil.`,
                 examlist_base64_button: "Visa prov som innehåller base64-bilag",
                 examlist_base64_note: "base64",
-                mex_code: "MexCode"
-                  
+                mex_code: "Mex-kod",
+                mex_code_title: "Uuden formaatin MEX-kokeen XML-koodi",
+                mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
+                mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
+                mex_code_liitteet: "Bilagor",                  
               }  
             },
             text: null,
@@ -1599,6 +1606,36 @@ var APURI ={
                 
             },
             exam: {
+                getXmlExamSchemaVersion: (xml) => {
+                    const oldSchemaTest = /^<e:exam [^\>]*schema-version="([0-9\.]+)"[^\>]*>/
+                    if (oldSchemaTest.test(xml)) {
+                        const res = xml.match(oldLang);
+                        return res[1];
+                    }
+                },
+                convertXmlExamSchema: (xml) => {
+                    const oldSchemaTest = /^<e:exam [^\>]*schema-version="(0\.[1|2])"[^\>]*>/
+                    const oldSchema = /^<e:exam [^\>]*date="([^\"]*)"[^\>]*>/
+                    const newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
+                    const oldLang = /<e:languages>(\s*<e:language>(fi-FI)<\/e:language>)+\s*<\/e:languages>/
+                    if (oldSchemaTest.test(xml)) {
+                        xml = xml.replace(oldSchema, newSchema)
+                        if (oldLang.test(xml)) {
+                            let langRes = xml.match(oldLang);
+                            if (langRes.length == 0) {
+                                langRes = ["", "fi-FI"];
+                            }
+                            let res = "<e:exam-versions>";
+                            for (let i = 1; i < langRes.length; i++) {
+                                res += `<e:exam-version lang="${langRes[i]}"/>`
+                            }
+                            res += "</e:exam-versions>";
+                            xml = xml.replace(oldLang, res);    
+                        }
+                    }
+                    return xml;
+                },
+
                 importQuestion: {
                     currentSectionSelected: 0,
                     sectionTitles: null,
@@ -1921,13 +1958,22 @@ var APURI ={
                         if ($xmlEditBox.lenght != 1) {
                             console.debug("Invalid amount of editors");
                         }
+                        let $xmlEditBoxNew = $("<textarea>").attr("class", "omaEditori").attr("style", "height: 50em").val($xmlEditBox.val());
+                        //$xmlEditBox.hide()
+                        $xmlEditBox.after($xmlEditBoxNew);
+                        let editor = ace.edit($xmlEditBoxNew[0], {
+                            mode: "ace/mode/xml",
+                            selectionStyle: "text"
+                        })
+                        console.log("Editor", editor)
+                        /*
                         $(function() {
                             var extractor = new Xsd2Json("exam.xsd", {"schemaURI":APURI.settings.uris.schema, "rootElement": "e:exam"});
                       
                             $xmlEditBox.xmlEditor({
                                     schema: extractor.getSchema()
                             });
-                      });
+                      });*/
                     },
                     show: function () {
                         console.debug("Trying to add XML-button")
@@ -1935,7 +1981,9 @@ var APURI ={
                         if (XMLHeader.length > 0) {
                             console.debug("This is indeed XML-exam")
                             let $xmlEditBox = $("textarea.mex-field")
-                            $xmlEditBox.after($('<a>').text("Näytä XML-editori").on('click', ()=>{
+                            //APURI.views.examXMLEditorView.doShow();
+
+                            $xmlEditBox.after($('<a>').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
                                 APURI.views.examXMLEditorView.doShow();
                             }))
                         }
@@ -3216,25 +3264,44 @@ var APURI ={
                         $.getJSON("https://oma.abitti.fi/exam-api/exams/"+uuid+"/exam?useMex", (origData) => {
                             let xml = origData.contentXml;
                             if (xml == null) {
-                                const latexRender = /<e:formula svg=\"([^\"]*)\"/g
+                                const latexRender = /(<e:formula )svg=\"[^\"]*\"/g
                                 const displayName = / display-number=\"[^\"]*\"/g
                                 const questionId = / (?:question|option)-id=\"[^\"]*\"/g
-                                const sectMaxScore = /(<e:(?:exam|section|question|choice-answer) [^\>]*)max-score=\"[^\"]*\"/g
+                                const sectMaxScore = /(<e:(?:exam|section|question|choice-answer|dropdown-answer) [^\>]*)max-score=\"[^\"]*\"/g
                                 const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
-    
+                                const oldSchemaTest = /^<e:exam [^\>]*schema-version="(0\.[1|2])"[^\>]*>/
+                                const oldSchema = /^<e:exam [^\>]*date="([^\"]*)"[^\>]*>/
+                                const newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
+                                const oldLang = /<e:languages>(\s*<e:language>(fi-FI)<\/e:language>)+\s*<\/e:languages>/
                                 xml = origData.masteredXml;
                                 if (xml != null) {
-                                    xml = xml.replace(latexRender, "<e:formula")
+                                    xml = xml.replace(latexRender, "$1")
                                     xml = xml.replace(displayName, " ")
                                     xml = xml.replace(questionId, " ")
                                     xml = xml.replace(sectMaxScore, "$1")
                                     xml = xml.replace(imageHeightWidth, "$1")    
-                                    xml = xml.replace(imageHeightWidth, "$1")    
+                                    xml = xml.replace(imageHeightWidth, "$1")    // toiseen kertaan, jotta molemmat parametrit hävitetään
+
                                 }
                             }
-                            if (xml != null) 
+                            if (xml != null) {
+                                xml = APURI.exam.convertXmlExamSchema(xml);
                                 xml = prettifyXml(xml)
-                            APURI.ui.showXMLPopup(xml?? "XML koodia ei saatavilla")
+                            }
+                            const showXMLPopup = (xml, exam) => {
+                                APURI.ui.openModalWindow(($div)=>{
+                                    let $attachmentList = $("<ul>");
+                                    for (let att of exam.attachments) {
+                                        $attachmentList.append($("<li>").append($("<a>").attr("href", `/exam-api/exams/${exam.examUuid}/attachments/${att}`).html(att)))
+                                    }
+                                    $div.append($("<h3 />").html(APURI.text.mex_code_title))
+                                        .append($("<p />").html(origData.contentXml == null?APURI.text.mex_code_info_converted:APURI.text.mex_code_info))
+                                        .append($("<textarea>").val(xml).attr("style", "width: 100%; height: 80%;"))
+                                        .append($("<div>").html(`<h4>${APURI.text.mex_code_liitteet}</h4>`).append($attachmentList))
+                                       return $div;
+                                }, "Sulje");
+                            }
+                            showXMLPopup(xml?? "XML-koodia ei saatavilla", origData)
                         })
                     },
                     showMexTrigger: function(event) {
@@ -4409,7 +4476,7 @@ APURI.makeCopyOfExam = function(origUuid) {
                         paivitaKoe(uudenUuid,
                             JSON.stringify({
                                 content: {title: origData.title,
-                                    xml: origData.contentXml},
+                                    xml: APURI.exam.convertXmlExamSchema(origData.contentXml)},
                                 examLanguage:origData.language||"fi-FI"
                             }), 
                             kopioiLiitteet(origData, uudenUuid), 
