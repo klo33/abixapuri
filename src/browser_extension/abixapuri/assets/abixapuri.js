@@ -240,7 +240,7 @@ var APURI ={
                  * @param {object} additionalHeaders Additional headers object
                  * @returns {Promise} Promise which resolves for the JSON data
                  */
-                getJson(uri, additionalHeaders = null) {
+                getJson: (uri, additionalHeaders = null) => {
                     var myHeaders = APURI.settings.fetchGetHeaders;
                     if (additionalHeaders !== null) {
                         myHeaders = Object.assign({}, APURI.settings.fetchGetHeaders);
@@ -260,6 +260,20 @@ var APURI ={
                             }
                             throw new TypeError("Virhe haettaessa "+uri);
                           });
+                },
+                sendPost: (uri, data) => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            type: "POST",
+                            url: uri,
+                            data: JSON.stringify(data),
+                            accept: "application/json; text/javascript",
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: "json",
+                            success: resolve,
+                            failure: reject
+                        }); 
+                    });
                 }
                 
             },
@@ -1616,12 +1630,16 @@ var APURI ={
                     }
                 },
                 convertXmlExamSchema: (xml) => {
-                    const oldSchemaTest = /^<e:exam [^\>]*schema-version="(0\.[1|2])"[^\>]*>/
-                    const oldSchema = /^<e:exam [^\>]*date="([^\"]*)"[^\>]*>/
-                    const newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
-                    const oldLang = /<e:languages>(\s*<e:language>(fi-FI)<\/e:language>)+\s*<\/e:languages>/
+                    let oldSchemaTest = /<e:exam [^\>]*schema-version="(0\.[12])"[^\>]*?>/gm
+                    //console.debug("Trying schema conversion", oldSchemaTest.test(xml), xml)
+                    let oldSchema = /<e:exam [^\>]*(?:date="([^\"]*)")?[^\>]*?>/g
+                    let oldLangv1 = /(<e:exam [^\>]*exam-lang="([^\"]*)"[^\>]*?>)/
+                    let newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
+                    let oldLang = /<e:languages>(\s*<e:language>([^\<]*)<\/e:language>)+\s*<\/e:languages>/
                     if (oldSchemaTest.test(xml)) {
-                        xml = xml.replace(oldSchema, newSchema)
+                        console.debug("FOUND old SCHEMA")
+                        xml = xml.replace(oldLangv1, "$1<e:exam-versions><e:exam-version lang=\"$2\"/></e:exam-versions>");
+                        xml = xml.replace(oldSchema, (whole, date)=>{return newSchema.replace("$1",date!=null?date:"2021-01-01")})
                         if (oldLang.test(xml)) {
                             let langRes = xml.match(oldLang);
                             if (langRes.length == 0) {
@@ -1634,17 +1652,22 @@ var APURI ={
                             res += "</e:exam-versions>";
                             xml = xml.replace(oldLang, res);    
                         }
+                    } else {
+                        console.debug("TEST FAIL")
                     }
+                    console.debug("XML output", xml)
                     return xml;
                 },
                 masteredXmlToRaw: (xml) => {
                     const latexRender = /(<e:formula )svg=\"[^\"]*\"/g
                     const displayName = / display-number=\"[^\"]*\"/g
                     const questionId = / (?:question|option)-id=\"[^\"]*\"/g
+                    const examUuidR = /(<e:exam [^\>]*)exam-uuid=\"[^\"]*\"/
                     const sectMaxScore = /(<e:(?:exam|section|question|choice-answer|dropdown-answer) [^\>]*)max-score=\"[^\"]*\"/g
                     const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
                     if (xml != null) {
                         xml = xml.replace(latexRender, "$1")
+                        xml = xml.replace(examUuidR, "$1")
                         xml = xml.replace(displayName, " ")
                         xml = xml.replace(questionId, " ")
                         xml = xml.replace(sectMaxScore, "$1")
@@ -4431,138 +4454,113 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
 
-        const kopioiLiitteet = (origData, uudenUuid) => () => {
+        const kopioiLiitteet = (origData, uudenUuid) => {
             // Kopioidaan liitteet
-            if (origData.attachments.length > 0) {
-                // console.log("Kokeessa on liitteitä -> yritetään kopioida");
-                APURI.ui.showAttachmentCopy();
-                APURI.attachments.copyAttachments(origUuid, uudenUuid)
-                    .then(filenames => {
-                        APURI.ui.clearAttachmentCopy();                                                                                        
-                        window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                    });
-            } else {
-                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-            }            
+            return new Promise((resolve, reject) => {
+                if (origData?.attachments?.length > 0) {
+                    // console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                    APURI.ui.showAttachmentCopy();
+                    APURI.attachments.copyAttachments(origData.examUuid, uudenUuid)
+                        .then(filenames => {
+                            APURI.ui.clearAttachmentCopy();
+                            console.debug("Resolve copy")
+                            resolve("https://oma.abitti.fi/school/exam/"+uudenUuid);                                                                                        
+                        });
+                } else {
+                    // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
+                    console.debug("Resolve copy")
+                    resolve("https://oma.abitti.fi/school/exam/"+uudenUuid);
+                }                
+            })
         }
-        const luoUusiKoe = (uusikoeData, successHandler) => {
-            $.ajax({
-                type: "POST",
-                url: "/kurko-api/exam/exam-event",
-                data: JSON.stringify(uusikoeData),
-                accept: "application/json; text/javascript",
-                contentType: "application/json; charset=UTF-8",
-                dataType: "json",
-                success: successHandler,             
-                failure: function(errMsg) {
-                    console.error("ERROR uuden luomisessa: "+errMsg);
-        
-            }
-         });
+        const luoUusiKoe = (uusikoeData) => {
+            return APURI.fetch.sendPost("/kurko-api/exam/exam-event", uusikoeData).catch(errMsg => console.error("ERROR uuden luomisessa: ", errMsg));
         }
-        const paivitaKoe = (uuid, koeData, successHandler, errorHandler = (errMsg) => {
-            console.error("ERROR kopion tallennuksessa: "+errMsg);
-        }) => {
-            $.ajax({
-                type: "POST",
-                url: ("/exam-api/composing/"+uuid+"/exam-content"),
-                data: koeData,
-                accept: "application/json; text/javascript",
-                contentType: "application/json; charset=UTF-8",
-                dataType: "json",
-                success: successHandler,
-                failure: errorHandler
-            });
+        const paivitaKoe = (uuid, koeData) => {
+            return APURI.fetch.sendPost("/exam-api/composing/"+uuid+"/exam-content", koeData);
         }
 
-
-		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
-			var uusikoeJson = {title: "Uusi koe", "examLanguage": "fi-FI"};
-            let uusikoeXml = {
-                "title": "Uusi koe",
-                "examLanguage": "fi-FI",
-                "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"A\" day-code=\"E\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
-            };
-                        // Luo uusi koe
-            if (forceConvertion == true && origData?.content != null && origData?.masteredXml != null) {
-                // pakotetaan conversio
-                let convertedXml = forceInput ?? APURI.exam.masteredXmlToRaw(origData.masteredXml);
-                luoUusiKoe(uusikoeXml, 
-                    (uusidata) => {
+        APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${origUuid}/exam`+ (forceConvertion?"?useMex":""))
+            .then(origData => {
+                const uusikoeJson = {title: "Uusi koe", "examLanguage": "fi-FI"};
+                const uusikoeXml = {
+                    "title": "Uusi koe",
+                    "examLanguage": "fi-FI",
+                    "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"A\" day-code=\"E\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
+                };
+                            // Luo uusi koe
+                console.debug("Conv", forceConvertion, origData.content != null, origData.masteredXml != null);
+                if (forceConvertion == true && origData?.content != null && origData?.masteredXml != null) {
+                    // pakotetaan conversio
+                    let convertedXml = forceInput ?? APURI.exam.masteredXmlToRaw(origData.masteredXml);
+                    luoUusiKoe(uusikoeXml).then((uusidata) => {
                         const uudenUuid = uusidata.examUuid;
                         console.debug("Content is", origData);
                         origData.title = origData.title + " (muunnettu)";
-                        paivitaKoe(uudenUuid,
-                            JSON.stringify({
-                                content: {title: origData.title,
-                                    xml: APURI.exam.convertXmlExamSchema(convertedXml)},
-                                examLanguage:origData.language||"fi-FI"
-                            }), 
-                            kopioiLiitteet(origData, uudenUuid), 
-                            (errMsg) => {
-                                // TODO TÄMÄ KESKEN
-                                if (errMsg == "jotain")  {
-
-                                }
-                            })
-                    })            
-
-            } else if (origData?.content != null) {
-                // Kyseessä on JSON-koe
-                luoUusiKoe(uusikoeJson, 
-                    // Uusi koe luotu
-                    (uusidata) => {
-                        const uudenUuid = uusidata.examUuid;
-                                                // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
-                        origData.content.title = origData.content.title + " (kopio)";
-                        // tarkista, onko sisällössä base64:sta
-                        APURI.base64transform(JSON.stringify(origData), uudenUuid)
-                            .then((origDataTransformedStr) => {
-                                let origDataTransformed = JSON.parse(origDataTransformedStr);
-                                paivitaKoe(
-                                    uudenUuid, 
-                                    JSON.stringify({content:origDataTransformed.content,
-                                            examLanguage:origDataTransformed.language||"fi-FI"}), 
-                                    kopioiLiitteet(origData, uudenUuid));
-
-                            })
-                            .catch((error)=>{
-                                console.error("ERROR Base64-konversiovirhe");
-                                console.error(error);
-                            })
-                        console.log(".");
-
-                        
-                    }
-                    );
-
-            } else if (origData?.contentXml != null) {
-                // Kyseessä on XML-MEX-koe
-                luoUusiKoe(uusikoeXml, 
-                    (uusidata) => {
+                        kopioiLiitteet(origData, uudenUuid).then(
+                            ()=>{
+                                console.debug("Liitteet kopioitu => kokeen päivitys")
+                                paivitaKoe(uudenUuid,
+                                    {
+                                        content: {title: origData.title,
+                                            xml: APURI.exam.convertXmlExamSchema(convertedXml)},
+                                        examLanguage:origData.language||"fi-FI"
+                                    }).then(()=>{
+                                        window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;                        
+                                    })
+                            });
+                    });  
+                } else if (origData?.content != null) {
+                    // Kyseessä on JSON-koe
+                    luoUusiKoe(uusikoeJson)
+                        .then((uusidata) => {
+                            const uudenUuid = uusidata.examUuid;
+                                                    // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
+                            origData.content.title = origData.content.title + " (kopio)";
+                            // tarkista, onko sisällössä base64:sta
+                            APURI.base64transform(JSON.stringify(origData), uudenUuid)
+                                .then((origDataTransformedStr) => {
+                                    let origDataTransformed = JSON.parse(origDataTransformedStr);
+                                    paivitaKoe(
+                                        uudenUuid, 
+                                        {content:origDataTransformed.content,
+                                                examLanguage:origDataTransformed.language||"fi-FI"})
+                                        .then(()=>{
+                                            kopioiLiitteet(origData, uudenUuid).then(()=>{
+                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                });
+                                        });
+    
+                                })
+                                .catch((error)=>{
+                                    console.error("ERROR Base64-konversiovirhe");
+                                    console.error(error);
+                                })
+                            console.log(".");                            
+                        });
+    
+                } else if (origData?.contentXml != null) {
+                    // Kyseessä on XML-MEX-koe
+                    luoUusiKoe(uusikoeXml).then((uusidata)=>{
                         const uudenUuid = uusidata.examUuid;
                         console.debug("Content is", origData);
                         origData.title = origData.title + " (kopio)";
-                        paivitaKoe(uudenUuid,
-                            JSON.stringify({
-                                content: {title: origData.title,
-                                    xml: APURI.exam.convertXmlExamSchema(origData.contentXml)},
-                                examLanguage:origData.language||"fi-FI"
-                            }), 
-                            kopioiLiitteet(origData, uudenUuid), 
-                            (errMsg) => {
-                                // TODO TÄMÄ KESKEN
-                                if (errMsg == "jotain")  {
+                        kopioiLiitteet(origData, uudenUuid).then(()=>{
+                            console.debug("Liitteet kopioitu => kokeen päivitys")
+                            paivitaKoe(uudenUuid,
+                                {
+                                    content: {title: origData.title,
+                                        xml: APURI.exam.convertXmlExamSchema(origData.contentXml)},
+                                    examLanguage:origData.language||"fi-FI"
+                                }).then(()=>{
+                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                })
+                        })
 
-                                }
-                            })
-                    })            
-            }
-
-
-		});
-
+                    }) 
+                }
+    
+            });
 	};
 
 APURI.listCopyExamTrigger = function(event) {
