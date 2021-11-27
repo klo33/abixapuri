@@ -17,23 +17,32 @@ var	APURI = {
         }
 };
 
+
+
+ chrome.tabs.query({}, function(tabs) {
+    var message = {foo: bar};
+    for (var i=0; i<tabs.length; ++i) {
+        chrome.tabs.sendMessage(tabs[i].id, message);
+    }
+});
+
 let checkSum = (APURIsecrets != null? APURIsecrets.check : "537bde28-1473-4220-9a1d-5c23770f0c2b");
 APURI.injectScriptHeadInline(`APURILoader = { check: "${checkSum}", 
-    css: "${chrome.extension.getURL("assets/abixapuri.css")}",
-    ckeditor: "${chrome.extension.getURL("assets/ckeditor/ckeditor.js")}",
-    sortableR: "${chrome.extension.getURL("assets/")}Sortable.min",
-    jqueryR: "${chrome.extension.getURL("assets/")}jquery-3.2.1.min",
-    jquerycsvR: "${chrome.extension.getURL("assets/")}jquery.csv.min",
-    cookiesR: "${chrome.extension.getURL("assets/")}js.cookie.min",
-    jqueryUiR: "${chrome.extension.getURL("assets/")}jquery-ui.min",
-    jqueryUi: "${chrome.extension.getURL("assets/jquery-ui.min.js")}",
-    jqueryUiCss: "${chrome.extension.getURL("assets/jquery-ui.min.css")}",
-    xmlEditor: "${chrome.extension.getURL("assets/jquery.xml-editor.js")}",
-    xmlEditorCss: "${chrome.extension.getURL("assets/jquery.xml-editor.css")}",
-    xsd2json: "${chrome.extension.getURL("assets/xsd2json.js")}",
-    ace: "${chrome.extension.getURL("assets/ace/ace.js")}",
-    examXsd: "${chrome.extension.getURL("assets/exam.xsd")}",
-    schema: "${chrome.extension.getURL("assets/schema/")}" };`);
-APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/abixapuri.js"));
-APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/require.min.js"))
-//APURI.injectScriptHeadDirect(chrome.extension.getURL("assets/jquery-ui.min.js"))
+    css: "${chrome.runtime.getURL("assets/abixapuri.css")}",
+    ckeditor: "${chrome.runtime.getURL("assets/ckeditor/ckeditor.js")}",
+    sortableR: "${chrome.runtime.getURL("assets/")}Sortable.min",
+    jqueryR: "${chrome.runtime.getURL("assets/")}jquery-3.2.1.min",
+    jquerycsvR: "${chrome.runtime.getURL("assets/")}jquery.csv.min",
+    cookiesR: "${chrome.runtime.getURL("assets/")}js.cookie.min",
+    jqueryUiR: "${chrome.runtime.getURL("assets/")}jquery-ui.min",
+    jqueryUi: "${chrome.runtime.getURL("assets/jquery-ui.min.js")}",
+    jqueryUiCss: "${chrome.runtime.getURL("assets/jquery-ui.min.css")}",
+    xmlEditor: "${chrome.runtime.getURL("assets/jquery.xml-editor.js")}",
+    xmlEditorCss: "${chrome.runtime.getURL("assets/jquery.xml-editor.css")}",
+    xsd2json: "${chrome.runtime.getURL("assets/xsd2json.js")}",
+    ace: "${chrome.runtime.getURL("assets/ace/ace.js")}",
+    examXsd: "${chrome.runtime.getURL("assets/exam.xsd")}",
+    schema: "${chrome.runtime.getURL("assets/schema/")}" };`);
+APURI.injectScriptHeadDirect(chrome.runtime.getURL("assets/abixapuri.js"));
+APURI.injectScriptHeadDirect(chrome.runtime.getURL("assets/require.min.js"))
+//APURI.injectScriptHeadDirect(chrome.runtime.getURL("assets/jquery-ui.min.js"))

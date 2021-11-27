@@ -4158,7 +4158,11 @@ if (typeof APURI.showSortDialog !== 'function') {
     };
 }
 
-
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+    if (msg.action == 'SendIt') {
+       alert("Message recieved!");
+    }
+ });
 
 if (typeof APURI.showImportDialog !== 'function') {
         // TODO/melkein DONE jos postponed -- tallennus + viive 2s
@@ -4449,6 +4453,12 @@ APURI.settings.uris = APURILoader;
             console.debug("Window ", window, "$", $)
         }, 4000)     
 })();
+
+chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
+    if (msg.action == 'SendIt') {
+       alert("Message recieved!");
+    }
+ });
 
 APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = null) {
             //Lataa vanha, josta tehdään kopio
