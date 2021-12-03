@@ -3671,16 +3671,16 @@ APURI.getDisplayNumber = function(obj, qid) {
 
 if (typeof APURI.paivkentTrigger !== 'function') {
 	APURI.paivkentTrigger = function(va) {
-		va.trigger("change");
-		va.trigger("input");
-		va.trigger("contentChanged");
+        const textarea = va[0];
+        const event = new Event('input', { bubbles: true});
+        textarea.dispatchEvent(event);
         };
     }
     
 
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
-                
+        console.debug("Pävitä", elem, input)
 		var va = $('textarea[name='+elem+']');
                 if (!(va.length >0)) { // jos ei elem ole nimi, niin sitten ilm. id
                     va = $('textarea[id='+elem+']');
@@ -3703,9 +3703,14 @@ if (typeof APURI.paivkent !== 'function') {
                     // joko rajoitus koon suhteen ja MYÖS, että ei tarkisteta joka kerta, vaan vain silloin tällöin
                     // koska regexp tarkistus aikaavievä, varsinkin jos on oikeasti base64-kuvia
             APURI.ui.detectHttpLink(elem, input);
-
-		va.val(input);
-		va[0].innerHTML=input;
+            const textarea = va[0];
+            var nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+            nativeTextAreaValueSetter.call(textarea, input);
+            console.debug("Area", textarea);    
+            const event = new Event('input', { bubbles: true});
+            textarea.dispatchEvent(event);
+		//va.val(input);
+		//va[0].innerHTML=input;
 		//va.trigger("change");
 		//va.trigger("input");
 		//va.trigger("contentChanged");
@@ -4355,15 +4360,22 @@ if (typeof APURI.replaceBoxes !== 'function') {
 										//console.log(typeof src + " " + typeof event);
 //                                                                                console.log("Change->update", inner_elem);                                                                                
                                                                                 let content = APURI.filterLinebreaks(inner_elem.getData());
+                                                                                //console.debug("InnerEl", inner_elem.getData(), inner_elem, inner_elem.element.value, "content", content);
                                                                                 inner_elem.setData(content, {internal: true, noSnapshot:true});
                                                                                 inner_elem.element.value = content;
                                                                                 inner_elem.updateElement();
-										APURI.paivkent(inner_elem.name, content); });
+                                                                                //console.debug("InnerEl3", inner_elem.getData(), inner_elem);
+										APURI.paivkent(inner_elem.name, content); 
+                                        
+                                    });
 					inner_elem.on('keyup',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
 //                                                                                console.log("KeyUp->update", inner_elem);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
+                                        //console.debug("InnerEl2", inner_elem.getData(), inner_elem);
+                                        //console.debug("Data2: ", src, src?.editor?.getData())
+                                    
 										})(elem);
                                 APURI.replacedFields.count++;
 			}
