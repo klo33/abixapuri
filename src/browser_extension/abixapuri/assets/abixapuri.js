@@ -3628,7 +3628,13 @@ APURI.text = APURI.lang.fi;
 })();
 
 if (typeof APURILoader === 'undefined') {
-    var APURILoader = {
+    let meta = document.querySelector("meta[name='APURI-loader']");
+    if (meta != null) {
+        const metaContent = JSON.parse(meta.getAttribute('content'));
+        console.debug("metaContent", metaContent)
+        window.APURILoader = metaContent;
+    } else {
+        var APURILoader = {
 
             css: "https://klo33.github.io/abixapuri/src/abixapuri.css",
             ckeditor: "https://klo33.github.io/javascript/ckeditor/ckeditor.js",
@@ -3637,6 +3643,8 @@ if (typeof APURILoader === 'undefined') {
             jquerycsvR: "https://klo33.github.io/javascript/jquery.csv.min",
             cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
         };
+
+    }
 } else {
     if (typeof APURIsecrets != "undefined" && APURIsecrets.check != null)
         APURILoader.check = APURIsecrets.check;
@@ -4158,11 +4166,7 @@ if (typeof APURI.showSortDialog !== 'function') {
     };
 }
 
-chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-    if (msg.action == 'SendIt') {
-       alert("Message recieved!");
-    }
- });
+
 
 if (typeof APURI.showImportDialog !== 'function') {
         // TODO/melkein DONE jos postponed -- tallennus + viive 2s
@@ -4454,11 +4458,7 @@ APURI.settings.uris = APURILoader;
         }, 4000)     
 })();
 
-chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
-    if (msg.action == 'SendIt') {
-       alert("Message recieved!");
-    }
- });
+
 
 APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = null) {
             //Lataa vanha, josta tehdään kopio
@@ -4473,13 +4473,13 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                     APURI.attachments.copyAttachments(origData.examUuid, uudenUuid)
                         .then(filenames => {
                             APURI.ui.clearAttachmentCopy();
-                            console.debug("Resolve copy")
-                            resolve("https://oma.abitti.fi/school/exam/"+uudenUuid);                                                                                        
+                            console.debug("Resolve copy", filenames);
+                            resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid, files: filenames});                                                                                        
                         });
                 } else {
                     // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
                     console.debug("Resolve copy")
-                    resolve("https://oma.abitti.fi/school/exam/"+uudenUuid);
+                    resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid});
                 }                
             })
         }
@@ -4508,16 +4508,22 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                         console.debug("Content is", origData);
                         origData.title = origData.title + " (muunnettu)";
                         kopioiLiitteet(origData, uudenUuid).then(
-                            ()=>{
-                                console.debug("Liitteet kopioitu => kokeen päivitys")
-                                paivitaKoe(uudenUuid,
-                                    {
-                                        content: {title: origData.title,
-                                            xml: APURI.exam.convertXmlExamSchema(convertedXml)},
-                                        examLanguage:origData.language||"fi-FI"
-                                    }).then(()=>{
-                                        window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;                        
-                                    })
+                            (result)=>{
+                                console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                                let koeContent = {
+                                    content: {title: origData.title,
+                                        xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(convertedXml))},
+                                    examLanguage:origData.language||"fi-FI"
+                                };
+                                if (result?.files?.length > 0) {
+                                    koeContent.content.attachmentMetaData = {};
+                                    for (const filename of result.files) {
+                                        koeContent.content.attachmentMetaData[filename] = {};
+                                    }
+                                }
+                                paivitaKoe(uudenUuid,koeContent).then(()=>{
+                                        window.location.href = "https://oma.abitti.fi/school/bertta/"+uudenUuid;
+                                    });
                             });
                     });  
                 } else if (origData?.content != null) {
@@ -4555,16 +4561,22 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                         const uudenUuid = uusidata.examUuid;
                         console.debug("Content is", origData);
                         origData.title = origData.title + " (kopio)";
-                        kopioiLiitteet(origData, uudenUuid).then(()=>{
-                            console.debug("Liitteet kopioitu => kokeen päivitys")
-                            paivitaKoe(uudenUuid,
-                                {
-                                    content: {title: origData.title,
-                                        xml: APURI.exam.convertXmlExamSchema(origData.contentXml)},
-                                    examLanguage:origData.language||"fi-FI"
-                                }).then(()=>{
-                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                })
+                        kopioiLiitteet(origData, uudenUuid).then((result)=>{
+                            console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                            let koeContent = {
+                                content: {title: origData.title,
+                                    xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(origData.contentXml))},
+                                examLanguage:origData.language||"fi-FI"
+                            };
+                            if (result?.files?.length > 0) {
+                                koeContent.content.attachmentMetaData = {};
+                                for (const filename of result.files) {
+                                    koeContent.content.attachmentMetaData[filename] = {};
+                                }
+                            }
+                            paivitaKoe(uudenUuid,koeContent).then(()=>{
+                                    window.location.href = "https://oma.abitti.fi/school/bertta/"+uudenUuid;
+                                });
                         })
 
                     }) 
@@ -4650,3 +4662,4 @@ APURI.testExamAttachmentCopyTrigger = function() {
     APURI.initView(APURI.views.footer, 2000);
     APURI.util.bittiniiloDetector.init();
 })();
+

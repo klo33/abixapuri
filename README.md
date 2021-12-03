@@ -48,6 +48,10 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 
 ### Muutokset
 
+
+#### v0.9.2 (3.12.2021)
+- Osaa konvertoida vanhan kokeen suoraan Bertta-muotoon, jos koe on konvertoitavissa.
+- Teknisiä muutoksia lisäosaan (siirrytty käyttämään uudenmaan manifest v3 -formaattia)
 #### v0.9.0 (24.11.2021)
 - Tukea Bertta-kokeiden tekijöille:
   - MEX-kokeen kopiointituki
