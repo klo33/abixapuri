@@ -9,12 +9,6 @@ var	APURI = {
                 }
                 document.head.appendChild(script);
         },
-        injectScriptHeadInline: function(code) {
-            	var script = document.createElement("script");
-                script.type = "text/javascript";
-                script.textContent = code;
-                document.head.appendChild(script);
-        },
         injectMetaLoaderInfo: function(string) {
                 var meta = document.createElement("meta");
                 meta.setAttribute('name', 'APURI-loader');
@@ -23,18 +17,24 @@ var	APURI = {
 
         }
 };
-
+const getAssetURL = (resourceName) => {
+    if (typeof chrome?.runtime?.getURL == "function")
+        return chrome.runtime.getURL(resourceName);
+    else if (typeof chrome?.extension?.getURL == "function")
+        return chrome.extension.getURL(resourceName);
+    return "undefined";
+}
 
 APURI.injectMetaLoaderInfo(`{ 
-    "css": "${chrome.runtime.getURL("assets/abixapuri.css")}",
-    "ckeditor": "${chrome.runtime.getURL("assets/ckeditor/ckeditor.js")}",
-    "sortableR": "${chrome.runtime.getURL("assets/")}Sortable.min",
-    "jqueryR": "${chrome.runtime.getURL("assets/")}jquery-3.2.1.min",
-    "jquerycsvR": "${chrome.runtime.getURL("assets/")}jquery.csv.min",
-    "cookiesR": "${chrome.runtime.getURL("assets/")}js.cookie.min",
-    "ace": "${chrome.runtime.getURL("assets/ace/ace.js")}",
-    "examXsd": "${chrome.runtime.getURL("assets/exam.xsd")}",
-    "schema": "${chrome.runtime.getURL("assets/schema/")}" }`);
-APURI.injectScriptHeadDirect(chrome.runtime.getURL("assets/abixapuri.js"));
-APURI.injectScriptHeadDirect(chrome.runtime.getURL("assets/require.min.js"))
+    "css": "${getAssetURL("assets/abixapuri.css")}",
+    "ckeditor": "${getAssetURL("assets/ckeditor/ckeditor.js")}",
+    "sortableR": "${getAssetURL("assets/")}Sortable.min",
+    "jqueryR": "${getAssetURL("assets/")}jquery-3.2.1.min",
+    "jquerycsvR": "${getAssetURL("assets/")}jquery.csv.min",
+    "cookiesR": "${getAssetURL("assets/")}js.cookie.min",
+    "ace": "${getAssetURL("assets/ace/ace.js")}",
+    "examXsd": "${getAssetURL("assets/exam.xsd")}",
+    "schema": "${getAssetURL("assets/schema/")}" }`);
+APURI.injectScriptHeadDirect(getAssetURL("assets/abixapuri.js"));
+APURI.injectScriptHeadDirect(getAssetURL("assets/require.min.js"))
 
