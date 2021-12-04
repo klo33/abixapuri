@@ -2017,79 +2017,8 @@ var APURI ={
                 examXMLEditorView: {
                     initTimer: null,
 
-                    removeShow: function() {
-                        $("#APURI_change_xmleditor").remove();
-                        let $xmlEditBox = $("textarea.mex-field")
-                        $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
-                            APURI.views.examXMLEditorView.doShow();
-                        }))
-                        $xmlEditBox.attr("style", "display:block");
-                        $xmlEditor = $("#APURI_xmleditor");
-                        $xmlEditor.remove();
-
-                    },
                     
-                    doShow: function () {
-                        let $xmlEditBox = $("textarea.mex-field")
-                        if ($xmlEditBox.lenght != 1) {
-                            console.debug("Invalid amount of editors");
-                        }
-                        $("#APURI_change_xmleditor").remove();
-                        $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Palauta alkuperäinen XML-editori (kokeellinen)").on('click', ()=>{
-                            APURI.views.examXMLEditorView.removeShow();
-                        }))
-                        const beginVal = $xmlEditBox.val()
-                        let $xmlEditBoxNew = $("<div>").attr('id','APURI_xmleditor').attr("class", "omaEditori").attr("style", `height: ${beginVal.split('\n').length+2}em;`);
-                        $xmlEditBox.attr("style", "display:none")
-                        $xmlEditBox.after($xmlEditBoxNew);
-                        // Prevent save event and problems
-                        $xmlEditBoxNew.on('input keydown keyup', (e)=>{
-                            e.stopPropagation();
-                            
-                        })
-                        let editor = ace.edit($xmlEditBoxNew[0], {
-                            mode: "ace/mode/xml",
-                            selectionStyle: "text",
-                            useWrapMode: true,
-                            indentedSoftWrap: true
-                        })
-                        editor.setValue(beginVal);
-                        editor.session.on('change', function(delta) {
-                            const val = editor.getValue()
-                            $xmlEditBoxNew.attr("style", `height: ${val.split('\n').length+2}em;`);
-                            //$xmlEditBox[0].value = val;
-                           // $xmlEditBox.trigger('keydown input change keyup')
-                            const textarea = document.querySelector('textarea.mex-field')
-
-                            var nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-                            nativeTextAreaValueSetter.call(textarea, val);
-
-                            const event = new Event('input', { bubbles: true});
-                            textarea.dispatchEvent(event);
-                        });
-
-                        console.log("Editor", editor)
-                        /*
-                        $(function() {
-                            var extractor = new Xsd2Json("exam.xsd", {"schemaURI":APURI.settings.uris.schema, "rootElement": "e:exam"});
-                      
-                            $xmlEditBox.xmlEditor({
-                                    schema: extractor.getSchema()
-                            });
-                      });*/
-                    },
                     show: function () {
-                        console.debug("Trying to add XML-button")
-                        let XMLHeader = $("textarea.mex-field")
-                        if (XMLHeader.length > 0) {
-                            console.debug("This is indeed XML-exam")
-                            let $xmlEditBox = $("textarea.mex-field")
-                            $xmlEditBox.after($('<a>').attr('id','APURI_change_xmleditor').text("Näytä XML-editori (kokeellinen)").on('click', ()=>{
-                                APURI.views.examXMLEditorView.doShow();
-                            }))
-                            APURI.views.examXMLEditorView.doShow();
-
-                        }
                         clearInterval(this.initTimer);
                     }
                 },
@@ -4425,49 +4354,29 @@ APURI.settings.uris = APURILoader;
                     return;
         APURI.ui.appendCSS(APURI.settings.uris.css);
        	APURI.loadScriptDirect(APURI.settings.uris.ckeditor,
-//       	APURI.loadScriptDirect('https://localhost/cke/ckeditor.js',
             function() {
                 
             }
         );
-//        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
-        APURI.loadScriptDirect(APURI.settings.uris.ace, function(){
-            // window.Range = ace.acequire('ace/range').Range;
-        });
-        //APURI.loadScriptDirect(APURI.settings.uris.jqueryUi);
-        APURI.loadScriptDirect(APURI.settings.uris.xsd2json);
-        APURI.ui.appendCSS(APURI.settings.uris.jqueryUiCss);
         APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
                 'Sortable': APURI.settings.uris.sortableR,
                 'jquery': APURI.settings.uris.jqueryR,
-                'jquery-ui': APURI.settings.uris.jqueryUiR,
-            },
-            shim: {
-                'jquiry-ui': ['jquery']
             }            
 
         });
 
-        require(['Sortable', 'jquery', 'jquery-ui'], function (Sortable, $, ui){
+        require(['Sortable', 'jquery'], function (Sortable, $){
                         window.Sortable = Sortable; // exports
                         window.$ = $;
-                        window.$.ui = ui;
                 });
-        setTimeout(()=>{
-            APURI.loadScriptDirect(APURI.settings.uris.xmlEditor);
-            APURI.ui.appendCSS(APURI.settings.uris.xmlEditorCss);
-        }, 100);
-        APURI.initView(APURI.views.examXMLEditorView, 2000);
         APURI.initView(APURI.views.examview);
         APURI.initView(APURI.views.ckeAbiximageInfo);
         APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
         APURI.initView(APURI.views.attachmentLinkReplace, 1000);   
-        setTimeout(()=>{
-            console.debug("Window ", window, "$", $)
-        }, 4000)     
+  
 })();
 
 

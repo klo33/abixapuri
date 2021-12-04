@@ -32,12 +32,6 @@ APURI.injectMetaLoaderInfo(`{
     "jqueryR": "${chrome.runtime.getURL("assets/")}jquery-3.2.1.min",
     "jquerycsvR": "${chrome.runtime.getURL("assets/")}jquery.csv.min",
     "cookiesR": "${chrome.runtime.getURL("assets/")}js.cookie.min",
-    "jqueryUiR": "${chrome.runtime.getURL("assets/")}jquery-ui.min",
-    "jqueryUi": "${chrome.runtime.getURL("assets/jquery-ui.min.js")}",
-    "jqueryUiCss": "${chrome.runtime.getURL("assets/jquery-ui.min.css")}",
-    "xmlEditor": "${chrome.runtime.getURL("assets/jquery.xml-editor.js")}",
-    "xmlEditorCss": "${chrome.runtime.getURL("assets/jquery.xml-editor.css")}",
-    "xsd2json": "${chrome.runtime.getURL("assets/xsd2json.js")}",
     "ace": "${chrome.runtime.getURL("assets/ace/ace.js")}",
     "examXsd": "${chrome.runtime.getURL("assets/exam.xsd")}",
     "schema": "${chrome.runtime.getURL("assets/schema/")}" }`);
