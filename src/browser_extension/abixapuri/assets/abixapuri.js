@@ -1680,25 +1680,31 @@ var APURI ={
                 prettifyXml:  /** Prettify from https://stackoverflow.com/questions/376373/pretty-printing-xml-with-javascript */
                  function(sourceXml)
                     {
-                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
-                    var xsltDoc = new DOMParser().parseFromString([
-                    '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-                    '  <xsl:strip-space elements="*"/>',
-                    '  <xsl:template match="para[content-style][not(text())]">', 
-                    '    <xsl:value-of select="normalize-space(.)"/>',
-                    '  </xsl:template>',
-                    '  <xsl:template match="node()|@*">',
-                    '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-                    '  </xsl:template>',
-                    '  <xsl:output indent="yes"/>',
-                    '</xsl:stylesheet>',
-                    ].join('\n'), 'application/xml');
-
-                    var xsltProcessor = new XSLTProcessor();    
-                    xsltProcessor.importStylesheet(xsltDoc);
-                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-                    var resultXml = new XMLSerializer().serializeToString(resultDoc);
-                    return resultXml;
+                        try {
+                            var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+                            var xsltDoc = new DOMParser().parseFromString([
+                            '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+                            '  <xsl:strip-space elements="*"/>',
+                            '  <xsl:template match="para[content-style][not(text())]">', 
+                            '    <xsl:value-of select="normalize-space(.)"/>',
+                            '  </xsl:template>',
+                            '  <xsl:template match="node()|@*">',
+                            '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+                            '  </xsl:template>',
+                            '  <xsl:output indent="yes"/>',
+                            '</xsl:stylesheet>',
+                            ].join('\n'), 'application/xml');
+        
+                            var xsltProcessor = new XSLTProcessor();    
+                            xsltProcessor.importStylesheet(xsltDoc);
+                            var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+                            var resultXml = new XMLSerializer().serializeToString(resultDoc);
+                            return resultXml;        
+                        } catch (e) {
+                            console.error("Unsupported prettify => Probably Firefox");
+                            let pattern = /(<\/\w[^\>]+>|<\w[^\>]+\/>)/g;
+                            return sourceXml.replace(pattern, "$1\n");
+                        }
                     },
                 importQuestion: {
                     currentSectionSelected: 0,
