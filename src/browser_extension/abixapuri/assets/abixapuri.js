@@ -107,7 +107,13 @@ var APURI ={
                 exam_contains_base64_button: "Muunna kokeen liitteet",
                 examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Base64-liitteiden tuki on päättynyt Abitin laadinnassa</a></strong><br> AbixApurilla on voinut saada aikaiseksi base64-kuvia. Kopioidessasi kokeen, muunnetaan base64-sisältö liitetiedostoiksi.`,
                 examlist_base64_button: "Etsi base64-liitteitä sisältävät kokeet",
-                examlist_base64_note: "base64"
+                examlist_base64_note: "base64",
+                mex_code: "Mex-koodi",
+                mex_code_title: "Uuden formaatin MEX-kokeen XML-koodi",
+                mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
+                mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
+                mex_code_liitteet: "Liitteet",
+                mex_code_convert_bertta: "Muunna Bertta/MEX-kokeeksi",
               }, 
               sv: {
                   postponed_saving_notice: '<strong>Ändringarna är inte sparade ännu</strong> på grund av stora bilder eller bilagor.',
@@ -187,11 +193,15 @@ var APURI ={
                 attachment_converted_filename: "transformerat_provbilag",
                 exam_contains_base64_msg: "<strong>Obs! Provet innehåller bilag som inte mer stöds!</strong><br/> Din prov har bilag i base64-form, vars <a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>stöd i Abitti slutar</a>.",
                 exam_contains_base64_button: "Transformera till bilagor",
-                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilag har slutat i Abitti</a></strong><br> Med AbixApuri man kunde har skapat base64-bilder. Genom att skapa ett kopia av prov, transformeras base64-bilder till bilagsfil.`,
+                examlist_base64_info: `<strong><a href='https://www.abitti.fi/blogi/2020/01/abitin-tehtavanlaadinnassa-muutoksia/' target='_blank'>Stöd för Base64-bilagor har slutat i Abitti.</a></strong><br>AbixApuri har tidigare skapat base64-bilder. Genom att göra en kopia av provet med base64-bilder transformeras de till en bilagsfil.`,
                 examlist_base64_button: "Visa prov som innehåller base64-bilag",
-                examlist_base64_note: "base64"
-
-                  
+                examlist_base64_note: "base64",
+                mex_code: "Mex-kod",
+                mex_code_title: "Uuden formaatin MEX-kokeen XML-koodi",
+                mex_code_info: "Alla uuden formaatin (Bertta-muodossa) olevan kokeen koodi",
+                mex_code_info_converted: "Alla kokeen koodi konvertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>",
+                mex_code_liitteet: "Bilagor",   
+                mex_code_convert_bertta: "Muunna Bertta/MEX-kokeeksi",               
               }  
             },
             text: null,
@@ -230,7 +240,7 @@ var APURI ={
                  * @param {object} additionalHeaders Additional headers object
                  * @returns {Promise} Promise which resolves for the JSON data
                  */
-                getJson(uri, additionalHeaders = null) {
+                getJson: (uri, additionalHeaders = null) => {
                     var myHeaders = APURI.settings.fetchGetHeaders;
                     if (additionalHeaders !== null) {
                         myHeaders = Object.assign({}, APURI.settings.fetchGetHeaders);
@@ -250,6 +260,20 @@ var APURI ={
                             }
                             throw new TypeError("Virhe haettaessa "+uri);
                           });
+                },
+                sendPost: (uri, data) => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            type: "POST",
+                            url: uri,
+                            data: JSON.stringify(data),
+                            accept: "application/json; text/javascript",
+                            contentType: "application/json; charset=UTF-8",
+                            dataType: "json",
+                            success: resolve,
+                            failure: reject
+                        }); 
+                    });
                 }
                 
             },
@@ -264,7 +288,8 @@ var APURI ={
                 savedIndicator: "div.savedIndicator",
                 emptyQuestionWarning: 'div.empty-question-warning',
                 grading_answertext: '#answers answer-text-container answerText',
-                grading_popup: 'answerText add-annotation-popup'
+                grading_popup: 'answerText add-annotation-popup',
+                xmlTransferButtonDis: '.exam-export-form .exam-export-button[disabled]'
             },
 
             questionsort: { 
@@ -372,6 +397,14 @@ var APURI ={
                 }
             },
             ui: {
+                showXMLPopup: (text) => {
+                    APURI.ui.openModalWindow(($div)=>{
+                        $div.append($("<h3 />").html("Uuden formaatin XML-koodi"))
+                            .append($("<p />").html("Alla kokeen koodi kovertoituna uuteen formaattiin (Bertta-muotoon). <strong>HUOM! Monivalintojen pisteytykset ovat pyyhkiytyneet. Muista lisätä ne score=\"\"-merkinnällä.</strong>"))
+                            .append($("<textarea>").val(text).attr("style", "width: 100%; height: 80%;"))
+                           return $div;
+                    }, "Sulje");
+                },
                 showWarning: function(msg_text, button_text = 'OK', id_text = 'APURI_msg', actionHandler = null) {
                     var outer = $('<div />').attr('id', id_text).attr('class','comedown');
                     var message = $('<div />').attr('class','APURI_message').html(msg_text);
@@ -1589,6 +1622,90 @@ var APURI ={
                 
             },
             exam: {
+                getXmlExamSchemaVersion: (xml) => {
+                    const oldSchemaTest = /^<e:exam [^\>]*schema-version="([0-9\.]+)"[^\>]*>/
+                    if (oldSchemaTest.test(xml)) {
+                        const res = xml.match(oldLang);
+                        return res[1];
+                    }
+                },
+                convertXmlExamSchema: (xml) => {
+                    let oldSchemaTest = /<e:exam [^\>]*schema-version="(0\.[12])"[^\>]*?>/gm
+                    //console.debug("Trying schema conversion", oldSchemaTest.test(xml), xml)
+                    let oldSchema = /<e:exam [^\>]*(?:date="([^\"]*)")?[^\>]*?>/g
+                    let oldLangv1 = /(<e:exam [^\>]*exam-lang="([^\"]*)"[^\>]*?>)/
+                    let newSchema = '<e:exam xmlns:e="http://ylioppilastutkinto.fi/exam.xsd" xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd" exam-schema-version="0.3" date="$1" exam-code="M" day-code="M">'
+                    let oldLang = /<e:languages>(\s*<e:language>([^\<]*)<\/e:language>)+\s*<\/e:languages>/
+                    if (oldSchemaTest.test(xml)) {
+                        console.debug("FOUND old SCHEMA")
+                        xml = xml.replace(oldLangv1, "$1<e:exam-versions><e:exam-version lang=\"$2\"/></e:exam-versions>");
+                        xml = xml.replace(oldSchema, (whole, date)=>{return newSchema.replace("$1",date!=null?date:"2021-01-01")})
+                        if (oldLang.test(xml)) {
+                            let langRes = xml.match(oldLang);
+                            if (langRes.length == 0) {
+                                langRes = ["", "fi-FI"];
+                            }
+                            let res = "<e:exam-versions>";
+                            for (let i = 1; i < langRes.length; i++) {
+                                res += `<e:exam-version lang="${langRes[i]}"/>`
+                            }
+                            res += "</e:exam-versions>";
+                            xml = xml.replace(oldLang, res);    
+                        }
+                    } else {
+                        console.debug("TEST FAIL")
+                    }
+                    console.debug("XML output", xml)
+                    return xml;
+                },
+                masteredXmlToRaw: (xml) => {
+                    const latexRender = /(<e:formula )svg=\"[^\"]*\"/g
+                    const displayName = / display-number=\"[^\"]*\"/g
+                    const questionId = / (?:question|option)-id=\"[^\"]*\"/g
+                    const examUuidR = /(<e:exam [^\>]*)exam-uuid=\"[^\"]*\"/
+                    const sectMaxScore = /(<e:(?:exam|section|question|choice-answer|dropdown-answer) [^\>]*)max-score=\"[^\"]*\"/g
+                    const imageHeightWidth = /(<e:(?:image) [^\>]*)(?:height|width)=\"[^\"]*\"/g
+                    if (xml != null) {
+                        xml = xml.replace(latexRender, "$1")
+                        xml = xml.replace(examUuidR, "$1")
+                        xml = xml.replace(displayName, " ")
+                        xml = xml.replace(questionId, " ")
+                        xml = xml.replace(sectMaxScore, "$1")
+                        xml = xml.replace(imageHeightWidth, "$1")    
+                        xml = xml.replace(imageHeightWidth, "$1")    // toiseen kertaan, jotta molemmat parametrit hävitetään
+
+                    }
+                    return xml;
+                },
+                prettifyXml:  /** Prettify from https://stackoverflow.com/questions/376373/pretty-printing-xml-with-javascript */
+                 function(sourceXml)
+                    {
+                        try {
+                            var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+                            var xsltDoc = new DOMParser().parseFromString([
+                            '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+                            '  <xsl:strip-space elements="*"/>',
+                            '  <xsl:template match="para[content-style][not(text())]">', 
+                            '    <xsl:value-of select="normalize-space(.)"/>',
+                            '  </xsl:template>',
+                            '  <xsl:template match="node()|@*">',
+                            '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+                            '  </xsl:template>',
+                            '  <xsl:output indent="yes"/>',
+                            '</xsl:stylesheet>',
+                            ].join('\n'), 'application/xml');
+        
+                            var xsltProcessor = new XSLTProcessor();    
+                            xsltProcessor.importStylesheet(xsltDoc);
+                            var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+                            var resultXml = new XMLSerializer().serializeToString(resultDoc);
+                            return resultXml;        
+                        } catch (e) {
+                            console.error("Unsupported prettify => Probably Firefox");
+                            let pattern = /(<\/\w[^\>]+>|<\w[^\>]+\/>)/g;
+                            return sourceXml.replace(pattern, "$1\n");
+                        }
+                    },
                 importQuestion: {
                     currentSectionSelected: 0,
                     sectionTitles: null,
@@ -1702,9 +1819,9 @@ var APURI ={
                                                 APURI.exam.buffer = data;
                                                 resolve(data);
                                             })
-                                            .catch(reject);
+                                            .catch(reject=>console.err("Rejected", reject));
                             });                              
-                        }).catch(reject);
+                        }).catch(reject=>console.err("Rejected", reject));
                     
                     });
                 },
@@ -1901,6 +2018,15 @@ var APURI ={
                             clearInterval(this.initTimer);                                 
                         }
                     }                    
+                },
+
+                examXMLEditorView: {
+                    initTimer: null,
+
+                    
+                    show: function () {
+                        clearInterval(this.initTimer);
+                    }
                 },
                 attachmentsPoller: {
                     initTimer: null,
@@ -3006,7 +3132,7 @@ var APURI ={
                                 if (APURI.exam.containsBase64(examData)) {
                                     this.addBase64Warning();
                                 }
-                            });
+                            })
                         if (document.getElementsByClassName("questionButtons").length > 0) {
                                 //console.log("begin button");
                                 var $impButton = $('<button />').html(APURI.text.import_assignment_button).attr('class','addQuestion APURI importExam').on('click', APURI.showImporDialog);
@@ -3033,6 +3159,9 @@ var APURI ={
                                 window.clearInterval(this.initTimer);
                                 APURI.ui.appendSupportNotice();
 
+                        } else if (document.getElementsByClassName("mex-field").length > 0) {
+                            // this is a mex-iew
+                            window.clearInterval(this.initTimer);
                         }                       
                     }
                 },
@@ -3149,6 +3278,46 @@ var APURI ={
                             $("#"+tableid+" thead tr th:first").next().append(wrapper);                        
                         }
                     },
+                    showMex: function (uuid) {
+                       
+                        $.getJSON("https://oma.abitti.fi/exam-api/exams/"+uuid+"/exam?useMex", (origData) => {
+                            let xml = origData.contentXml;
+                            if (xml == null) {
+                                xml = APURI.exam.masteredXmlToRaw(origData.masteredXml);
+                            }
+                            if (xml != null) {
+                                xml = APURI.exam.convertXmlExamSchema(xml);
+                                xml = APURI.exam.prettifyXml(xml);
+                            }
+                            const showXMLPopup = (xml, exam) => {
+                                APURI.ui.openModalWindow(($div)=>{
+                                    let $attachmentList = $("<ul>");
+                                    for (let att of exam.attachments) {
+                                        $attachmentList.append($("<li>").append($("<a>").attr("href", `/exam-api/exams/${exam.examUuid}/attachments/${att}`).html(att)))
+                                    }
+                                    $div.append($("<h3 />").html(APURI.text.mex_code_title))
+                                        .append($("<p />").html(exam.contentXml == null?APURI.text.mex_code_info_converted:APURI.text.mex_code_info))
+                                        .append($("<textarea>").val(xml).attr("style", "width: 100%; height: 80%;"))
+                                        .append($("<div>").html(`<h4>${APURI.text.mex_code_liitteet}</h4>`).append($attachmentList));
+                                    if (exam.contentXml == null && exam.masteredXml != null) {
+                                        $div.append($("<div>").append($("<button>").attr("class","APURI edit-link").html(APURI.text.mex_code_convert_bertta).on('click', ()=>{
+                                            APURI.makeCopyOfExam(origData.examUuid, true);
+                                        })))
+                                    }
+                                       return $div;
+                                }, "Sulje");
+                            }
+                            showXMLPopup(xml?? "XML-koodia ei saatavilla", origData)
+                        })
+                    },
+                    showMexTrigger: function(event) {
+                        var tag = event.target;
+                        if (tag !== null) {
+                            let examUuid = tag.getAttribute("uuid");
+                            APURI.views.examlist.showMex(examUuid);
+                        }
+                        return false;
+                    },
                     show: function() {
                         var filterInput = document.getElementById("APURI_examfilter"); 
                         var taulukko = document.getElementById("available-exams");
@@ -3236,8 +3405,11 @@ var APURI ={
                                         // ollaan varsinaisella rivillä
                                         var span = $('<span />').attr('class', 'edit-exam');
                                         var link = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html(APURI.text.copy_exam_button);
+                                        var showMex = $('<a />').attr('href','#').attr('uuid', examUuid).attr('class','edit-link').html(APURI.text.mex_code);
                                         link[0].onclick = APURI.listCopyExamTrigger;
+                                        showMex[0].onclick = APURI.views.examlist.showMexTrigger;
                                         span.append(link).appendTo(uusisolu);
+                                        span.append(showMex).appendTo(uusisolu);
                                     }
                                     uusisolu.appendTo(rivit[i]);
                                 }
@@ -3391,7 +3563,13 @@ APURI.text = APURI.lang.fi;
 })();
 
 if (typeof APURILoader === 'undefined') {
-    var APURILoader = {
+    let meta = document.querySelector("meta[name='APURI-loader']");
+    if (meta != null) {
+        const metaContent = JSON.parse(meta.getAttribute('content'));
+        console.debug("metaContent", metaContent)
+        window.APURILoader = metaContent;
+    } else {
+        var APURILoader = {
 
             css: "https://klo33.github.io/abixapuri/src/abixapuri.css",
             ckeditor: "https://klo33.github.io/javascript/ckeditor/ckeditor.js",
@@ -3400,6 +3578,8 @@ if (typeof APURILoader === 'undefined') {
             jquerycsvR: "https://klo33.github.io/javascript/jquery.csv.min",
             cookiesR: "https://klo33.github.io/javascript/js.cookie.min"
         };
+
+    }
 } else {
     if (typeof APURIsecrets != "undefined" && APURIsecrets.check != null)
         APURILoader.check = APURIsecrets.check;
@@ -3434,16 +3614,16 @@ APURI.getDisplayNumber = function(obj, qid) {
 
 if (typeof APURI.paivkentTrigger !== 'function') {
 	APURI.paivkentTrigger = function(va) {
-		va.trigger("change");
-		va.trigger("input");
-		va.trigger("contentChanged");
+        const textarea = va[0];
+        const event = new Event('input', { bubbles: true});
+        textarea.dispatchEvent(event);
         };
     }
     
 
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
-                
+        console.debug("Pävitä", elem, input)
 		var va = $('textarea[name='+elem+']');
                 if (!(va.length >0)) { // jos ei elem ole nimi, niin sitten ilm. id
                     va = $('textarea[id='+elem+']');
@@ -3466,9 +3646,14 @@ if (typeof APURI.paivkent !== 'function') {
                     // joko rajoitus koon suhteen ja MYÖS, että ei tarkisteta joka kerta, vaan vain silloin tällöin
                     // koska regexp tarkistus aikaavievä, varsinkin jos on oikeasti base64-kuvia
             APURI.ui.detectHttpLink(elem, input);
-
-		va.val(input);
-		va[0].innerHTML=input;
+            const textarea = va[0];
+            var nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+            nativeTextAreaValueSetter.call(textarea, input);
+            console.debug("Area", textarea);    
+            const event = new Event('input', { bubbles: true});
+            textarea.dispatchEvent(event);
+		//va.val(input);
+		//va[0].innerHTML=input;
 		//va.trigger("change");
 		//va.trigger("input");
 		//va.trigger("contentChanged");
@@ -4118,15 +4303,22 @@ if (typeof APURI.replaceBoxes !== 'function') {
 										//console.log(typeof src + " " + typeof event);
 //                                                                                console.log("Change->update", inner_elem);                                                                                
                                                                                 let content = APURI.filterLinebreaks(inner_elem.getData());
+                                                                                //console.debug("InnerEl", inner_elem.getData(), inner_elem, inner_elem.element.value, "content", content);
                                                                                 inner_elem.setData(content, {internal: true, noSnapshot:true});
                                                                                 inner_elem.element.value = content;
                                                                                 inner_elem.updateElement();
-										APURI.paivkent(inner_elem.name, content); });
+                                                                                //console.debug("InnerEl3", inner_elem.getData(), inner_elem);
+										APURI.paivkent(inner_elem.name, content); 
+                                        
+                                    });
 					inner_elem.on('keyup',  function(src, event) {
 										//console.log(typeof src + " " + typeof event);
 //                                                                                console.log("KeyUp->update", inner_elem);
 										inner_elem.updateElement();
 										APURI.paivkent(inner_elem.name, inner_elem.getData()); });
+                                        //console.debug("InnerEl2", inner_elem.getData(), inner_elem);
+                                        //console.debug("Data2: ", src, src?.editor?.getData())
+                                    
 										})(elem);
                                 APURI.replacedFields.count++;
 			}
@@ -4168,94 +4360,156 @@ APURI.settings.uris = APURILoader;
                     return;
         APURI.ui.appendCSS(APURI.settings.uris.css);
        	APURI.loadScriptDirect(APURI.settings.uris.ckeditor,
-//       	APURI.loadScriptDirect('https://localhost/cke/ckeditor.js',
             function() {
                 
             }
         );
-//        APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
         APURI.initView(APURI.views.attachmentsPoller, 30000);
         requirejs.config({
             paths: {
-                'Sortable': APURI.settings.uris.sortableR
-            }
+                'Sortable': APURI.settings.uris.sortableR,
+                'jquery': APURI.settings.uris.jqueryR,
+            }            
+
         });
-        require(['Sortable'], function (Sortable){
+
+        require(['Sortable', 'jquery'], function (Sortable, $){
                         window.Sortable = Sortable; // exports
+                        window.$ = $;
                 });
         APURI.initView(APURI.views.examview);
         APURI.initView(APURI.views.ckeAbiximageInfo);
         APURI.initView(APURI.views.examviewBoxes, 2000);
         APURI.util.bittiniiloDetector.init();
-        APURI.initView(APURI.views.attachmentLinkReplace, 1000);        
+        APURI.initView(APURI.views.attachmentLinkReplace, 1000);   
+  
 })();
 
-APURI.makeCopyOfExam = function(origUuid) {
+
+
+APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = null) {
             //Lataa vanha, josta tehdään kopio
             APURI.ui.showLoadingSpinner();
-		$.getJSON("https://oma.abitti.fi/exam-api/exams/"+origUuid+"/exam", function(origData) {
-			var uusikoe = {title: "Uusi koe"};
-                        // Luo uusi koe
-			$.ajax({
-					type: "POST",
-					url: "/kurko-api/exam/exam-event",
-					data: JSON.stringify(uusikoe),
-					accept: "application/json; text/javascript",
-					contentType: "application/json; charset=UTF-8",
-					dataType: "json",
-					success: function(uusidata){
-						var uudenUuid = uusidata.examUuid;
-                                                // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
-                        origData.content.title = origData.content.title + " (kopio)";
-                        // tarkista, onko sisällössä base64:sta
-                        APURI.base64transform(JSON.stringify(origData), uudenUuid)
-                            .then((origDataTransformedStr) => {
-                                let origDataTransformed = JSON.parse(origDataTransformedStr);
-                                $.ajax({
-                                    type: "POST",
-                                    url: ("/exam-api/composing/"+uudenUuid+"/exam-content"),
-                                    data: JSON.stringify({content:origDataTransformed.content,
-                                                        examLanguage:origDataTransformed.language||"fi-FI"}),
-                                    accept: "application/json; text/javascript",
-                                    contentType: "application/json; charset=UTF-8",
-                                    dataType: "json",
-                                    success: function(data){
-                                        // Kopioidaan liitteet
-                                                                            if (origData.attachments.length > 0) {
-    //                                                                            console.log("Kokeessa on liitteitä -> yritetään kopioida");
-                                                                                APURI.ui.showAttachmentCopy();
-                                                                                APURI.attachments.copyAttachments(origUuid, uudenUuid)
-                                                                                        .then(filenames => {
-                                                                                    APURI.ui.clearAttachmentCopy();                                                                                        
-                                                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                                });
-                                                                            } else {
-                                                                                // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                                                                                window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
-                                                                            }
-                                    },
-                                    failure: function(errMsg) {
-                                            console.error("ERROR kopion tallennuksessa: "+errMsg);
-    
+
+        const kopioiLiitteet = (origData, uudenUuid) => {
+            // Kopioidaan liitteet
+            return new Promise((resolve, reject) => {
+                if (origData?.attachments?.length > 0) {
+                    // console.log("Kokeessa on liitteitä -> yritetään kopioida");
+                    APURI.ui.showAttachmentCopy();
+                    APURI.attachments.copyAttachments(origData.examUuid, uudenUuid)
+                        .then(filenames => {
+                            APURI.ui.clearAttachmentCopy();
+                            console.debug("Resolve copy", filenames);
+                            resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid, files: filenames});                                                                                        
+                        });
+                } else {
+                    // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
+                    console.debug("Resolve copy")
+                    resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid});
+                }                
+            })
+        }
+        const luoUusiKoe = (uusikoeData) => {
+            return APURI.fetch.sendPost("/kurko-api/exam/exam-event", uusikoeData).catch(errMsg => console.error("ERROR uuden luomisessa: ", errMsg));
+        }
+        const paivitaKoe = (uuid, koeData) => {
+            return APURI.fetch.sendPost("/exam-api/composing/"+uuid+"/exam-content", koeData);
+        }
+
+        APURI.fetch.getJson(`https://oma.abitti.fi/exam-api/exams/${origUuid}/exam`+ (forceConvertion?"?useMex":""))
+            .then(origData => {
+                const uusikoeJson = {title: "Uusi koe", "examLanguage": "fi-FI"};
+                const uusikoeXml = {
+                    "title": "Uusi koe",
+                    "examLanguage": "fi-FI",
+                    "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"A\" day-code=\"E\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
+                };
+                            // Luo uusi koe
+                console.debug("Conv", forceConvertion, origData.content != null, origData.masteredXml != null);
+                if (forceConvertion == true && origData?.content != null && origData?.masteredXml != null) {
+                    // pakotetaan conversio
+                    let convertedXml = forceInput ?? APURI.exam.masteredXmlToRaw(origData.masteredXml);
+                    luoUusiKoe(uusikoeXml).then((uusidata) => {
+                        const uudenUuid = uusidata.examUuid;
+                        console.debug("Content is", origData);
+                        origData.title = origData.title + " (muunnettu)";
+                        kopioiLiitteet(origData, uudenUuid).then(
+                            (result)=>{
+                                console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                                let koeContent = {
+                                    content: {title: origData.title,
+                                        xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(convertedXml))},
+                                    examLanguage:origData.language||"fi-FI"
+                                };
+                                if (result?.files?.length > 0) {
+                                    koeContent.content.attachmentMetaData = {};
+                                    for (const filename of result.files) {
+                                        koeContent.content.attachmentMetaData[filename] = {};
                                     }
+                                }
+                                paivitaKoe(uudenUuid,koeContent).then(()=>{
+                                        window.location.href = "https://oma.abitti.fi/school/bertta/"+uudenUuid;
+                                    });
+                            });
+                    });  
+                } else if (origData?.content != null) {
+                    // Kyseessä on JSON-koe
+                    luoUusiKoe(uusikoeJson)
+                        .then((uusidata) => {
+                            const uudenUuid = uusidata.examUuid;
+                                                    // Onnistuessa muuta otsikkoa ja tallenna sisältö uuteen kokeeseen
+                            origData.content.title = origData.content.title + " (kopio)";
+                            // tarkista, onko sisällössä base64:sta
+                            APURI.base64transform(JSON.stringify(origData), uudenUuid)
+                                .then((origDataTransformedStr) => {
+                                    let origDataTransformed = JSON.parse(origDataTransformedStr);
+                                    paivitaKoe(
+                                        uudenUuid, 
+                                        {content:origDataTransformed.content,
+                                                examLanguage:origDataTransformed.language||"fi-FI"})
+                                        .then(()=>{
+                                            kopioiLiitteet(origData, uudenUuid).then(()=>{
+                                                    window.location.href = "https://oma.abitti.fi/school/exam/"+uudenUuid;
+                                                });
+                                        });
+    
+                                })
+                                .catch((error)=>{
+                                    console.error("ERROR Base64-konversiovirhe");
+                                    console.error(error);
+                                })
+                            console.log(".");                            
+                        });
+    
+                } else if (origData?.contentXml != null) {
+                    // Kyseessä on XML-MEX-koe
+                    luoUusiKoe(uusikoeXml).then((uusidata)=>{
+                        const uudenUuid = uusidata.examUuid;
+                        console.debug("Content is", origData);
+                        origData.title = origData.title + " (kopio)";
+                        kopioiLiitteet(origData, uudenUuid).then((result)=>{
+                            console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                            let koeContent = {
+                                content: {title: origData.title,
+                                    xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(origData.contentXml))},
+                                examLanguage:origData.language||"fi-FI"
+                            };
+                            if (result?.files?.length > 0) {
+                                koeContent.content.attachmentMetaData = {};
+                                for (const filename of result.files) {
+                                    koeContent.content.attachmentMetaData[filename] = {};
+                                }
+                            }
+                            paivitaKoe(uudenUuid,koeContent).then(()=>{
+                                    window.location.href = "https://oma.abitti.fi/school/bertta/"+uudenUuid;
                                 });
-                            })
-                            .catch((error)=>{
-                                console.error("ERROR Base64-konversiovirhe");
-                                console.error(error);
-                            })
-                        console.log(".");
+                        })
 
-						
-					},
-					failure: function(errMsg) {
-							console.error("ERROR uuden luomisessa: "+errMsg);
-
-					}
-			});
-
-		});
-
+                    }) 
+                }
+    
+            });
 	};
 
 APURI.listCopyExamTrigger = function(event) {
@@ -4309,7 +4563,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
             'jquery-csv': APURI.settings.uris.jquerycsvR
         },
         shim: {
-            'jquery-csv': ['jquery']
+            'jquery-csv': ['jquery'],
         }
     });
     require(['Cookies', 'jquery', 'jquery-csv'], function (Cookies, $){
@@ -4335,3 +4589,4 @@ APURI.testExamAttachmentCopyTrigger = function() {
     APURI.initView(APURI.views.footer, 2000);
     APURI.util.bittiniiloDetector.init();
 })();
+

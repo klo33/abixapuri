@@ -49,6 +49,16 @@ Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena se
 ### Muutokset
 
 
+#### v0.9.2 (3.12.2021)
+- Osaa konvertoida vanhan kokeen suoraan Bertta-muotoon, jos koe on konvertoitavissa.
+- Teknisiä muutoksia lisäosaan (siirrytty käyttämään uudenmaan manifest v3 -formaattia)
+
+#### v0.9.0 (24.11.2021)
+- Tukea Bertta-kokeiden tekijöille:
+  - MEX-kokeen kopiointituki
+  - Kokeen MEX-koodin näyttö, jos mahdollista (kokeeen siirtoa ja tehtävien kopioimista auttamaan)
+HUOM! MEX/Bertta-kokeet ovat toistaiseksi tarkoitettu niille, joilla on kiinnostusta tutkia kokeen koodia tarkemmin. Koodin rakenteen kanssa opastamisessa en tule auttamaan.
+
 #### v0.8.3 (13.5.2021)
 - Arvosanataulukon korjauksia
   * Arvosanataulukko ja pisteytyksien sisäinen vienti .cvs-muotoon toimivat myös aidoissa .mex-kokeissa.
