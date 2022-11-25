@@ -35,6 +35,6 @@ APURI.injectMetaLoaderInfo(`{
     "ace": "${getAssetURL("assets/ace/ace.js")}",
     "examXsd": "${getAssetURL("assets/exam.xsd")}",
     "schema": "${getAssetURL("assets/schema/")}" }`);
+APURI.injectScriptHeadDirect(getAssetURL("assets/require.min.js"));
 APURI.injectScriptHeadDirect(getAssetURL("assets/abixapuri.js"));
-APURI.injectScriptHeadDirect(getAssetURL("assets/require.min.js"))
 

@@ -1,11 +1,11 @@
-/* AUTHOR Joni Lehtola, 2017-2021
+/* AUTHOR Joni Lehtola, 2017-2022
  * Lisätiedot https://klo33.github.io/abixapuri
  * Lisäosa on julkaistu GPLv3 lisenssillä. Lisänosan käyttö omalla vastuulla. 
  * Lisäosa ei ole Ylioppilastutkintolautakunnan hyväksymä tai YTL:n tarkistama ja YTL ei vastaa mistään laajennuksen aiheuttamista 
  * haitoista tai vahingoista, kuten myöskään ei tekijä, vaikka lisäosa ei tarkoituksellisesti tee mitään vahingollista. 
  * 
  * AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017-2021 Joni Lehtola
+    Copyright (C) 2017-2022 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2638,7 +2638,7 @@ var APURI ={
                         return false;
                     },
                     show: function () {
-
+                        console.debug("Try loading grading info");
                         let _ = APURI.views.gradingSummary;
                         let _t = APURI.text;
                         let gradingInfo = $('#gradingInfo');
@@ -2672,6 +2672,10 @@ var APURI ={
                 grading:{
                     initTimer: null,
                     answers: null,
+                    latestTriggered: null,
+                    updateSemaphor: false,
+                    pendingUpdateQueue: [], // functions to callback when finished
+                    latestUpdate: null,
                     commentsAll: null,
                     /**
                      * Rakenne tälle Map[id] = {questionId, comments: []}
@@ -2709,10 +2713,39 @@ var APURI ={
                      */
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
+                            var resolver = (result, resolveHandler) => {
+                                let comments = APURI.grading.getAllComments(result);
+                                APURI.views.grading.commentsAll = comments;
+                                if (questionId !== null) {
+                                    let qComments = APURI.grading.getAllComments(answers, id);
+                                    APURI.views.grading.commentsByQuestion.set(questionId, {
+                                        questionId: questionId,
+                                        comments: qComments
+                                    });
+                                }
+                                resolveHandler(comments);                                
+                            }
                             let uuid = APURI.exam.getCurrentLocationUuid();
+                            if ((APURI.views.grading.latestTriggered??0 + 500 > Date.now()) &&
+                                APURI.views.grading.answers != null &&
+                                APURI.views.grading.updateSemaphor == false) {
+                                // update fetched really recently
+                                resolver(APURI.views.grading.answers)
+                            } else if (APURI.views.grading.updateSemaphor == true) {
+                                APURI.views.grading.pendingUpdateQueue.append((result)=>{
+                                    resolver(result, resolve);
+                                })
+                            }
+                            APURI.views.grading.latestTriggered = Date.now();
                             APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
                                             APURI.views.grading.answers = answers;
-                                            let comments = APURI.grading.getAllComments(answers);
+                                            for (let pendingAction of APURI.views.grading.pendingUpdateQueue) {
+                                                pendingAction(answers);
+                                            }
+                                            APURI.views.grading.pendingUpdateQueue = [];
+                                            APURI.updateSemaphor = false;
+                                            resolver(answers, resolve);
+/*                                            let comments = APURI.grading.getAllComments(answers);
                                             APURI.views.grading.commentsAll = comments;
                                             if (questionId !== null) {
                                                 let qComments = APURI.grading.getAllComments(answers, id);
@@ -2721,7 +2754,7 @@ var APURI ={
                                                     comments: qComments
                                                 });
                                             }
-                                            resolve(comments);
+                                            resolve(comments);*/
                                 })
                                 .catch((err)=>{
                                     console.log("ERROR", err);
@@ -2731,6 +2764,7 @@ var APURI ={
                         });
                     },
                     triggerRecount(answerId, $answerEl = null, mass = false) {
+                        //console.debug("TRIGGER RECOUNT")
                         if ($answerEl == null) {
                             $answerEl = $(`[data-answer-id=${answerId}]`);
                         }
