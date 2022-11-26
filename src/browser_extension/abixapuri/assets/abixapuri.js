@@ -1655,7 +1655,7 @@ var APURI ={
                     } else {
                         console.debug("TEST FAIL")
                     }
-                    console.debug("XML output", xml)
+                    //console.debug("XML output", xml)
                     return xml;
                 },
                 masteredXmlToRaw: (xml) => {
@@ -2638,7 +2638,7 @@ var APURI ={
                         return false;
                     },
                     show: function () {
-                        console.debug("Try loading grading info");
+                        //console.debug("Try loading grading info");
                         let _ = APURI.views.gradingSummary;
                         let _t = APURI.text;
                         let gradingInfo = $('#gradingInfo');
@@ -2753,8 +2753,8 @@ var APURI ={
                                         comments: qComments
                                     });
                                 }
-                                console.debug("Handler", typeof resolveHandler__, resolveHandler__, result)
-                                console.debug("Resolve with(",comments, ")")
+                                //console.debug("Handler", typeof resolveHandler__, resolveHandler__, result)
+                                //console.debug("Resolve with(",comments, ")")
                                 resolveHandler__(comments);                                
                             }
                             let uuid = APURI.exam.getCurrentLocationUuid();
@@ -2762,21 +2762,21 @@ var APURI ={
                                 APURI.views.grading.answers != null &&
                                 APURI.views.grading.updateSemaphor == false) {
                                 // update fetched really recently
-                                console.debug("Timelimit not exceeded ", ((APURI.views.grading.latestTriggered??0 + 500) > Date.now()), APURI.views.grading.latestTriggered + 500, Date.now())
+                                //console.debug("Timelimit not exceeded ", ((APURI.views.grading.latestTriggered??0 + 500) > Date.now()), APURI.views.grading.latestTriggered + 500, Date.now())
                                 resolverEnvoker(APURI.views.grading.answers, resolve);
                             } else if (APURI.views.grading.updateSemaphor == true) {
                                 // update just on its way => do not send a new
-                                console.debug("Semaphor up ", APURI.views.grading.pendingUpdateQueue)
+                                //console.debug("Semaphor up ", APURI.views.grading.pendingUpdateQueue)
                                 APURI.views.grading.pendingUpdateQueue.push((result)=>{
                                     resolverEnvoker(result, resolve);
                                 })
                             } else {
-                                console.debug("Do update")
+                                //console.debug("Do update")
                                 APURI.views.grading.updateSemaphor = true;
                                 APURI.views.grading.latestTriggered = Date.now();
                                 APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
                                                 APURI.views.grading.answers = answers;
-                                                console.debug("Update to resolve", answers);
+                                                //console.debug("Update to resolve", answers);
                                                 for (let pendingAction of APURI.views.grading.pendingUpdateQueue) {
                                                     if (typeof pendingAction == "function")
                                                         pendingAction(answers);
@@ -3468,7 +3468,7 @@ var APURI ={
                     }, // end-of showImportDialog
                     showCleanDialog: () => {
                         const cleanExam = (examData)=>{
-                            console.debug("BEFORE CLEANING", examData)
+                            //console.debug("BEFORE CLEANING", examData)
                             
                         }
                         APURI.ui.openModalWindow((div)=> {
@@ -3992,7 +3992,7 @@ if (typeof APURI.paivkentTrigger !== 'function') {
 
 if (typeof APURI.paivkent !== 'function') {
 	APURI.paivkent = function(elem, input) {
-        console.debug("Pävitä", elem, input)
+        //console.debug("Pävitä", elem, input)
 		var va = $('textarea[name='+elem+']');
                 if (!(va.length >0)) { // jos ei elem ole nimi, niin sitten ilm. id
                     va = $('textarea[id='+elem+']');
@@ -4018,7 +4018,7 @@ if (typeof APURI.paivkent !== 'function') {
             const textarea = va[0];
             var nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
             nativeTextAreaValueSetter.call(textarea, input);
-            console.debug("Area", textarea);    
+            //console.debug("Area", textarea);    
             const event = new Event('input', { bubbles: true});
             textarea.dispatchEvent(event);
 		//va.val(input);
@@ -4611,12 +4611,12 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                     APURI.attachments.copyAttachments(origData.examUuid, uudenUuid)
                         .then(filenames => {
                             APURI.ui.clearAttachmentCopy();
-                            console.debug("Resolve copy", filenames);
+                            //console.debug("Resolve copy", filenames);
                             resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid, files: filenames});                                                                                        
                         });
                 } else {
                     // Muutetaan osoite, jotta päästään suoraan editoimaan uutta koetta
-                    console.debug("Resolve copy")
+                    //console.debug("Resolve copy")
                     resolve({forwardAddress:"https://oma.abitti.fi/school/exam/"+uudenUuid});
                 }                
             })
@@ -4637,17 +4637,17 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                     "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<e:exam xmlns:e=\"http://ylioppilastutkinto.fi/exam.xsd\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://ylioppilastutkinto.fi/exam.xsd https://abitti.dev/schema/exam.xsd\" exam-schema-version=\"0.3\" date=\"2018-09-19\" exam-code=\"M\">\n  <e:exam-versions>\n    <e:exam-version lang=\"fi-FI\"/>\n  </e:exam-versions>\n  <e:exam-instruction>\n    <p>Test instructions</p>\n  </e:exam-instruction>\n  <e:table-of-contents/>\n  <e:section max-answers=\"1\">\n    <e:section-title/>\n    <e:question>\n      <e:question-title>Question 1</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 2</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 3</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n\n    <e:question>\n      <e:question-title>Question 4</e:question-title>\n      <e:text-answer type=\"rich-text\" max-score=\"60\"/>\n    </e:question>\n  </e:section>\n</e:exam>"
                 };
                             // Luo uusi koe
-                console.debug("Conv", forceConvertion, origData.content != null, origData.masteredXml != null);
+               // console.debug("Conv", forceConvertion, origData.content != null, origData.masteredXml != null);
                 if (forceConvertion == true && origData?.content != null && origData?.masteredXml != null) {
                     // pakotetaan conversio
                     let convertedXml = forceInput ?? APURI.exam.masteredXmlToRaw(origData.masteredXml);
                     luoUusiKoe(uusikoeXml).then((uusidata) => {
                         const uudenUuid = uusidata.examUuid;
-                        console.debug("Content is", origData);
+                        //console.debug("Content is", origData);
                         origData.title = origData.title + " (muunnettu)";
                         kopioiLiitteet(origData, uudenUuid).then(
                             (result)=>{
-                                console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                                //console.debug("Liitteet kopioitu => kokeen päivitys", result)
                                 let koeContent = {
                                     content: {title: origData.title,
                                         xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(convertedXml))},
@@ -4697,10 +4697,10 @@ APURI.makeCopyOfExam = function(origUuid, forceConvertion=false, forceInput = nu
                     // Kyseessä on XML-MEX-koe
                     luoUusiKoe(uusikoeXml).then((uusidata)=>{
                         const uudenUuid = uusidata.examUuid;
-                        console.debug("Content is", origData);
+                        //console.debug("Content is", origData);
                         origData.title = origData.title + " (kopio)";
                         kopioiLiitteet(origData, uudenUuid).then((result)=>{
-                            console.debug("Liitteet kopioitu => kokeen päivitys", result)
+                            //console.debug("Liitteet kopioitu => kokeen päivitys", result)
                             let koeContent = {
                                 content: {title: origData.title,
                                     xml: APURI.exam.prettifyXml(APURI.exam.convertXmlExamSchema(origData.contentXml))},
@@ -4734,7 +4734,7 @@ APURI.listCopyExamTrigger = function(event) {
 };
 
 APURI.testExamAttachmentCopyTrigger = function() {
-    console.debug("Start copyprocess");
+    //console.debug("Start copyprocess");
     APURI.ui.showLoadingSpinner();
     APURI.ui.showAttachmentCopy();
     APURI.attachments.copyAttachments('7949611d-d720-4197-8d9d-4606129dc9a5','25cea84c-a83e-413e-bfec-23376a701508')
@@ -4767,7 +4767,7 @@ APURI.testExamAttachmentCopyTrigger = function() {
         return;
     APURI.ui.appendCSS(APURI.settings.uris.css);
 //    APURI.loadScriptDirect(APURI.settings.uris.fontawesome);
-    console.debug("APURI.settings", JSON.parse(JSON.stringify(APURI.settings)))
+    //console.debug("APURI.settings", JSON.parse(JSON.stringify(APURI.settings)))
     requirejs.config({
         paths: {
             'Cookies': APURI.settings.uris.cookiesR,
