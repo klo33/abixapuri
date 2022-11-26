@@ -29,12 +29,12 @@ APURI.injectMetaLoaderInfo(`{
     "css": "${getAssetURL("assets/abixapuri.css")}",
     "ckeditor": "${getAssetURL("assets/ckeditor/ckeditor.js")}",
     "sortableR": "${getAssetURL("assets/")}Sortable.min",
-    "jqueryR": "${getAssetURL("assets/")}jquery-3.2.1.min",
+    "jqueryR": "${getAssetURL("assets/")}jquery-3.6.0.min",
     "jquerycsvR": "${getAssetURL("assets/")}jquery.csv.min",
     "cookiesR": "${getAssetURL("assets/")}js.cookie.min",
     "ace": "${getAssetURL("assets/ace/ace.js")}",
     "examXsd": "${getAssetURL("assets/exam.xsd")}",
     "schema": "${getAssetURL("assets/schema/")}" }`);
+APURI.injectScriptHeadDirect(getAssetURL("assets/require.min.js"));
 APURI.injectScriptHeadDirect(getAssetURL("assets/abixapuri.js"));
-APURI.injectScriptHeadDirect(getAssetURL("assets/require.min.js"))
 
