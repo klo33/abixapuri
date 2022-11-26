@@ -2706,6 +2706,36 @@ var APURI ={
                         }
                         return sums;
                     },
+                    getASyncComments(questionId = null) {
+                        return new Promise((resolve, reject) => {
+                            if (APURI.views.grading.commentsAll != null && APURI.views.grading.updateSemaphor == false) {
+                                resolve(APURI.views.grading.commentsAll)
+                            } else if (APURI.views.grading.updateSemaphor == true) {
+                                APURI.views.grading.pendingUpdateQueue.push((result, resolverHandler)=>{
+                                    if (questionId !== null) {
+                                        let qComments = APURI.grading.getAllComments(answers, id);
+                                        APURI.views.grading.commentsByQuestion.set(questionId, {
+                                            questionId: questionId,
+                                            comments: qComments
+                                        });
+                                    }
+                                    resolverHandler(result);
+                                })
+                            } else {
+                                APURI.views.grading.loadComments(questionId).then((result)=>{
+                                    if (questionId !== null) {
+                                        let qComments = APURI.grading.getAllComments(answers, id);
+                                        APURI.views.grading.commentsByQuestion.set(questionId, {
+                                            questionId: questionId,
+                                            comments: qComments
+                                        });
+                                    }
+                                    resolve(result);
+                                })
+                            }
+                        })
+                    },
+
                     /**
                      * 
                      * @param {*} questionId 
@@ -2713,7 +2743,7 @@ var APURI ={
                      */
                     loadComments(questionId = null) {
                         return new Promise((resolve, reject) => {
-                            var resolver = (result, resolveHandler) => {
+                            const resolverEnvoker = (result, resolveHandler__, rejectHandler = ()=>{}) => {
                                 let comments = APURI.grading.getAllComments(result);
                                 APURI.views.grading.commentsAll = comments;
                                 if (questionId !== null) {
@@ -2723,43 +2753,55 @@ var APURI ={
                                         comments: qComments
                                     });
                                 }
-                                resolveHandler(comments);                                
+                                console.debug("Handler", typeof resolveHandler__, resolveHandler__, result)
+                                console.debug("Resolve with(",comments, ")")
+                                resolveHandler__(comments);                                
                             }
                             let uuid = APURI.exam.getCurrentLocationUuid();
-                            if ((APURI.views.grading.latestTriggered??0 + 500 > Date.now()) &&
+                            if (((APURI.views.grading.latestTriggered??0 + 2000) > Date.now()) &&
                                 APURI.views.grading.answers != null &&
                                 APURI.views.grading.updateSemaphor == false) {
                                 // update fetched really recently
-                                resolver(APURI.views.grading.answers)
+                                console.debug("Timelimit not exceeded ", ((APURI.views.grading.latestTriggered??0 + 500) > Date.now()), APURI.views.grading.latestTriggered + 500, Date.now())
+                                resolverEnvoker(APURI.views.grading.answers, resolve);
                             } else if (APURI.views.grading.updateSemaphor == true) {
-                                APURI.views.grading.pendingUpdateQueue.append((result)=>{
-                                    resolver(result, resolve);
+                                // update just on its way => do not send a new
+                                console.debug("Semaphor up ", APURI.views.grading.pendingUpdateQueue)
+                                APURI.views.grading.pendingUpdateQueue.push((result)=>{
+                                    resolverEnvoker(result, resolve);
                                 })
+                            } else {
+                                console.debug("Do update")
+                                APURI.views.grading.updateSemaphor = true;
+                                APURI.views.grading.latestTriggered = Date.now();
+                                APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
+                                                APURI.views.grading.answers = answers;
+                                                console.debug("Update to resolve", answers);
+                                                for (let pendingAction of APURI.views.grading.pendingUpdateQueue) {
+                                                    if (typeof pendingAction == "function")
+                                                        pendingAction(answers);
+                                                    else
+                                                        console.error("There was non-function at pendingActionUpdateQueue")
+                                                }
+                                                APURI.views.grading.pendingUpdateQueue = [];
+                                                APURI.views.grading.updateSemaphor = false;
+                                                resolverEnvoker(answers, resolve);
+    /*                                            let comments = APURI.grading.getAllComments(answers);
+                                                APURI.views.grading.commentsAll = comments;
+                                                if (questionId !== null) {
+                                                    let qComments = APURI.grading.getAllComments(answers, id);
+                                                    APURI.views.grading.commentsByQuestion.set(questionId, {
+                                                        questionId: questionId,
+                                                        comments: qComments
+                                                    });
+                                                }
+                                                resolve(comments);*/
+                                    })
+                                    .catch((err)=>{
+                                        console.log("ERROR", err);
+                                        reject(err);
+                                    });    
                             }
-                            APURI.views.grading.latestTriggered = Date.now();
-                            APURI.grading.loadGradingObject(uuid, true).then(function(answers) {
-                                            APURI.views.grading.answers = answers;
-                                            for (let pendingAction of APURI.views.grading.pendingUpdateQueue) {
-                                                pendingAction(answers);
-                                            }
-                                            APURI.views.grading.pendingUpdateQueue = [];
-                                            APURI.updateSemaphor = false;
-                                            resolver(answers, resolve);
-/*                                            let comments = APURI.grading.getAllComments(answers);
-                                            APURI.views.grading.commentsAll = comments;
-                                            if (questionId !== null) {
-                                                let qComments = APURI.grading.getAllComments(answers, id);
-                                                APURI.views.grading.commentsByQuestion.set(questionId, {
-                                                    questionId: questionId,
-                                                    comments: qComments
-                                                });
-                                            }
-                                            resolve(comments);*/
-                                })
-                                .catch((err)=>{
-                                    console.log("ERROR", err);
-                                    reject(err);
-                                });
                             
                         });
                     },
@@ -2962,7 +3004,7 @@ var APURI ={
                                                     
                                                 }
                                                 let el = $('<div />').attr('style','').attr('class','APURI_comment_container').appendTo(child);
-                                                APURI.views.grading.loadComments().then(x => {
+                                                APURI.views.grading.getASyncComments().then(x => {
                                                     function isPointComment(comm) {
                                                         const pointPattern = /\(([\-\+]?\d+)p\.\)/;
                                                         let f = comm.match(pointPattern);
@@ -3893,7 +3935,7 @@ if (typeof APURILoader === 'undefined') {
     let meta = document.querySelector("meta[name='APURI-loader']");
     if (meta != null) {
         const metaContent = JSON.parse(meta.getAttribute('content'));
-        console.debug("metaContent", metaContent)
+        //console.debug("metaContent", metaContent)
         window.APURILoader = metaContent;
     } else {
         var APURILoader = {
