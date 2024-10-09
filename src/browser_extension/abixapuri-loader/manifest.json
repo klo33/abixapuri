@@ -1,7 +1,7 @@
 ﻿{
 	"manifest_version": 2,
 	"name": "AbixApuri",
-	"version": "0.2.0",
+	"version": "0.9.1",
 	"description": "AbixApuri tuo lisätoiminnallisuutta oma.abitti.fi-palveluun",
 	"homepage_url": "https://klo33.github.io/abixapuri",
 	"icons" : {
