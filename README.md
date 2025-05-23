@@ -18,20 +18,13 @@ Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamall
 
 ## Ominaisuudet
 
-1. Tehtävätekstien muokkaus laajennetulla editorilla (WYSIWYG)
-   * Abitti-kokeen liitetiedostojen lisäys ja käyttö helposti omalla työkalulla suoraan koetehtävänantoon.
-   * Näyttää liitetiedostojen kuvat ja videot jo suoraan editoinnin aikana sekä mahdollistaa kuvien koon muuttamisen
-   * mahdollistaa tekstin muotoilun sekä muotoillun tekstin ja kuvien liittämisen suoraan tehtävänantokenttiin esim. Wordistä.
-   * Chromessa kuvien liittäminen suoraan leikepöydältä ei toimi, mutta kuvia ja mediaa voi lisätä Lisää kuva -napilla
-2. Vanhojen tehtävien uudelleenkäyttö kopioimalla tehtävä vanhasta kokeesta. Tehtävän kopiointi huomioi myös liitteet.
-3. Tehtävien järjestely kokeen sisällä intuitiivisesti raahaamalla.
-4. Kopion ottaminen vanhasta kokeesta uudelleenkäytettäväksi. Kopiossa tulee myös liitteet mukana.
-5. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa. Lisäksi arvosanat voi tuoda taulukkolaskennasta takaisin Abittiin.
-6. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
+
+1. Arviontitaulukon voi ladata mm. taulukkolaskentaohjelmaa. Lisäksi arvosanat voi tuoda taulukkolaskennasta takaisin Abittiin.
+2. Koelistauksesta voi hakea helposti suodattavalla haulla esim. kurssikoodilla
 (Vinkki kurssikoodi kannattaa olla kokeen nimessä, jolloin haku sen löytää)
-7. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
-8. Arvosanataulukko sisällytetty Abittiin, jolloin Apuri ehdottaa suoraan arvosanaa.
-9. Tehtävien osapisteytys ja osapisteiden laskenta.
+3. Arviontimerkintöjen helpottaminen: Ehdotetaan vanhoja merkintöjä automaattisesti merkittäväksi.
+4. Arvosanataulukko sisällytetty Abittiin, jolloin Apuri ehdottaa suoraan arvosanaa.
+5. Tehtävien osapisteytys ja osapisteiden laskenta.
 
 ## Asentaminen selaimen lisäosana
 ### Firefoxille
@@ -47,6 +40,15 @@ Lisäosan päivittämisen voi pakottaa selaimen lisäosavalikosta tai asentamall
 Huomaa, että AbixApurin toimintaa haittaa, mikäli Bittiniilo on aktiivisena selaimessa. Suosittelemme sen poistamista käytöstä, ohjeet tähän alempana.
 
 ### Muutokset
+
+#### v1.3.0.1 (23.5.2025)
+- Vanhoja ominaisuuksia poistettu
+- Tuki uudelle YTL:n arvioinnille
+- Mallivastauksien laadinta
+- Oppilaiden nimien piiloitus
+- Keskitetty arvionti - koekäyttö
+
+Huom! Tämä versio ei ole vielä Chromen kaupassa
 
 #### v0.9.3 (25.11.2022)
 - Korjaus tapaan miten pisteenlaskenta korjauksessa lähettää pyyntöjä oma.abitti.fi-rajapintaan
@@ -214,15 +216,6 @@ Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöö
 - Chrome: Valikko (kolme pistettä) > Lisää työkaluja > Laajennokset, jossa laajennus joko poistetaan tai kytketään pois käytöstä.
 - Firefox: Valikko (kolme vaakaviivaa) > Add-ons, jossa laajennos joko poistetaan tai kytketään pois käytöstä.
 
-#### AbixApurin kytkeminen pois käytöstä (käytettäessä Greasemonkey skriptejä) 
-- Chromessa kun olet oma.abitti.fi-osoitteessa valitse TamperMonkey-laajennuksen kuvake (pyöreäreunainen neliö, jossa kaksi aukkoa) ja AbixApurin kohdalta käännä on->off. Tarvittaessa päälle kytkentä samoin.
-- Firefoxissa oma.abitti.fi-osoitteessa GreaseMonkey-laajennuksen kuvakkeesta (apinakuvake) alasnuoli -> ota valinta pois AbixApurin kohdalta. Tarvittaessa kytke uudelleen päälle ja päivitä verkkosivu.
-
-Huom! Suosittelen poistamaan käytöstä Greasemonkey ja Tampermonkey -skriptejä käyttävät laajennosversiot.
-
-### Tunnetut ongelmat
-+ Viivästetyn tallennuksen ollessa aktiivinen, koetehtävien järjestelytoiminto kyllä pyrkii tallentamaan kokeen, mutta potentiaalisesti voi joutua tilanteeseen, että viimeisimmät muutokset menetetään.
-+ Suurten kokeiden kohdalla koetehtävien järjestelytoiminto ei toimi, mikäli siirtelee tehtäviä nopeasti. Kiertokeino: Pidä taukoa vähintään viisi sekuntia tehtävien siirtojen välillä.
 
 ### Lisenssi ja vastuuvapaus
 
@@ -254,7 +247,7 @@ Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
 [3]:https://klo33.github.io/abixapuri/src/AbiApuri-skripti.user.js
-[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-0.9.3.2.xpi?raw=true
+[4]:https://github.com/klo33/abixapuri/blob/master/dist/abixapuri-1.3.0.1.xpi?raw=true
 [5]:https://github.com/klo33/abixapuri/blob/master/dist/abixapurichrome-0.5.0.0.crx?raw=true
 [6]:https://addons.mozilla.org/fi/firefox/addon/tampermonkey/
 [7]:https://github.com/klo33/abixapuri/wiki/Miten-AbixApuri-toimii-uudessa-Firefoxissa
