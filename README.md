@@ -1,6 +1,6 @@
 # AbixApuri
 
-**AbixApuri** (ent. AbittiApuri) on ilmainen ja avoin käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
+**AbixApuri** (ent. AbittiApuri) on ilmainen käyttöliittymälaajennus Ylioppilastutkintolautakunnan 
 [oma.abitti.fi]-koepalveluun. **AbixApuri** toimii [Firefox][4]- ja [Chrome][8]-selaimissa erillisen ladattavalla lisäosalla.
 
 ## Asennusohjeet
@@ -221,12 +221,22 @@ Mikäli vain poistit laajennukset käytöstä, on se helppo palauttaa käyttöö
 
 Lisäosa ei ole YTL:n kehittämä tai YTL:n tarkistama. Tarkoituksellisesti lisäosa ei tee mitään pahantahtoista YTL:n tai kolmannen osapuolen palvelulle. Käyttö kuitenkin omalla vastuulla.
 
-Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopuolella, mutta lähettää YTL:n Abitti-palveluun rajapintakutsuja kyseisen sivun "päälle liimattuna osana" sekä lataa skriptitiedostoja internetistä (toiminnallisuuksiin liittyvät laajennuksia). Sinänsä toiminnallisuuksien ei pitäisi rikkoa yhtään mitään YTL:n eikä käyttäjän tiedoista, mutta skripti tekee muutoksia avoinna olevan kokeen tietoihin, mikä onkin sen käyttötarkoitus. Muihin kokeisiin laajennus ei tee muutoksia. Skripti voi myös luoda uuden kokeen, kun sitä nimenomaisesti pyydetään ottamaan kopio. V0.5.0 alkaen skripti voi myös tallentaa YTL:n APIin kokeen arvosanatietoja kokeen pistemäärän perusteella käyttäjän nimenomaisesti niin pyytäessä (Arvosanalaskurin nappi "Toimeenpane" tai Arvosanojen tuonti toiminnon "Tallenna"). Muita muutoksia skripti ei tee tai tallenna mitään tietoja YTL:n Abitti-palvelun (ja selaimen välimuistin) ulkopuolelle toimistaan. 
+Lisäosa ei siirrä mitään informaatiota YTL:n [oma.abitti.fi]-palvelun ulkopuolella, mutta lähettää YTL:n Abitti-palveluun rajapintakutsuja kyseisen sivun "päälle liimattuna osana" sekä lataa skriptitiedostoja internetistä (toiminnallisuuksiin liittyvät laajennuksia). Sinänsä toiminnallisuuksien ei pitäisi rikkoa yhtään mitään YTL:n eikä käyttäjän tiedoista, mutta skripti tekee muutoksia avoinna olevan kokeen tietoihin, mikä onkin sen käyttötarkoitus. Muihin kokeisiin laajennus ei tee muutoksia. Skripti voi myös luoda uuden kokeen, kun sitä nimenomaisesti pyydetään ottamaan kopio. V0.5.0 alkaen skripti voi myös tallentaa YTL:n APIin kokeen arvosanatietoja kokeen pistemäärän perusteella käyttäjän nimenomaisesti niin pyytäessä (Arvosanalaskurin nappi "Toimeenpane" tai Arvosanojen tuonti toiminnon "Tallenna"). AbixApuri tekee tallennuksia selaimen muistiin, jotka ovat riippuvaisia koneen käyttäjästä ja käytetystä selaimesta. Tietoja ei lähetetä YTL:n Abitti-palvelun ulkopuolelle.
 
-AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
+#### V1.3 alkaen
+
+V.1.3 lähtien lisäosa annetaan ilmaiseksi kaikille lukio-opettajille ja koulutuksen järjestäjille käyttöön. Lähdekoodia ei julkaista kokonaisuudessaan julkisesti, mutta sitä voi pyytää. Jos lähdekoodin saa käyttöönsä, pitää lähde ja alkuperäinen lisenssi mainita. AbixApuria käytetään omalla vastuulla, ilman takuuta, eivätkä kehittäjät vastaa ohjelmistovirheiden aiheuttamista tahattomista vahingoista tiedoille. 
 
     AbixApuri - Lisäosa oma.abitti.fi-palveluun
-    Copyright (C) 2017-2021 Joni Lehtola
+    Copyright (C) 2017-2025 Joni Lehtola
+
+#### V1.0 asti
+
+AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä v1.0 asti. Lyhyesti, laajennusskripti on ilmainen käyttää, sen lähdekoodi on julkinen ja sitä saa muokata. Muokkauksissa ja käytössä pitää lähde ja alkuperäinen lisenssi mainita sekä julkaista koodi myös GPL:n alaisuudessa. AbixApuri-skriptiä käytetään omalla vastuulla, eivätkä kehittäjät vastaa mistään skriptin aiheuttamasta vahingosta.
+
+
+    AbixApuri - Lisäosa oma.abitti.fi-palveluun
+    Copyright (C) 2017-2022 Joni Lehtola
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -242,7 +252,7 @@ AbixApuri (ent. AbittiApuri) on julkaistu [GPLv3]-lisenssillä. Lyhyesti, laajen
     along with this program.  If not, see [http://www.gnu.org/licenses/]
 
 ### Yhteystiedot
-Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@kauniaistenlukio.fi
+Lisätiedot ja palaute Joni Lehtola, etunimi.sukunimi@graniedu.fi
 
 [1]:https://addons.mozilla.org/fi/firefox/addon/greasemonkey/
 [2]:https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
